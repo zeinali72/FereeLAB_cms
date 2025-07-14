@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { MessageSquare, ChevronDown, ChevronRight } from 'react-feather';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
-const conversations = [
+// Initial conversations data
+const initialConversations = [
     { id: 'conv-1', title: 'User Chat 1', timestamp: new Date() },
     { id: 'conv-2', title: 'User Chat 2', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)) },
 ];
@@ -19,6 +20,8 @@ const formatDateGroup = (date) => {
 
 const ConversationHistory = () => {
     const [isSectionOpen, setIsSectionOpen] = useState(true);
+    // Convert static conversations to state variable
+    const [conversations, setConversations] = useState(initialConversations);
 
     const groupedConversations = conversations.reduce((acc, conv) => {
         const dateKey = formatDateGroup(conv.timestamp);
@@ -28,9 +31,17 @@ const ConversationHistory = () => {
     }, {});
 
     const handleAddConversation = () => {
-        // This alert will appear when the button is clicked
-        alert("Function to start a new conversation has been called!");
-        console.log("Add new conversation clicked");
+        // Create a new conversation with a unique ID
+        const newConversation = {
+            id: `conv-${Date.now()}`,
+            title: `New Chat ${conversations.length + 1}`,
+            timestamp: new Date()
+        };
+        
+        // Add the new conversation at the beginning of the array
+        setConversations([newConversation, ...conversations]);
+        
+        console.log("Added new conversation at the top:", newConversation.title);
     };
 
     return (

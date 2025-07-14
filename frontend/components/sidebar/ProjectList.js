@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Folder, ChevronRight, ChevronDown, FileText } from 'react-feather';
 import { FolderPlusIcon } from '@heroicons/react/24/outline';
 
-const projects = [
+// Initial projects data
+const initialProjects = [
   { id: 'proj-1', name: 'Project A', children: [{ id: 'file-1', name: 'Initial brief.docx' }, { id: 'file-2', name: 'Design mockups' }] },
   { id: 'proj-2', name: 'Project B', children: [{ id: 'file-3', name: 'API documentation' }] },
 ];
@@ -11,15 +12,28 @@ const projects = [
 const ProjectList = () => {
   const [isSectionOpen, setIsSectionOpen] = useState(true);
   const [openProjects, setOpenProjects] = useState({ 'proj-1': true });
+  // Convert static projects to state variable
+  const [projects, setProjects] = useState(initialProjects);
 
   const toggleProject = (projectId) => {
     setOpenProjects(prev => ({ ...prev, [projectId]: !prev[projectId] }));
   };
 
   const handleAddProject = () => {
-    // This alert will appear when the button is clicked
-    alert("Function to add a new folder has been called!");
-    console.log("Add new project clicked");
+    // Create a new project with a unique ID
+    const newProject = {
+      id: `proj-${Date.now()}`,
+      name: `New Project ${projects.length + 1}`,
+      children: [] // Start with no files
+    };
+    
+    // Add the new project at the beginning of the array
+    setProjects([newProject, ...projects]);
+    
+    // Automatically expand the new project
+    setOpenProjects(prev => ({ ...prev, [newProject.id]: true }));
+    
+    console.log("Added new project at the top:", newProject.name);
   };
 
   return (
