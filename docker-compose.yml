@@ -1,0 +1,43 @@
+services:
+  database:
+    image: mongo:latest
+    container_name: mongo_db
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+
+  backend:
+    build: ./backend
+    container_name: django_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - database
+    environment:
+      - DB_HOST=database
+      - DB_NAME=chatbot_db
+      - DB_USER=admin
+      - DB_PASS=password
+
+  frontend:
+    build: ./frontend
+    container_name: next_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
