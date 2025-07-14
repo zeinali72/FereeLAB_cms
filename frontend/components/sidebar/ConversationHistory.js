@@ -3,12 +3,6 @@ import React, { useState } from 'react';
 import { MessageSquare, ChevronDown, ChevronRight } from 'react-feather';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
-// Initial conversations data
-const initialConversations = [
-    { id: 'conv-1', title: 'User Chat 1', timestamp: new Date() },
-    { id: 'conv-2', title: 'User Chat 2', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)) },
-];
-
 const formatDateGroup = (date) => {
     const today = new Date();
     const yesterday = new Date(today);
@@ -18,10 +12,13 @@ const formatDateGroup = (date) => {
     return date.toLocaleDateString();
 };
 
-const ConversationHistory = () => {
+const ConversationHistory = ({ 
+    conversations = [], 
+    activeConversationId, 
+    onNewConversation, 
+    onSwitchConversation 
+}) => {
     const [isSectionOpen, setIsSectionOpen] = useState(true);
-    // Convert static conversations to state variable
-    const [conversations, setConversations] = useState(initialConversations);
 
     const groupedConversations = conversations.reduce((acc, conv) => {
         const dateKey = formatDateGroup(conv.timestamp);
@@ -29,20 +26,6 @@ const ConversationHistory = () => {
         acc[dateKey].push(conv);
         return acc;
     }, {});
-
-    const handleAddConversation = () => {
-        // Create a new conversation with a unique ID
-        const newConversation = {
-            id: `conv-${Date.now()}`,
-            title: `New Chat ${conversations.length + 1}`,
-            timestamp: new Date()
-        };
-        
-        // Add the new conversation at the beginning of the array
-        setConversations([newConversation, ...conversations]);
-        
-        console.log("Added new conversation at the top:", newConversation.title);
-    };
 
     return (
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col flex-grow">
@@ -53,7 +36,7 @@ const ConversationHistory = () => {
                     </h2>
                     {isSectionOpen ? <ChevronDown size={20} className="ml-2 text-gray-400" /> : <ChevronRight size={20} className="ml-2 text-gray-400" />}
                 </div>
-                <button onClick={handleAddConversation} className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200" aria-label="Add new conversation">
+                <button onClick={onNewConversation} className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200" aria-label="Add new conversation">
                     <PlusIcon className="h-6 w-6" />
                 </button>
             </div>
@@ -66,13 +49,21 @@ const ConversationHistory = () => {
                                 <ul className="space-y-1">
                                     {convs.map((conv) => (
                                         <li key={conv.id}>
-                                            <a href="#" className="flex items-center p-2 text-base font-normal text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                                                <MessageSquare size={20} className="text-gray-500" />
-                                                <span className="ml-3 flex-1 whitespace-nowrap">{conv.title}</span>
+                                            <button 
+                                                onClick={() => onSwitchConversation(conv.id)}
+                                                className={`flex items-center w-full p-2 text-base font-normal rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200
+                                                    ${activeConversationId === conv.id 
+                                                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white' 
+                                                        : 'text-gray-900 dark:text-white'}`}
+                                            >
+                                                <MessageSquare size={20} className={`${activeConversationId === conv.id ? 'text-blue-500' : 'text-gray-500'}`} />
+                                                <span className="ml-3 flex-1 whitespace-nowrap overflow-hidden overflow-ellipsis text-left">
+                                                    {conv.title}
+                                                </span>
                                                 <span className="text-xs text-gray-400 dark:text-gray-500">
                                                     {conv.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
-                                            </a>
+                                            </button>
                                         </li>
                                     ))}
                                 </ul>

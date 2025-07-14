@@ -12,22 +12,66 @@ const ChatPage = () => {
   // --- Start Theme Management Update ---
   const [theme, setTheme] = useState('light'); // 'light', 'dark'
   
-  // Initial messages state with sample messages
-  const [messages, setMessages] = useState([
+  // Sample conversations data
+  const initialConversations = [
     {
-      id: 1,
-      sender: 'user',
-      text: 'This is my first prompt',
-      meta: { tokens: 4, cost: '$0.0001' },
-      name: 'User'
+      id: 'conv-1',
+      title: 'First Chat Session',
+      timestamp: new Date(),
+      messages: [
+        {
+          id: 1,
+          sender: 'user',
+          text: 'This is my first prompt',
+          meta: { tokens: 4, cost: '$0.0001' },
+          name: 'User'
+        },
+        {
+          id: 2,
+          sender: 'bot',
+          text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vitae ex feugiat, varius nunc viverra in bibendum. Duis sit cursus pulvinar sit faucibus. Vitae vitae at tellus ultrices in. Commodo sed convallis in sit. Sed ut sed proin neque. Eget netus ipsum morbi condimentum quis amet sit. Varius et feugiat placerat in accumsan iaculis massa. Nibh neque feugiat faucibus interdum vitae varius in nibh. Non enim odio odio pellentesque risus congue a. A mauris imperdiet adipiscing cursus nunc. At arcu sem orci feugiat in massa massa. Liberum dignissim quis convallis aliquet magna nec fermentum sit. Velit turpis dui sagittis egestas duis aliquet. Duis donec urna iaculis et.",
+          meta: { tokens: 152, cost: '$0.002' },
+        },
+      ]
     },
     {
-      id: 2,
-      sender: 'bot',
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vitae ex feugiat, varius nunc viverra in bibendum. Duis sit cursus pulvinar sit faucibus. Vitae vitae at tellus ultrices in. Commodo sed convallis in sit. Sed ut sed proin neque. Eget netus ipsum morbi condimentum quis amet sit. Varius et feugiat placerat in accumsan iaculis massa. Nibh neque feugiat faucibus interdum vitae varius in nibh. Non enim odio odio pellentesque risus congue a. A mauris imperdiet adipiscing cursus nunc. At arcu sem orci feugiat in massa massa. Liberum dignissim quis convallis aliquet magna nec fermentum sit. Velit turpis dui sagittis egestas duis aliquet. Duis donec urna iaculis et.",
-      meta: { tokens: 152, cost: '$0.002' },
-    },
-  ]);
+      id: 'conv-2',
+      title: 'Second Chat Session',
+      timestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
+      messages: [
+        {
+          id: 1,
+          sender: 'user',
+          text: 'Tell me about artificial intelligence',
+          meta: { tokens: 5, cost: '$0.0002' },
+          name: 'User'
+        },
+        {
+          id: 2,
+          sender: 'bot',
+          text: "Artificial intelligence (AI) refers to the simulation of human intelligence processes by machines, especially computer systems. These processes include learning (acquiring information and rules for using the information), reasoning (using the rules to reach approximate or definite conclusions), and self-correction.",
+          meta: { tokens: 42, cost: '$0.0008' },
+        },
+      ]
+    }
+  ];
+  
+  // Conversations state
+  const [conversations, setConversations] = useState(initialConversations);
+  
+  // Current active conversation
+  const [activeConversationId, setActiveConversationId] = useState(initialConversations[0].id);
+  
+  // Current messages (from the active conversation)
+  const [messages, setMessages] = useState(initialConversations[0].messages);
+  
+  // Update messages when active conversation changes
+  useEffect(() => {
+    const activeConversation = conversations.find(c => c.id === activeConversationId);
+    if (activeConversation) {
+      setMessages(activeConversation.messages);
+    }
+  }, [activeConversationId, conversations]);
   
   // Function to handle sending a new message
   const handleSendMessage = (text) => {
@@ -41,7 +85,17 @@ const ChatPage = () => {
     };
     
     // Add user message to chat
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    
+    // Update the conversation in the conversations list
+    setConversations(prevConversations => 
+      prevConversations.map(conv => 
+        conv.id === activeConversationId 
+          ? { ...conv, messages: updatedMessages, timestamp: new Date() }
+          : conv
+      )
+    );
     
     // Simulate bot response with "Hello world!"
     setTimeout(() => {
@@ -52,8 +106,37 @@ const ChatPage = () => {
         meta: { tokens: 2, cost: '$0.00005' },
       };
       
-      setMessages(prev => [...prev, botResponse]);
+      const updatedMessagesWithResponse = [...updatedMessages, botResponse];
+      setMessages(updatedMessagesWithResponse);
+      
+      // Update the conversation in the conversations list again with the bot response
+      setConversations(prevConversations => 
+        prevConversations.map(conv => 
+          conv.id === activeConversationId 
+            ? { ...conv, messages: updatedMessagesWithResponse }
+            : conv
+        )
+      );
     }, 500);
+  };
+  
+  // Function to start a new conversation
+  const handleNewConversation = () => {
+    const newConversationId = `conv-${Date.now()}`;
+    const newConversation = {
+      id: newConversationId,
+      title: `New Chat ${conversations.length + 1}`,
+      timestamp: new Date(),
+      messages: []
+    };
+    
+    setConversations([newConversation, ...conversations]);
+    setActiveConversationId(newConversationId);
+  };
+  
+  // Function to switch to an existing conversation
+  const handleSwitchConversation = (conversationId) => {
+    setActiveConversationId(conversationId);
   };
   
   useEffect(() => {
@@ -136,6 +219,10 @@ const ChatPage = () => {
           theme={theme}
           setTheme={setTheme}
           width={sidebarWidth}
+          conversations={conversations}
+          activeConversationId={activeConversationId}
+          onNewConversation={handleNewConversation}
+          onSwitchConversation={handleSwitchConversation}
         />
       </ResizablePanel>
       
@@ -149,6 +236,8 @@ const ChatPage = () => {
             onToggleSidebar={toggleSidebar}
             isSidebarOpen={isSidebarOpen}
             onToggleModelPanel={toggleModelPanel}
+            onNewConversation={handleNewConversation}
+            activeConversation={conversations.find(c => c.id === activeConversationId)}
           />
           <div className="flex-grow overflow-hidden relative">
             <ChatLog messages={messages} />

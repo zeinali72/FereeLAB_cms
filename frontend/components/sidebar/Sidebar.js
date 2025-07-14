@@ -5,8 +5,18 @@ import ProjectList from './ProjectList';
 import ConversationHistory from './ConversationHistory';
 import UserProfile from './UserProfile';
 
-// Accept and pass down `theme` and `setTheme`
-const Sidebar = ({ isOpen, onToggle, theme, setTheme, width }) => {
+// Accept and pass down conversation-related props
+const Sidebar = ({ 
+  isOpen, 
+  onToggle, 
+  theme, 
+  setTheme, 
+  width, 
+  conversations = [],
+  activeConversationId,
+  onNewConversation,
+  onSwitchConversation
+}) => {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div
@@ -32,7 +42,12 @@ const Sidebar = ({ isOpen, onToggle, theme, setTheme, width }) => {
         <SearchWithSuggestions />
         <div className="flex-grow overflow-y-auto">
           <ProjectList />
-          <ConversationHistory />
+          <ConversationHistory 
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onNewConversation={onNewConversation}
+            onSwitchConversation={onSwitchConversation}
+          />
         </div>
       </div>
 
