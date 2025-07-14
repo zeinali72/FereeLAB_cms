@@ -24,7 +24,8 @@ services:
       - DB_HOST=database
       - DB_NAME=chatbot_db
       - DB_USER=admin
-      - DB_PASS=password
+      - DB_PASS=2731
+      - OPENROUTER_API_KEY=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
 
   frontend:
     build: ./frontend
