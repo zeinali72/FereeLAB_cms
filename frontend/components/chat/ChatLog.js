@@ -8,6 +8,9 @@ const ChatLog = ({ messages = [] }) => {
   const chatContainerRef = useRef(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [processedMessages, setProcessedMessages] = useState([]);
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
   
   // Process messages to ensure correct animation state
   useEffect(() => {
@@ -21,11 +24,12 @@ const ChatLog = ({ messages = [] }) => {
     
     // Create a flag to track if this is a new message being added
     // We only want animation for newly added messages
-    const isNewMessageAdded = sessionStorage.getItem('lastMessageCount') && 
-                             parseInt(sessionStorage.getItem('lastMessageCount')) < messages.length;
+    const previousMessageCount = parseInt(sessionStorage.getItem('lastMessageCount') || '0');
+    const isNewMessageAdded = previousMessageCount < messages.length;
     
     // Store the current message count for future comparison
     sessionStorage.setItem('lastMessageCount', messages.length.toString());
+    setLastMessageCount(messages.length);
     
     const updatedMessages = messages.map((msg, index) => {
       // Disable all animations when:
@@ -45,36 +49,90 @@ const ChatLog = ({ messages = [] }) => {
     });
     
     setProcessedMessages(updatedMessages);
-  }, [messages]);
+    
+    // If a new message arrived, check if we should scroll
+    if (isNewMessageAdded && !userHasScrolled && !isSelecting) {
+      // Reset userHasScrolled when a new message arrives
+      // This allows auto-scrolling to resume after new bot messages
+      setUserHasScrolled(false);
+    }
+  }, [messages, userHasScrolled, isSelecting]);
 
   const scrollToBottom = (behavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior });
+      setShowScrollToBottom(false);
+    }
   };
 
+  // Effect for handling new messages and scrolling
   useEffect(() => {
-    // Scroll to bottom when messages change, but only if user is already near the bottom
-    if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 100; // 100px tolerance
-      if (isScrolledToBottom) {
-        scrollToBottom();
-      }
+    if (!chatContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 100; // 100px tolerance
+    
+    // If user hasn't manually scrolled or we're already at bottom, scroll to bottom
+    if (!userHasScrolled || isAtBottom) {
+      scrollToBottom('auto');
     }
-  }, [processedMessages]);
+    
+    // If new message appeared and user has scrolled away, show the scroll button
+    if (messages.length > lastMessageCount && !isAtBottom) {
+      setShowScrollToBottom(true);
+    }
+  }, [processedMessages, userHasScrolled, lastMessageCount, messages.length]);
 
+  // Handle scrolling - detect when user manually scrolls
   const handleScroll = () => {
-    if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-      setShowScrollToBottom(!isAtBottom);
-    }
+    if (!chatContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    
+    // Only set userHasScrolled to true if we're not at the bottom
+    // This way, when user scrolls to bottom manually, auto-scrolling is re-enabled
+    setUserHasScrolled(!isAtBottom);
+    setShowScrollToBottom(!isAtBottom);
+  };
+  
+  // Detect when user is selecting text
+  const handleMouseDown = () => {
+    setIsSelecting(true);
+  };
+  
+  const handleMouseUp = () => {
+    // Delayed reset to allow for click events to complete
+    setTimeout(() => {
+      setIsSelecting(false);
+      
+      // Check if text is selected
+      const selection = window.getSelection();
+      if (!selection || selection.toString().length === 0) {
+        // If no text is selected after mouseup, we can consider this a normal click
+        const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+        const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+        
+        // If user clicked and we're at the bottom, re-enable auto-scrolling
+        if (isAtBottom) {
+          setUserHasScrolled(false);
+        }
+      }
+    }, 100);
   };
 
   useEffect(() => {
     const chatContainer = chatContainerRef.current;
-    chatContainer?.addEventListener('scroll', handleScroll);
+    if (!chatContainer) return;
+    
+    chatContainer.addEventListener('scroll', handleScroll);
+    chatContainer.addEventListener('mousedown', handleMouseDown);
+    chatContainer.addEventListener('mouseup', handleMouseUp);
+    
     return () => {
-      chatContainer?.removeEventListener('scroll', handleScroll);
+      chatContainer.removeEventListener('scroll', handleScroll);
+      chatContainer.removeEventListener('mousedown', handleMouseDown);
+      chatContainer.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
@@ -91,8 +149,11 @@ const ChatLog = ({ messages = [] }) => {
       </div>
       {showScrollToBottom && (
         <button
-          onClick={() => scrollToBottom()}
-          className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white dark:bg-gray-700 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all animate-fade-in"
+          onClick={() => {
+            scrollToBottom();
+            setUserHasScrolled(false); // Re-enable auto-scrolling when clicking this button
+          }}
+          className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white dark:bg-gray-700 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all animate-fade-in z-10"
           aria-label="Scroll to bottom"
         >
           <ArrowDown size={20} />

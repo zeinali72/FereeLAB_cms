@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronsLeft, MoreVertical, Menu } from 'react-feather';
+import { MoreVertical } from 'react-feather';
 import SearchWithSuggestions from './SearchWithSuggestions';
 import ProjectList from './ProjectList';
 import ConversationHistory from './ConversationHistory';
@@ -28,13 +28,6 @@ const Sidebar = ({
         className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0`}
       >
         <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">FereeLAB</h1>
-        <button
-          onClick={onToggle}
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          title="Collapse sidebar"
-        >
-          <ChevronsLeft size={20} className="text-gray-600 dark:text-gray-400" />
-        </button>
       </div>
 
       <div

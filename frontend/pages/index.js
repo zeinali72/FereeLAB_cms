@@ -48,6 +48,9 @@ const ChatPage = () => {
     handleApplyModels,
   } = usePanels();
 
+  // Get the currently selected model ID
+  const selectedModelId = selectedModels.length > 0 ? selectedModels[0].id : null;
+
   return (
     <div className={`h-screen flex flex-col ${theme === 'dark' ? 'dark' : ''}`}>
       <div className="flex flex-1 overflow-hidden">
@@ -101,6 +104,7 @@ const ChatPage = () => {
             onToggleCanvas={toggleCanvas}
             onSendMessage={handleSendMessage}
             isCanvasOpen={isCanvasOpen}
+            selectedModel={selectedModelId}
           />
         </div>
 
