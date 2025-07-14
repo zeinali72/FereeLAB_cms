@@ -138,14 +138,21 @@ export const useChatState = () => {
       );
     }
 
+    const hasAnimated = sessionStorage.getItem('hasAnimatedInSession');
+
     setTimeout(() => {
       const botResponse = {
         id: Date.now() + 1,
         sender: 'bot',
-        text: "Hello world! I'm an AI assistant ready to help you with any questions you might have. Feel free to ask me anything!",
+        text: `You said: "${text}". I am a simple bot and this is a canned response.`,
         meta: { tokens: 20, cost: '$0.0002' },
+        animate: !hasAnimated
       };
       
+      if (!hasAnimated) {
+        sessionStorage.setItem('hasAnimatedInSession', 'true');
+      }
+
       const updatedMessagesWithResponse = [...updatedMessages, botResponse];
       setMessages(updatedMessagesWithResponse);
       

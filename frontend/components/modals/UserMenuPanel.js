@@ -11,6 +11,7 @@ const UserMenuPanel = ({ isOpen, theme, setTheme, onClose }) => {
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const menuRef = useRef(null);
   const themeButtonRef = useRef(null);
+  const ActiveThemeIcon = themes.find(t => t.id === theme)?.icon || Sun;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -46,7 +47,7 @@ const UserMenuPanel = ({ isOpen, theme, setTheme, onClose }) => {
               className="w-full flex items-center justify-between p-2 text-sm hover:bg-surface-secondary rounded-md"
             >
               <div className="flex items-center">
-                <Settings size={16} className="mr-3" />
+                <ActiveThemeIcon size={16} className="mr-3" />
                 <span className="font-medium">Theme</span>
               </div>
               <ChevronRight size={16} />
@@ -72,6 +73,7 @@ const UserMenuPanel = ({ isOpen, theme, setTheme, onClose }) => {
                         theme === themeOption.id ? 'bg-surface-secondary' : ''
                       }`}
                     >
+                      <themeOption.icon size={16} className="mr-2" />
                       <span>{themeOption.name}</span>
                     </button>
                   ))}
@@ -83,6 +85,7 @@ const UserMenuPanel = ({ isOpen, theme, setTheme, onClose }) => {
           {/* Other Menu Items */}
           <ul>
             {[
+              { icon: Settings, label: 'Settings' },
               { icon: User, label: 'Profile' },
               { icon: HelpCircle, label: 'Help' },
             ].map(item => (

@@ -100,6 +100,7 @@ const ChatPage = () => {
           <ChatInput
             onToggleCanvas={toggleCanvas}
             onSendMessage={handleSendMessage}
+            isCanvasOpen={isCanvasOpen}
           />
         </div>
 

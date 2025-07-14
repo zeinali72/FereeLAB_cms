@@ -1,6 +1,6 @@
 // frontend/components/chat/ChatMessage.js
 import React, { useState, useEffect } from 'react';
-import { Copy, ThumbsUp, ThumbsDown, RefreshCw, Check } from 'react-feather';
+import { Copy, ThumbsUp, ThumbsDown, RefreshCw, Check, Edit, MessageSquare } from 'react-feather';
 
 const ChatMessage = ({ message }) => {
   const isUser = message.sender === 'user';
@@ -9,7 +9,7 @@ const ChatMessage = ({ message }) => {
   const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
-    if (message.sender === 'bot') {
+    if (message.sender === 'bot' && message.animate) {
       setIsTyping(true);
       setDisplayText('');
       
@@ -29,7 +29,7 @@ const ChatMessage = ({ message }) => {
     } else {
       setDisplayText(message.text);
     }
-  }, [message.text, message.sender]);
+  }, [message.text, message.sender, message.animate]);
 
   const handleCopy = async () => {
     try {
@@ -53,28 +53,44 @@ const ChatMessage = ({ message }) => {
             {isTyping && <span className="animate-pulse">▍</span>}
           </p>
         </div>
-        {!isUser && (
-          <div className="flex items-center mt-2 text-gray-400 dark:text-gray-500 space-x-3">
-            <button onClick={handleCopy} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title={isCopied ? "Copied!" : "Copy"}>
-              {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-            </button>
-            <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Good response">
-              <ThumbsUp size={14} />
-            </button>
-            <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Bad response">
-              <ThumbsDown size={14} />
-            </button>
-            <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Regenerate">
-              <RefreshCw size={14} />
-            </button>
-            {message.meta && (
-              <div className="text-xs">
-                {message.meta.tokens && <span>{message.meta.tokens} tokens</span>}
-                {message.meta.cost && <span className="ml-2">{message.meta.cost}</span>}
-              </div>
-            )}
-          </div>
-        )}
+        <div className={`flex items-center mt-2 text-gray-400 dark:text-gray-500 space-x-3 ${isUser ? 'justify-end' : ''}`}>
+          {isUser ? (
+            <>
+              {message.meta && (
+                <div className="text-xs">
+                  {message.meta.tokens && <span>{message.meta.tokens} tokens</span>}
+                </div>
+              )}
+              <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Edit">
+                <Edit size={14} />
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={handleCopy} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title={isCopied ? "Copied!" : "Copy"}>
+                {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+              </button>
+              <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Good response">
+                <ThumbsUp size={14} />
+              </button>
+              <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Bad response">
+                <ThumbsDown size={14} />
+              </button>
+              <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Regenerate">
+                <RefreshCw size={14} />
+              </button>
+              <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Reply">
+                <MessageSquare size={14} />
+              </button>
+              {message.meta && (
+                <div className="text-xs">
+                  {message.meta.tokens && <span>{message.meta.tokens} tokens</span>}
+                  {message.meta.cost && <span className="ml-2">{message.meta.cost}</span>}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
