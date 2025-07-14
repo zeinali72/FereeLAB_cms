@@ -149,7 +149,7 @@ const ProjectList = ({
       <div className="px-4 py-2">
         <button
           onClick={() => setIsSectionOpen(!isSectionOpen)}
-          className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-surface-hover rounded-md transition-colors text-on-surface-variant"
+          className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors text-[var(--text-secondary)]"
         >
           <span>Projects</span>
           {isSectionOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -160,10 +160,10 @@ const ProjectList = ({
         <div className="mt-1">
           <button
             onClick={handleAddProject}
-            className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-surface-hover transition-colors text-on-surface-variant"
+            className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-primary)]"
           >
             <div className="flex items-center">
-              <FolderPlusIcon className="h-4 w-4 mr-2 text-on-surface-variant" />
+              <FolderPlusIcon className="h-4 w-4 mr-2" />
               <span>New project</span>
             </div>
           </button>
@@ -172,7 +172,7 @@ const ProjectList = ({
             {projects.map((project) => (
               <div 
                 key={project.id} 
-                className={`my-1 ${selectedId === project.id ? 'bg-surface-secondary' : ''}`}
+                className={`my-1 rounded-md ${selectedId === project.id ? 'bg-[var(--bg-tertiary)]' : ''}`}
                 onClick={() => {setSelectedId(project.id); setSelectedChildId(null);}}
                 onContextMenu={(e) => handleProjectContextMenu(e, project)}
               >
@@ -180,11 +180,11 @@ const ProjectList = ({
                 <div className="flex items-center">
                   {editingId === project.id ? (
                     // Editing project name
-                    <form onSubmit={handleSaveName} className="px-2 py-1 flex items-center w-full bg-surface-container-low rounded-md">
+                    <form onSubmit={handleSaveName} className="px-2 py-1 flex items-center w-full bg-[var(--bg-tertiary)] rounded-md">
                       <button
                         type="button"
                         onClick={(e) => toggleProject(project.id, e)}
-                        className="mr-1 p-1 hover:bg-surface-hover rounded transition-colors flex-shrink-0 text-on-surface-variant"
+                        className="mr-1 p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors flex-shrink-0 text-[var(--text-secondary)]"
                       >
                         {openProjects[project.id] ? (
                           <ChevronDown size={14} />
@@ -197,19 +197,19 @@ const ProjectList = ({
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="flex-grow text-sm bg-surface-container-low p-1 rounded focus:ring-1 focus:ring-primary focus:outline-none text-on-surface"
+                        className="flex-grow text-sm bg-[var(--bg-tertiary)] p-1 rounded focus:ring-1 focus:ring-primary-500 focus:outline-none text-[var(--text-primary)]"
                       />
                       <button 
                         type="submit"
-                        className="ml-1 p-1 hover:bg-surface-hover rounded-md transition-colors text-primary"
+                        className="ml-1 p-1 hover:bg-[var(--bg-secondary)] rounded-md transition-colors text-primary-500"
                         title="Save"
                       >
-                        <Check size={14} className="text-primary-500" />
+                        <Check size={14} />
                       </button>
                       <button
                         type="button"
                         onClick={handleCancelRename}
-                        className="p-1 hover:bg-surface-hover rounded-md transition-colors text-on-surface-variant"
+                        className="p-1 hover:bg-[var(--bg-secondary)] rounded-md transition-colors text-[var(--text-secondary)]"
                         title="Cancel"
                       >
                         <X size={14} />
@@ -225,7 +225,7 @@ const ProjectList = ({
                           }
                         }}
                         onDoubleClick={(e) => handleStartRenameProject(project, e)}
-                        className={`flex items-center flex-grow px-4 py-1 text-sm hover:bg-surface-hover transition-colors rounded-md ${activeProjectId === project.id ? 'font-medium text-primary' : 'text-on-surface-variant'}`}
+                        className={`flex items-center flex-grow px-4 py-1 text-sm hover:bg-[var(--bg-tertiary)] transition-colors rounded-md ${activeProjectId === project.id ? 'font-medium text-primary-500' : 'text-[var(--text-primary)]'}`}
                       >
                         <span 
                           onClick={(e) => toggleProject(project.id, e)}
@@ -242,7 +242,7 @@ const ProjectList = ({
 
                       <button
                         onClick={() => handleAddChat(project.id)}
-                        className="p-1 mr-2 hover:bg-surface-secondary rounded transition-colors text-primary-500 hover:text-primary-700"
+                        className="p-1 mr-2 hover:bg-[var(--bg-tertiary)] rounded transition-colors text-primary-500 hover:text-primary-700"
                         title="Add chat to project"
                       >
                         <PlusIcon className="h-3 w-3" />
@@ -257,24 +257,24 @@ const ProjectList = ({
                     {project.children.map((chat) => (
                       <li 
                         key={chat.id}
-                        className={`${selectedChildId === chat.id ? 'bg-surface-secondary' : ''}`}
+                        className={`rounded-md ${selectedChildId === chat.id ? 'bg-[var(--bg-tertiary)]' : ''}`}
                         onClick={(e) => {e.stopPropagation(); setSelectedId(null); setSelectedChildId(chat.id);}}
                         onContextMenu={(e) => handleChatContextMenu(e, chat)}
                       >
                         {editingChildId === chat.id ? (
                           // Editing chat name
                           <form onSubmit={handleSaveName} className="px-4 py-1 flex items-center">
-                            <MessageSquare size={16} className="mr-2 flex-shrink-0 text-tertiary" />
+                            <MessageSquare size={16} className="mr-2 flex-shrink-0 text-[var(--text-secondary)]" />
                             <input
                               ref={inputRef}
                               type="text"
                               value={editName}
                               onChange={(e) => setEditName(e.target.value)}
-                              className="flex-grow text-sm bg-surface-secondary p-1 rounded focus:ring-1 focus:ring-primary-500 focus:outline-none"
+                              className="flex-grow text-sm bg-[var(--bg-tertiary)] p-1 rounded focus:ring-1 focus:ring-primary-500 focus:outline-none"
                             />
                             <button 
                               type="submit"
-                              className="ml-1 p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                              className="ml-1 p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors"
                               title="Save"
                             >
                               <Check size={14} className="text-primary-500" />
@@ -282,7 +282,7 @@ const ProjectList = ({
                             <button
                               type="button"
                               onClick={handleCancelRename}
-                              className="p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                              className="p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors"
                               title="Cancel"
                             >
                               <X size={14} />
@@ -293,10 +293,10 @@ const ProjectList = ({
                           <button
                             onClick={() => onSwitchToProjectChat(project.id, chat.id)}
                             onDoubleClick={(e) => handleStartRenameChat(chat, e)}
-                            className={`flex items-center w-full px-4 py-2 text-sm ${
+                            className={`flex items-center w-full px-4 py-2 text-sm rounded-md ${
                               activeProjectId === project.id && activeProjectChatId === chat.id 
                                 ? 'list-item-active' 
-                                : 'hover:bg-surface-secondary'
+                                : 'hover:bg-[var(--bg-tertiary)]'
                             } transition-colors`}
                           >
                             <MessageSquare size={16} className="mr-2 flex-shrink-0" />

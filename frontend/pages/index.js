@@ -1,4 +1,3 @@
-// frontend/pages/index.js
 import React from 'react';
 import Sidebar from '../components/sidebar/Sidebar.js';
 import InspectorPanel from '../components/shared/InspectorPanel';
@@ -11,6 +10,7 @@ import MarketplacePanel from '../components/marketplace/MarketplacePanel.js';
 import { useChatState } from '../hooks/useChatState.js';
 import { useTheme } from '../hooks/useTheme.js';
 import { usePanels } from '../hooks/usePanels.js';
+import { mockModels } from '../data/mockModels.js';
 
 const ChatPage = () => {
   const { theme, toggleTheme, setTheme } = useTheme();
@@ -21,7 +21,13 @@ const ChatPage = () => {
     activeProjectId,
     activeProjectChatId,
     messages,
+    replyTo,
     handleSendMessage,
+    handleEditMessage,
+    handleRegenerateResponse,
+    handleFeedback,
+    handleReply,
+    cancelReply,
     handleNewConversation,
     handleSwitchConversation,
     handleRenameConversation,
@@ -50,13 +56,14 @@ const ChatPage = () => {
     handleApplyModels,
   } = usePanels();
 
-  // Get the currently selected model ID
   const selectedModelId = selectedModels.length > 0 ? selectedModels[0].id : null;
 
+  const providers = React.useMemo(() => [...new Set(mockModels.map(m => m.provider.name))].map(name => ({ id: name, name })).sort((a,b) => a.name.localeCompare(b.name)), []);
+  const categories = React.useMemo(() => [...new Set(mockModels.flatMap(m => m.categories))].map(name => ({ id: name, name })).sort((a,b) => a.name.localeCompare(b.name)), []);
+
   return (
-    <div className={`h-screen flex flex-col ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className={`h-screen flex flex-col bg-background text-on-background ${theme}`}>
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
         <ResizablePanel
           isOpen={isSidebarOpen}
           direction="horizontal"
@@ -66,8 +73,6 @@ const ChatPage = () => {
           onResize={handleSidebarResize}
         >
           <Sidebar
-            isOpen={isSidebarOpen}
-            onToggle={toggleSidebar}
             theme={theme}
             setTheme={setTheme}
             conversations={conversations}
@@ -85,9 +90,7 @@ const ChatPage = () => {
           />
         </ResizablePanel>
 
-        {/* Main Chat Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Chat Header */}
           <ChatHeader
             onToggleTheme={toggleTheme}
             isDarkMode={theme === 'dark'}
@@ -98,21 +101,26 @@ const ChatPage = () => {
             chatTitle={getActiveChatTitle()}
           />
 
-          {/* Chat Messages */}
           <div className="flex-1 relative">
-            <ChatLog messages={messages} />
+            <ChatLog
+              messages={messages}
+              onEditMessage={handleEditMessage}
+              onRegenerateResponse={handleRegenerateResponse}
+              onFeedback={handleFeedback}
+              onReply={handleReply}
+            />
           </div>
 
-          {/* Chat Input */}
           <ChatInput
-            onToggleCanvas={toggleCanvas}
             onSendMessage={handleSendMessage}
+            onToggleCanvas={toggleCanvas}
             isCanvasOpen={isCanvasOpen}
             selectedModel={selectedModelId}
+            replyTo={replyTo}
+            cancelReply={cancelReply}
           />
         </div>
 
-        {/* Inspector Panel */}
         {isCanvasOpen && (
           <ResizablePanel
             direction="horizontal"
@@ -120,19 +128,18 @@ const ChatPage = () => {
             minSize={300}
             maxSize={600}
             onResize={handleCanvasResize}
-            className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex-shrink-0"
+            className="bg-surface border-l border-outline-variant flex-shrink-0"
             handlePosition="left"
           >
-            <InspectorPanel 
-              isOpen={isCanvasOpen} 
-              onClose={toggleCanvas} 
+            <InspectorPanel
+              isOpen={isCanvasOpen}
+              onClose={toggleCanvas}
               width={canvasWidth}
             />
           </ResizablePanel>
         )}
       </div>
 
-      {/* Models Panel Modal */}
       <ModelPanel
         isOpen={isModelPanelOpen}
         onClose={toggleModelPanel}
@@ -140,12 +147,14 @@ const ChatPage = () => {
         selectedModels={selectedModels.map(model => model.id)}
       />
 
-      {/* Marketplace Panel Modal */}
       {isMarketplaceOpen && (
         <MarketplacePanel
           onClose={handleCloseMarketplace}
           selectedModels={selectedModels.map(model => model.id)}
           onApplyModels={handleApplyModels}
+          providers={providers}
+          categories={categories}
+          mockModels={mockModels}
         />
       )}
     </div>

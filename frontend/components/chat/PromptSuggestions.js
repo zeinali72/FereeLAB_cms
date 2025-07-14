@@ -15,7 +15,7 @@ const PromptSuggestions = ({ onSuggestionClick }) => {
         {suggestions.map((suggestion, index) => (
           <button
             key={index}
-            className="suggestion-chip bg-surface-secondary text-on-surface-secondary hover:bg-surface-tertiary transition-colors"
+            className="px-4 py-2 rounded-full bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
             onClick={() => onSuggestionClick(suggestion)}
           >
             {suggestion}

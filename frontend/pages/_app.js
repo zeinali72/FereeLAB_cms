@@ -1,8 +1,4 @@
-import '../styles/variables.css';
 import '../styles/globals.css';
-import '../styles/theme.css';
-import '../styles/animations.css';
-import '../styles/context-menu.css';
 import { useTheme } from '../hooks/useTheme';
 import { useEffect, useState } from 'react';
 
@@ -12,17 +8,14 @@ function MyApp({ Component, pageProps }) {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    document.body.className = theme;
+  }, [theme]);
 
   if (!isMounted) {
     return null; 
   }
 
-  return (
-    <div className={theme}>
-      <Component {...pageProps} />
-    </div>
-  );
+  return <Component {...pageProps} />;
 }
 
 export default MyApp;

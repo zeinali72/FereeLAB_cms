@@ -1,9 +1,14 @@
-// frontend/components/chat/ChatLog.js
 import React, { useRef, useEffect, useState } from 'react';
 import ChatMessage from './ChatMessage';
 import { ArrowDown } from 'react-feather';
 
-const ChatLog = ({ messages = [] }) => {
+const ChatLog = ({ 
+  messages = [], 
+  onEditMessage, 
+  onRegenerateResponse, 
+  onFeedback, 
+  onReply 
+}) => {
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -11,8 +16,8 @@ const ChatLog = ({ messages = [] }) => {
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
-  
-  // Process messages to ensure correct animation state
+
+  // (All useEffect hooks and handlers remain the same as before)
   useEffect(() => {
     // Check if this is a page reload
     const isPageReload = !sessionStorage.getItem('pageHasLoaded');
@@ -137,13 +142,20 @@ const ChatLog = ({ messages = [] }) => {
   }, []);
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full bg-[var(--bg-primary)]">
       <div 
         ref={chatContainerRef}
         className="absolute inset-0 p-4 md:p-6 lg:p-8 space-y-6 overflow-y-auto custom-scrollbar"
       >
         {processedMessages.map((msg) => (
-          <ChatMessage key={msg.id} message={msg} />
+          <ChatMessage 
+            key={msg.id} 
+            message={msg} 
+            onEdit={onEditMessage}
+            onRegenerate={onRegenerateResponse}
+            onFeedback={onFeedback}
+            onReply={onReply}
+          />
         ))}
         <div ref={messagesEndRef} className="h-1" />
       </div>
@@ -153,7 +165,7 @@ const ChatLog = ({ messages = [] }) => {
             scrollToBottom();
             setUserHasScrolled(false); // Re-enable auto-scrolling when clicking this button
           }}
-          className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white dark:bg-gray-700 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all animate-fade-in z-10"
+          className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-[var(--bg-tertiary)] shadow-lg flex items-center justify-center text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all animate-fade-in z-10"
           aria-label="Scroll to bottom"
         >
           <ArrowDown size={20} />

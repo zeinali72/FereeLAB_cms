@@ -1,6 +1,6 @@
-// frontend/hooks/useChatState.js
 import { useState, useEffect } from 'react';
 
+// (Keep initialConversations and initialProjects as they are)
 const initialConversations = [
   {
     id: 'conv-1',
@@ -83,7 +83,9 @@ export const useChatState = () => {
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [activeProjectChatId, setActiveProjectChatId] = useState(null);
   const [messages, setMessages] = useState(initialConversations[0].messages);
+  const [replyTo, setReplyTo] = useState(null);
 
+  // (useEffect for syncing messages remains the same)
   useEffect(() => {
     if (activeConversationId) {
       const activeConversation = conversations.find(c => c.id === activeConversationId);
@@ -101,35 +103,23 @@ export const useChatState = () => {
     }
   }, [activeConversationId, conversations, activeProjectId, activeProjectChatId, projects]);
 
-  const handleSendMessage = (text) => {
-    const userMessage = {
-      id: Date.now(),
-      sender: 'user',
-      text: text,
-      meta: { tokens: text.split(' ').length, cost: '$0.0001' },
-      name: 'User',
-      // Always animate new user messages when they're sent
-      animate: true
-    };
-
-    const updatedMessages = [...messages, userMessage];
+  const updateMessagesInState = (updatedMessages) => {
     setMessages(updatedMessages);
-
     if (activeConversationId) {
-      setConversations(prev => 
-        prev.map(conv => 
-          conv.id === activeConversationId 
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.id === activeConversationId
             ? { ...conv, messages: updatedMessages, timestamp: new Date() }
             : conv
         )
       );
     } else if (activeProjectId && activeProjectChatId) {
-      setProjects(prev => 
-        prev.map(proj => 
+      setProjects(prev =>
+        prev.map(proj =>
           proj.id === activeProjectId
             ? {
                 ...proj,
-                children: proj.children.map(chat => 
+                children: proj.children.map(chat =>
                   chat.id === activeProjectChatId
                     ? { ...chat, messages: updatedMessages }
                     : chat
@@ -139,9 +129,25 @@ export const useChatState = () => {
         )
       );
     }
+  };
+
+  const handleSendMessage = (text, file) => {
+    const userMessage = {
+      id: Date.now(),
+      sender: 'user',
+      text: text,
+      file: file,
+      replyTo: replyTo,
+      meta: { tokens: text.split(' ').length, cost: '$0.0001' },
+      name: 'User',
+      animate: true
+    };
+
+    const updatedMessages = [...messages, userMessage];
+    updateMessagesInState(updatedMessages);
+    setReplyTo(null); // Clear reply state after sending
 
     setTimeout(() => {
-      // Always animate new bot messages when they're sent
       const botResponse = {
         id: Date.now() + 1,
         sender: 'bot',
@@ -149,37 +155,55 @@ export const useChatState = () => {
         meta: { tokens: 20, cost: '$0.0002' },
         animate: true
       };
-
       const updatedMessagesWithResponse = [...updatedMessages, botResponse];
-      setMessages(updatedMessagesWithResponse);
-      
-      if (activeConversationId) {
-        setConversations(prev => 
-          prev.map(conv => 
-            conv.id === activeConversationId 
-              ? { ...conv, messages: updatedMessagesWithResponse }
-              : conv
-          )
-        );
-      } else if (activeProjectId && activeProjectChatId) {
-        setProjects(prev => 
-          prev.map(proj => 
-            proj.id === activeProjectId
-              ? {
-                  ...proj,
-                  children: proj.children.map(chat => 
-                    chat.id === activeProjectChatId
-                      ? { ...chat, messages: updatedMessagesWithResponse }
-                      : chat
-                  )
-                }
-              : proj
-          )
-        );
-      }
+      updateMessagesInState(updatedMessagesWithResponse);
     }, 500);
   };
 
+  const handleEditMessage = (messageId, newText) => {
+    const updatedMessages = messages.map(msg => 
+      msg.id === messageId ? { ...msg, text: newText, animate: false } : msg
+    );
+    updateMessagesInState(updatedMessages);
+  };
+
+  const handleRegenerateResponse = (messageId) => {
+    const userMessageIndex = messages.findIndex(msg => msg.id === messageId) - 1;
+    if (userMessageIndex < 0) return;
+
+    const userMessage = messages[userMessageIndex];
+    const messagesWithoutOldResponse = messages.slice(0, userMessageIndex + 1);
+    updateMessagesInState(messagesWithoutOldResponse);
+
+    setTimeout(() => {
+      const botResponse = {
+        id: Date.now(),
+        sender: 'bot',
+        text: `This is a regenerated response to: "${userMessage.text}".`,
+        meta: { tokens: 25, cost: '$0.0003' },
+        animate: true
+      };
+      const updatedMessagesWithResponse = [...messagesWithoutOldResponse, botResponse];
+      updateMessagesInState(updatedMessagesWithResponse);
+    }, 500);
+  };
+
+  const handleFeedback = (messageId, feedback) => {
+    const updatedMessages = messages.map(msg =>
+      msg.id === messageId ? { ...msg, feedback: feedback } : msg
+    );
+    updateMessagesInState(updatedMessages);
+  };
+
+  const handleReply = (message) => {
+    setReplyTo(message);
+  };
+
+  const cancelReply = () => {
+    setReplyTo(null);
+  };
+
+  // (Keep other handlers like handleNewConversation, handleSwitchConversation, etc. as they are)
   const handleNewConversation = () => {
     const newConversationId = `conv-${Date.now()}`;
     const newConversation = {
@@ -357,6 +381,7 @@ export const useChatState = () => {
     return "New Chat";
   };
 
+
   return {
     conversations,
     activeConversationId,
@@ -364,7 +389,13 @@ export const useChatState = () => {
     activeProjectId,
     activeProjectChatId,
     messages,
+    replyTo,
     handleSendMessage,
+    handleEditMessage,
+    handleRegenerateResponse,
+    handleFeedback,
+    handleReply,
+    cancelReply,
     handleNewConversation,
     handleSwitchConversation,
     handleRenameConversation,

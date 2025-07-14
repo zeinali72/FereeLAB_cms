@@ -1,36 +1,36 @@
-// frontend/components/chat/ChatInput.js
 import React, { useState, useRef, useEffect } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import { Paperclip, Layers, Send, Zap } from 'react-feather'; 
+import { Paperclip, Layers, Send, Zap, X } from 'react-feather';
 import PromptSuggestions from './PromptSuggestions';
 import { mockModels } from '../../data/mockModels';
 
-const ChatInput = ({ onToggleCanvas, onSendMessage, isCanvasOpen, selectedModel }) => {
+const ChatInput = ({ 
+  onSendMessage, 
+  onToggleCanvas, 
+  isCanvasOpen, 
+  selectedModel, 
+  replyTo, 
+  cancelReply 
+}) => {
   const [message, setMessage] = useState('');
   const [attachedFile, setAttachedFile] = useState(null);
   const [isPromptGeneratorOpen, setIsPromptGeneratorOpen] = useState(false);
-  const [charCount, setCharCount] = useState(0);
   const textareaRef = useRef(null);
-  const containerRef = useRef(null);
-  
-  // Get context length from the selected model, or use a default value
+
   const getMaxContextLength = () => {
-    if (selectedModel) {
-      const model = mockModels.find(m => m.id === selectedModel);
-      return model ? model.context_length : 4000;
-    }
-    return 4000; // Default value if no model is selected
+    const model = mockModels.find(m => m.id === selectedModel);
+    return model ? model.context_length : 4000;
   };
-  
+
   const maxChars = getMaxContextLength();
-  const maxHeight = 200; // Maximum height in pixels before scrolling
+  const charCount = message.length;
 
   const handleSendMessage = () => {
     if (message.trim() || attachedFile) {
       onSendMessage(message, attachedFile);
       setMessage('');
-      setCharCount(0);
       setAttachedFile(null);
+      if (cancelReply) cancelReply();
     }
   };
 
@@ -39,97 +39,94 @@ const ChatInput = ({ onToggleCanvas, onSendMessage, isCanvasOpen, selectedModel 
       e.preventDefault();
       handleSendMessage();
     }
+    if (e.key === 'Escape' && replyTo) {
+        cancelReply();
+    }
   };
-  
+
   const handleSuggestionClick = (suggestion) => {
     setMessage(suggestion);
-    setCharCount(suggestion.length);
     textareaRef.current?.focus();
   };
 
-  const togglePromptGenerator = () => {
-    setIsPromptGeneratorOpen(!isPromptGeneratorOpen);
-  };
-
-  // Update character count when message changes
-  useEffect(() => {
-    setCharCount(message.length);
-  }, [message]);
-
-  // Manage textarea height and scrolling behavior
-  useEffect(() => {
-    if (textareaRef.current) {
-      // Let the component handle its own height initially
-      const height = textareaRef.current.scrollHeight;
-      
-      // If height exceeds max, enforce scrolling behavior
-      if (height > maxHeight) {
-        textareaRef.current.style.overflow = 'auto';
-        textareaRef.current.style.maxHeight = `${maxHeight}px`;
-      } else {
-        textareaRef.current.style.overflow = 'hidden';
-      }
-      
-      // Always scroll to bottom when typing
-      textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+  const handleFileAttach = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAttachedFile(file);
     }
-  }, [message, maxHeight]);
-
-  const handleFileAttach = () => {
-    // This is a placeholder for file attachment logic
-    setAttachedFile({ name: 'attached-file.txt' });
   };
+
+  const removeAttachedFile = () => {
+    setAttachedFile(null);
+  };
+
+  useEffect(() => {
+    if (replyTo) {
+      textareaRef.current?.focus();
+    }
+  }, [replyTo]);
 
   const canSendMessage = message.trim() || attachedFile;
-  const isNearLimit = charCount > maxChars * 0.9;
   const isOverLimit = charCount > maxChars;
 
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-      <PromptSuggestions onSuggestionClick={handleSuggestionClick} />
-      <div ref={containerRef} className="relative flex flex-col mt-4 bg-gray-100 dark:bg-gray-700 rounded-xl p-2">
+    <div className="p-4 bg-[var(--bg-secondary)] border-t border-[var(--border-primary)]">
+      {!replyTo && <PromptSuggestions onSuggestionClick={handleSuggestionClick} />}
+      
+      <div className="relative flex flex-col mt-4 bg-[var(--bg-tertiary)] rounded-xl p-2 border border-[var(--border-primary)]">
+        {replyTo && (
+          <div className="flex items-center justify-between p-2 mb-2 bg-[var(--bg-secondary)] rounded-md text-sm">
+            <div className="text-[var(--text-secondary)]">
+              Replying to: <span className="font-medium text-[var(--text-primary)]">"{replyTo.text.substring(0, 50)}..."</span>
+            </div>
+            <button onClick={cancelReply} className="p-1 hover:bg-[var(--bg-tertiary)] rounded-full">
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
+        {attachedFile && (
+          <div className="flex items-center justify-between p-2 mb-2 bg-[var(--bg-secondary)] rounded-md text-sm">
+            <div className="text-[var(--text-secondary)]">
+              Attached: <span className="font-medium text-[var(--text-primary)]">{attachedFile.name}</span>
+            </div>
+            <button onClick={removeAttachedFile} className="p-1 hover:bg-[var(--bg-tertiary)] rounded-full">
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         <div className="flex items-end">
-          <button onClick={togglePromptGenerator} className={`p-2 transition-colors ${isPromptGeneratorOpen ? 'text-blue-500' : 'text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400'}`}>
+          <button onClick={() => setIsPromptGeneratorOpen(!isPromptGeneratorOpen)} className={`p-2 transition-colors ${isPromptGeneratorOpen ? 'text-primary-500' : 'text-[var(--text-secondary)] hover:text-primary-500'}`}>
             <Zap size={20} />
           </button>
           <TextareaAutosize
             ref={textareaRef}
-            className={`flex-1 bg-transparent resize-none focus:outline-none px-2 text-base text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 self-center ${isOverLimit ? 'border-red-500 border' : ''}`}
+            className={`flex-1 bg-transparent resize-none focus:outline-none px-2 text-base text-[var(--text-primary)] placeholder-[var(--text-secondary)] self-center ${isOverLimit ? 'border-red-500 border' : ''}`}
             placeholder="Ask anything..."
             rows="1"
             minRows={1}
             maxRows={8}
             value={message}
-            onChange={(e) => {
-              // Prevent input if over the character limit
-              if (e.target.value.length <= maxChars || e.target.value.length < message.length) {
-                setMessage(e.target.value);
-              }
-            }}
+            onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            style={{ 
-              resize: 'none',
-            }}
           />
           <div className="flex items-center space-x-1">
             <button
               onClick={onToggleCanvas}
-              className={`p-2 transition-colors ${isCanvasOpen ? 'text-blue-500' : 'text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400'}`}
+              className={`p-2 transition-colors ${isCanvasOpen ? 'text-primary-500' : 'text-[var(--text-secondary)] hover:text-primary-500'}`}
               title="Toggle Canvas"
             >
               <Layers size={20} />
             </button>
-            <button onClick={handleFileAttach} className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors" title="Attach File">
+            <label className="p-2 text-[var(--text-secondary)] hover:text-primary-500 transition-colors cursor-pointer" title="Attach File">
               <Paperclip size={20} />
-            </button>
+              <input type="file" onChange={handleFileAttach} className="hidden" />
+            </label>
             <button
               onClick={handleSendMessage}
               disabled={!canSendMessage || isOverLimit}
-              className={`p-2 transition-colors duration-200 ${
-                canSendMessage && !isOverLimit
-                  ? 'text-blue-500 hover:text-blue-600'
-                  : 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
-              }`}
+              className={`p-2 transition-colors duration-200 ${canSendMessage && !isOverLimit ? 'text-primary-500 hover:text-primary-600' : 'text-gray-400 cursor-not-allowed'}`}
               aria-label="Send message"
             >
               <Send size={18} />
@@ -137,14 +134,7 @@ const ChatInput = ({ onToggleCanvas, onSendMessage, isCanvasOpen, selectedModel 
           </div>
         </div>
         
-        {/* Character counter */}
-        <div className={`text-xs text-right pr-2 mt-1 ${
-          isNearLimit 
-            ? isOverLimit 
-              ? 'text-red-500' 
-              : 'text-yellow-500 dark:text-yellow-400'
-            : 'text-gray-500 dark:text-gray-400'
-        }`}>
+        <div className={`text-xs text-right pr-2 mt-1 ${isOverLimit ? 'text-red-500' : 'text-[var(--text-secondary)]'}`}>
           {charCount}/{maxChars} characters
         </div>
       </div>

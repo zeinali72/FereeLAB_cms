@@ -117,10 +117,10 @@ const ConversationHistory = ({
             <div className="px-4 py-2">
                 <button
                     onClick={() => setIsSectionOpen(!isSectionOpen)}
-                    className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                    className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors"
                 >
-                    <span>Conversations</span>
-                    {isSectionOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                    <span className="text-[var(--text-secondary)]">Conversations</span>
+                    {isSectionOpen ? <ChevronDown size={16} className="text-[var(--text-secondary)]" /> : <ChevronRight size={16} className="text-[var(--text-secondary)]" />}
                 </button>
             </div>
 
@@ -128,9 +128,9 @@ const ConversationHistory = ({
                 <div className="mt-1">
                     <button
                         onClick={onNewConversation}
-                        className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-surface-secondary transition-colors"
+                        className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-[var(--bg-tertiary)] transition-colors"
                     >
-                        <div className="flex items-center">
+                        <div className="flex items-center text-[var(--text-primary)]">
                             <PlusIcon className="h-4 w-4 mr-2" />
                             <span>New conversation</span>
                         </div>
@@ -139,7 +139,7 @@ const ConversationHistory = ({
                     {Object.entries(groupedConversations).map(([dateGroup, convs]) => (
                         <div key={dateGroup} className="mt-2">
                             <div className="px-4 py-1">
-                                <p className="text-xs font-medium text-tertiary">{dateGroup}</p>
+                                <p className="text-xs font-medium text-[var(--text-secondary)]">{dateGroup}</p>
                             </div>
 
                             <ul>
@@ -150,18 +150,18 @@ const ConversationHistory = ({
                                         onKeyDown={(e) => handleKeyDown(e, conv)}
                                         onContextMenu={(e) => handleContextMenu(e, conv)}
                                         onClick={() => setSelectedId(conv.id)}
-                                        className={`${selectedId === conv.id ? 'bg-surface-secondary' : ''}`}
+                                        className={`${selectedId === conv.id ? 'bg-[var(--bg-tertiary)]' : ''}`}
                                     >
                                         {editingId === conv.id ? (
                                             // Editing state
                                             <form onSubmit={handleSaveTitle} className="px-4 py-1 flex items-center">
-                                                <MessageSquare size={16} className="mr-2 flex-shrink-0 text-tertiary" />
+                                                <MessageSquare size={16} className="mr-2 flex-shrink-0 text-[var(--text-secondary)]" />
                                                 <input
                                                     ref={inputRef}
                                                     type="text"
                                                     value={editTitle}
                                                     onChange={(e) => setEditTitle(e.target.value)}
-                                                    className="flex-grow text-sm bg-surface-secondary p-1 rounded focus:ring-1 focus:ring-primary-500 focus:outline-none"
+                                                    className="flex-grow text-sm bg-[var(--bg-tertiary)] p-1 rounded focus:ring-1 focus:ring-primary-500 focus:outline-none"
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Escape') {
                                                             handleCancelRename();
@@ -170,7 +170,7 @@ const ConversationHistory = ({
                                                 />
                                                 <button 
                                                     type="submit"
-                                                    className="ml-1 p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                                                    className="ml-1 p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors"
                                                     title="Save"
                                                 >
                                                     <Check size={14} className="text-primary-500" />
@@ -178,7 +178,7 @@ const ConversationHistory = ({
                                                 <button
                                                     type="button"
                                                     onClick={handleCancelRename}
-                                                    className="p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                                                    className="p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors"
                                                     title="Cancel"
                                                 >
                                                     <X size={14} />
@@ -189,8 +189,8 @@ const ConversationHistory = ({
                                             <button
                                                 onClick={() => onSwitchConversation(conv.id)}
                                                 onDoubleClick={(e) => handleStartRename(conv, e)}
-                                                className={`flex items-center w-full px-4 py-2 text-sm ${
-                                                    activeConversationId === conv.id ? 'list-item-active' : 'hover:bg-surface-secondary'
+                                                className={`flex items-center w-full px-4 py-2 text-sm rounded-md ${
+                                                    activeConversationId === conv.id ? 'list-item-active' : 'hover:bg-[var(--bg-tertiary)]'
                                                 }`}
                                             >
                                                 <MessageSquare size={16} className="mr-2 flex-shrink-0" />

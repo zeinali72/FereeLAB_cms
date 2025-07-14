@@ -1,179 +1,146 @@
-// frontend/components/marketplace/FilterSidebar.js
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Type, Image, File, Clock, DollarSign, Star, Box, Sliders, Server, ChevronsLeft } from 'react-feather';
+import React, { useState, useEffect } from 'react';
+import { ChevronDown, ChevronRight, Type, Clock, DollarSign, Box, Server } from 'react-feather';
 
-// Reusable accordion component for filter sections
 const FilterSection = ({ title, icon, children, defaultOpen = false }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
-
     return (
-        <div className="py-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+        <div className="py-3 border-b border-[var(--border-primary)] last:border-b-0">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between text-left px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                className="w-full flex items-center justify-between text-left px-4 py-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors duration-200"
             >
-                <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
+                <div className="flex items-center space-x-3 text-[var(--text-secondary)]">
                     {icon}
-                    <h3 className="font-medium text-sm">{title}</h3>
+                    <h3 className="font-medium text-sm text-[var(--text-primary)]">{title}</h3>
                 </div>
-                {isOpen ? <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" /> : <ChevronRight size={16} className="text-gray-500 dark:text-gray-400" />}
+                {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </button>
             {isOpen && <div className="mt-2 px-4 space-y-2 animate-fade-in">{children}</div>}
         </div>
     );
 };
 
-// Range slider component
-const RangeSlider = ({ min, max, value, onChange, displayUnit = '' }) => {
+const RangeSlider = ({ min, max, step, value, onChange, displayFormat }) => {
     const progress = ((value - min) / (max - min)) * 100;
 
     return (
         <div className="py-2">
-            <input
-                type="range"
-                min={min}
-                max={max}
-                value={value}
-                onChange={onChange}
-                className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                style={{
-                    background: `linear-gradient(to right, var(--brand-primary-500) 0%, var(--brand-primary-500) ${progress}%, var(--gray-300) ${progress}%, var(--gray-300) 100%)`,
-                }}
-            />
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                <span>{min}{displayUnit}</span>
-                <span>{max}{displayUnit}</span>
+            <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-2">
+                <span>{displayFormat(min)}</span>
+                <span>{displayFormat(max)}</span>
             </div>
+            <div className="relative">
+                <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={step || 1}
+                    value={value}
+                    onChange={onChange}
+                    className="w-full h-2 bg-transparent appearance-none cursor-pointer range-slider"
+                />
+                <div 
+                    className="absolute top-1/2 left-0 h-1 rounded-full bg-primary-500 -translate-y-1/2"
+                    style={{ width: `${progress}%` }}
+                ></div>
+                 <div 
+                    className="absolute top-1/2 h-1 rounded-full bg-[var(--bg-tertiary)] -translate-y-1/2"
+                    style={{ left: `${progress}%`, right: 0 }}
+                ></div>
+            </div>
+            <div className="text-center text-sm font-medium text-[var(--text-primary)] mt-2">{displayFormat(value)}</div>
         </div>
     );
 };
 
-const FilterSidebar = () => {
-    const [contextLength, setContextLength] = useState(4000);
-    const [price, setPrice] = useState(0.005);
+const CheckboxGroup = ({ items, selected, onChange }) => (
+    <div>
+        {items.map(item => (
+            <label key={item.id} className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-[var(--bg-tertiary)] transition-colors">
+                <input 
+                    type="checkbox" 
+                    className="h-4 w-4 rounded border-[var(--border-primary)] text-primary-500 focus:ring-primary-500"
+                    checked={selected.includes(item.id)}
+                    onChange={() => onChange(item.id)}
+                />
+                <span className="ml-2 text-[var(--text-primary)]">{item.name}</span>
+            </label>
+        ))}
+    </div>
+);
 
+const FilterSidebar = ({ onFilterChange, providers, categories }) => {
+    const [filters, setFilters] = useState({
+        modalities: ['text'],
+        contextLength: 4000,
+        maxPrice: 0,
+        categories: [],
+        providers: [],
+    });
+
+    const handleCheckboxChange = (group, id) => {
+        const newGroup = filters[group].includes(id)
+            ? filters[group].filter(item => item !== id)
+            : [...filters[group], id];
+        
+        const updatedFilters = { ...filters, [group]: newGroup };
+        onFilterChange(updatedFilters);
+        setFilters(updatedFilters);
+    };
+
+    const handleValueChange = (name, value) => {
+        const updatedFilters = { ...filters, [name]: value };
+        onFilterChange(updatedFilters);
+        setFilters(updatedFilters);
+    };
+    
     return (
-        <div className="h-full flex flex-col bg-white dark:bg-gray-800">
-            {/* Header is now handled by MarketplacePanel */}
-            
+        <div className="h-full flex flex-col">
             <div className="overflow-y-auto flex-grow custom-scrollbar">
-                <FilterSection 
-                    title="Input Modalities" 
-                    icon={<Type size={16} className="text-gray-500 dark:text-gray-400" />} 
-                    defaultOpen={true}
-                >
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" defaultChecked />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Text</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Image</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">File</span>
-                    </label>
+                <FilterSection title="Input Modalities" icon={<Type size={16} />} defaultOpen={true}>
+                    <CheckboxGroup 
+                        items={[{id: 'text', name: 'Text'}, {id: 'image', name: 'Image'}, {id: 'file', name: 'File'}]}
+                        selected={filters.modalities}
+                        onChange={(id) => handleCheckboxChange('modalities', id)}
+                    />
                 </FilterSection>
 
-                <FilterSection 
-                    title="Context length" 
-                    icon={<Clock size={16} className="text-gray-500 dark:text-gray-400" />} 
-                    defaultOpen={true}
-                >
+                <FilterSection title="Context Length" icon={<Clock size={16} />} defaultOpen={true}>
                     <RangeSlider 
                         min={4000} 
                         max={128000} 
-                        value={contextLength} 
-                        onChange={(e) => setContextLength(parseInt(e.target.value))} 
-                        displayUnit="K"
+                        step={1000}
+                        value={filters.contextLength} 
+                        onChange={(e) => handleValueChange('contextLength', parseInt(e.target.value))} 
+                        displayFormat={(val) => `${(val / 1000)}K`}
                     />
                 </FilterSection>
 
-                <FilterSection 
-                    title="Prompt pricing" 
-                    icon={<DollarSign size={16} className="text-gray-500 dark:text-gray-400" />} 
-                    defaultOpen={true}
-                >
+                <FilterSection title="Max Price (/1M tokens)" icon={<DollarSign size={16} />} defaultOpen={true}>
                     <RangeSlider 
                         min={0} 
-                        max={0.01} 
-                        value={price} 
-                        onChange={(e) => setPrice(parseFloat(e.target.value))} 
-                        displayUnit="$/1K"
+                        max={5} 
+                        step={0.01}
+                        value={filters.maxPrice} 
+                        onChange={(e) => handleValueChange('maxPrice', parseFloat(e.target.value))} 
+                        displayFormat={(val) => val === 0 ? 'Any' : `${val.toFixed(2)}`}
                     />
                 </FilterSection>
 
-                <FilterSection 
-                    title="Series" 
-                    icon={<Star size={16} className="text-gray-500 dark:text-gray-400" />}
-                >
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">GPT</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Claude</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Gemini</span>
-                    </label>
-                    <div className="text-gray-600 dark:text-gray-400 text-sm mt-2 cursor-pointer hover:underline">More...</div>
+                <FilterSection title="Categories" icon={<Box size={16} />}>
+                    <CheckboxGroup 
+                        items={categories}
+                        selected={filters.categories}
+                        onChange={(id) => handleCheckboxChange('categories', id)}
+                    />
                 </FilterSection>
 
-                <FilterSection 
-                    title="Categories" 
-                    icon={<Box size={16} className="text-gray-500 dark:text-gray-400" />}
-                >
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Programming</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Research</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Marketing</span>
-                    </label>
-                    <div className="text-gray-600 dark:text-gray-400 text-sm mt-2 cursor-pointer hover:underline">More...</div>
-                </FilterSection>
-
-                <FilterSection 
-                    title="Supported Parameters" 
-                    icon={<Sliders size={16} className="text-gray-500 dark:text-gray-400" />}
-                >
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">temperature</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">top_p</span>
-                    </label>
-                    <div className="text-gray-600 dark:text-gray-400 text-sm mt-2 cursor-pointer hover:underline">More...</div>
-                </FilterSection>
-
-                <FilterSection 
-                    title="Providers" 
-                    icon={<Server size={16} className="text-gray-500 dark:text-gray-400" />}
-                >
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Anthropic</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">OpenAI</span>
-                    </label>
-                    <label className="flex items-center text-sm p-2 rounded-lg w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" />
-                        <span className="ml-2 text-gray-800 dark:text-gray-200">Google</span>
-                    </label>
-                    <div className="text-gray-600 dark:text-gray-400 text-sm mt-2 cursor-pointer hover:underline">More...</div>
+                <FilterSection title="Providers" icon={<Server size={16} />}>
+                     <CheckboxGroup 
+                        items={providers}
+                        selected={filters.providers}
+                        onChange={(id) => handleCheckboxChange('providers', id)}
+                    />
                 </FilterSection>
             </div>
         </div>
