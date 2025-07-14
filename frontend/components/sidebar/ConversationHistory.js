@@ -1,16 +1,11 @@
+// frontend/components/sidebar/ConversationHistory.js
 import React, { useState } from 'react';
 import { MessageSquare, ChevronDown, ChevronRight } from 'react-feather';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
-// Sample data
 const conversations = [
     { id: 'conv-1', title: 'User Chat 1', timestamp: new Date() },
     { id: 'conv-2', title: 'User Chat 2', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)) },
-    { id: 'conv-3', title: 'A much older chat', timestamp: new Date(new Date().setDate(new Date().getDate() - 7)) },
-    { id: 'conv-4', title: 'Another chat today', timestamp: new Date() },
-    { id: 'conv-5', title: 'Yesterday\'s follow-up', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)) },
-    { id: 'conv-6', title: 'Last week\'s planning', timestamp: new Date(new Date().setDate(new Date().getDate() - 7)) },
-    { id: 'conv-7', title: 'Final review session', timestamp: new Date(new Date().setDate(new Date().getDate() - 8)) },
-    { id: 'conv-8', title: 'API key discussion', timestamp: new Date(new Date().setDate(new Date().getDate() - 9)) },
 ];
 
 const formatDateGroup = (date) => {
@@ -32,20 +27,26 @@ const ConversationHistory = () => {
         return acc;
     }, {});
 
+    const handleAddConversation = () => {
+        // This alert will appear when the button is clicked
+        alert("Function to start a new conversation has been called!");
+        console.log("Add new conversation clicked");
+    };
+
     return (
-        // This component will now grow and manage its own layout
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col flex-grow">
-             <div 
-                onClick={() => setIsSectionOpen(!isSectionOpen)}
-                className="flex items-center justify-between cursor-pointer flex-shrink-0"
-            >
-                <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Conversation History
-                </h2>
-                {isSectionOpen ? <ChevronDown size={20} className="text-gray-400" /> : <ChevronRight size={20} className="text-gray-400" />}
+             <div className="flex items-center justify-between cursor-pointer flex-shrink-0">
+                <div onClick={() => setIsSectionOpen(!isSectionOpen)} className="flex items-center flex-grow">
+                    <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Conversation History
+                    </h2>
+                    {isSectionOpen ? <ChevronDown size={20} className="ml-2 text-gray-400" /> : <ChevronRight size={20} className="ml-2 text-gray-400" />}
+                </div>
+                <button onClick={handleAddConversation} className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200" aria-label="Add new conversation">
+                    <PlusIcon className="h-6 w-6" />
+                </button>
             </div>
             {isSectionOpen && (
-                // This list container will grow and scroll
                 <div className="mt-2 overflow-y-auto flex-grow">
                     <ul className="space-y-4">
                         {Object.entries(groupedConversations).map(([date, convs]) => (
