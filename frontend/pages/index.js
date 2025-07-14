@@ -6,6 +6,7 @@ import ChatLog from '../components/chat/ChatLog';
 import PromptSuggestions from '../components/chat/PromptSuggestions';
 import ChatInput from '../components/chat/ChatInput';
 import ModelPanel from '../components/modals/ModelPanel.js';
+import ResizablePanel from '../components/shared/ResizablePanel';
 
 const ChatPage = () => {
   // --- Start Theme Management Update ---
@@ -15,6 +16,23 @@ const ChatPage = () => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
+    
+    // Add global style for resize operation
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .resize-active {
+        user-select: none !important;
+        cursor: col-resize !important;
+      }
+      .resize-active * {
+        user-select: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
   }, [theme]);
   
   const isDarkMode = theme === 'dark';
@@ -24,18 +42,58 @@ const ChatPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isModelPanelOpen, setIsModelPanelOpen] = useState(false);
   
+  // State for panel sizes with localStorage persistence
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = localStorage.getItem('sidebarWidth');
+    return saved ? parseInt(saved, 10) : 280;
+  });
+  const [canvasWidth, setCanvasWidth] = useState(() => {
+    const saved = localStorage.getItem('canvasWidth');
+    return saved ? parseInt(saved, 10) : 380;
+  });
+  
+  // Save sizes to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('sidebarWidth', sidebarWidth);
+  }, [sidebarWidth]);
+  
+  useEffect(() => {
+    localStorage.setItem('canvasWidth', canvasWidth);
+  }, [canvasWidth]);
+  
   const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const toggleModelPanel = () => setIsModelPanelOpen(!isModelPanelOpen);
 
+  const handleSidebarResize = (newWidth) => {
+    setSidebarWidth(newWidth);
+  };
+
+  const handleCanvasResize = (newWidth) => {
+    setCanvasWidth(newWidth);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={toggleSidebar} 
-        theme={theme}
-        setTheme={setTheme}
-      />
+      {/* Resizable Sidebar */}
+      <ResizablePanel 
+        direction="horizontal"
+        initialSize={sidebarWidth}
+        minSize={250}
+        maxSize={450}
+        isOpen={isSidebarOpen}
+        onResize={handleSidebarResize}
+        className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden"
+        handlePosition="right"
+      >
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onToggle={toggleSidebar} 
+          theme={theme}
+          setTheme={setTheme}
+          width={sidebarWidth}
+        />
+      </ResizablePanel>
       
       <ModelPanel isOpen={isModelPanelOpen} onClose={toggleModelPanel} />
 
@@ -55,7 +113,25 @@ const ChatPage = () => {
           <ChatInput onToggleCanvas={toggleCanvas} />
         </main>
       </div>
-      <InspectorPanel isOpen={isCanvasOpen} onClose={toggleCanvas} />
+
+      {/* Resizable Canvas/Inspector Panel */}
+      {isCanvasOpen && (
+        <ResizablePanel
+          direction="horizontal"
+          initialSize={canvasWidth}
+          minSize={300}
+          maxSize={600}
+          onResize={handleCanvasResize}
+          className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex-shrink-0"
+          handlePosition="left"
+        >
+          <InspectorPanel 
+            isOpen={isCanvasOpen} 
+            onClose={toggleCanvas} 
+            width={canvasWidth}
+          />
+        </ResizablePanel>
+      )}
     </div>
   );
 };

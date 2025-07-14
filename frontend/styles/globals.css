@@ -8,3 +8,52 @@
 body {
   background-color: #f3f4f6;
 }
+
+/* Global styles for the application */
+
+/* Prevent text selection during resize operations */
+.resize-active {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Make resizable handles more visible on hover */
+.resize-handle:hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: rgba(59, 130, 246, 0.5);
+}
+
+.resize-handle-horizontal:hover::before {
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+}
+
+.resize-handle-vertical:hover::before {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 2px;
+}
+
+/* Adjust cursor for resize operations */
+.cursor-resize-ew {
+  cursor: ew-resize;
+}
+
+.cursor-resize-ns {
+  cursor: ns-resize;
+}
+
+/* Hardware acceleration for smoother animations */
+.hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
