@@ -23,7 +23,7 @@ const Sidebar = ({
   onSwitchToProjectChat
 }) => {
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg overflow-visible">
       <div
         className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0`}
       >

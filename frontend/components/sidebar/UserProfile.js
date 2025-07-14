@@ -19,7 +19,7 @@ const UserProfile = ({ theme, setTheme }) => {
 
   return (
     // Add `relative` to make this the positioning context for the menu
-    <div className="p-4 border-t relative" ref={menuRef}>
+    <div className="p-4 border-t relative" style={{ overflow: 'visible' }} ref={menuRef}>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full user-avatar flex items-center justify-center font-bold">
@@ -39,6 +39,7 @@ const UserProfile = ({ theme, setTheme }) => {
         isOpen={isMenuOpen} 
         theme={theme}
         setTheme={setTheme}
+        onClose={() => setIsMenuOpen(false)}
       />
     </div>
   );
