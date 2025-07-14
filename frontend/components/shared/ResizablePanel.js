@@ -48,105 +48,92 @@ const ResizablePanel = ({
     // Disable text selection during resize
     document.body.classList.add('resize-active');
   }, [direction, size]);
-
-  // Handle mouse move for resizing with throttling for better performance
+  
+  // Handle mouse move for resizing (throttled to improve performance)
   const handleMouseMove = useCallback(throttle((e) => {
     if (!isDragging) return;
     
     const currentPos = direction === 'horizontal' ? e.clientX : e.clientY;
-    let delta;
+    let newSize;
     
     if (direction === 'horizontal') {
-      delta = handlePosition === 'right' ? currentPos - startPos.current : startPos.current - currentPos;
-    } else {
-      delta = handlePosition === 'bottom' ? currentPos - startPos.current : startPos.current - currentPos;
-    }
-
-    const newSize = Math.max(minSize, Math.min(maxSize, startSize.current + delta));
-    
-    // Apply the size directly to the DOM element for smoother resizing
-    if (panelRef.current) {
-      if (direction === 'horizontal') {
-        panelRef.current.style.width = `${newSize}px`;
+      // For horizontal resizing
+      if (handlePosition === 'right') {
+        newSize = startSize.current + (currentPos - startPos.current);
       } else {
-        panelRef.current.style.height = `${newSize}px`;
+        newSize = startSize.current - (currentPos - startPos.current);
+      }
+    } else {
+      // For vertical resizing
+      if (handlePosition === 'bottom') {
+        newSize = startSize.current + (currentPos - startPos.current);
+      } else {
+        newSize = startSize.current - (currentPos - startPos.current);
       }
     }
     
+    // Clamp the size between min and max values
+    newSize = Math.max(minSize, Math.min(newSize, maxSize));
+    
     setSize(newSize);
-    onResize(newSize);
-  }, 10), [direction, isDragging, maxSize, minSize, onResize, handlePosition]);
-
-  // Handle mouse up to end resizing
+    onResize(newSize); // Notify parent of resize
+  }, 10), [isDragging, direction, handlePosition, minSize, maxSize, onResize]);
+  
+  // Handle mouse up to stop resizing
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-    // Reset cursor and enable text selection
-    document.body.style.cursor = '';
-    document.body.classList.remove('resize-active');
-  }, []);
-
-  // Add and remove event listeners
+    if (isDragging) {
+      setIsDragging(false);
+      document.body.style.cursor = '';
+      document.body.classList.remove('resize-active');
+    }
+  }, [isDragging]);
+  
+  // Set up global mouse move and mouse up listeners
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      // Handle cases when mouse leaves the window
-      document.addEventListener('mouseleave', handleMouseUp);
-    } else {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('mouseleave', handleMouseUp);
     }
     
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('mouseleave', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.classList.remove('resize-active');
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
-
-  // Determine handle position class
-  const getHandlePositionClass = () => {
-    if (direction === 'horizontal') {
-      return handlePosition === 'right' ? 'right-0' : 'left-0';
+  
+  // Reset size when panel is closed/opened
+  useEffect(() => {
+    if (!isOpen) {
+      setSize(0);
     } else {
-      return handlePosition === 'bottom' ? 'bottom-0' : 'top-0';
+      setSize(initialSize);
     }
-  };
+  }, [isOpen, initialSize]);
 
-  // Common resize handle styles
-  const handleStyle = direction === 'horizontal' 
-    ? { width: '8px', height: '100%', cursor: 'col-resize' }
-    : { width: '100%', height: '8px', cursor: 'row-resize' };
-
-  // Apply the right size to the element based on direction
-  const style = {
-    ...(direction === 'horizontal' 
-      ? { width: isOpen ? `${size}px` : '0px', transition: isDragging ? 'none' : 'width 0.2s ease-out' }
-      : { height: `${size}px`, transition: isDragging ? 'none' : 'height 0.2s ease-out' })
+  const containerStyle = {
+    ...(direction === 'horizontal' ? { width: `${size}px` } : { height: `${size}px` }),
+    transition: isDragging ? 'none' : 'all 0.2s ease',
   };
+  
+  const resizeHandleClasses = `
+    absolute z-10 ${isDragging ? 'opacity-100' : 'opacity-0 hover:opacity-100'}
+    ${direction === 'horizontal' 
+      ? `w-1 cursor-col-resize ${handlePosition === 'right' ? 'right-0' : 'left-0'} top-0 bottom-0` 
+      : `h-1 cursor-row-resize ${handlePosition === 'bottom' ? 'bottom-0' : 'top-0'} left-0 right-0`
+    }
+    transition-opacity bg-border-focus ${handleClassName}
+  `;
 
   return (
     <div 
       ref={panelRef} 
       className={`relative ${className}`} 
-      style={style}
+      style={containerStyle}
     >
-      {children}
-      {isOpen && (
-        <div
-          className={`absolute ${getHandlePositionClass()} top-0 bottom-0 z-40 bg-transparent hover:bg-gray-300 dark:hover:bg-gray-600 opacity-0 hover:opacity-100 transition-opacity duration-200 ${handleClassName}`}
-          style={handleStyle}
-          onMouseDown={handleMouseDown}
-        >
-          {/* Visual indicator for resize handle */}
-          <div className={`absolute ${direction === 'horizontal' 
-            ? 'top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-1 h-12' 
-            : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-1 w-12'} bg-gray-400 dark:bg-gray-500 rounded-full opacity-70 pointer-events-none`} />
-        </div>
-      )}
+      <div className={resizeHandleClasses} onMouseDown={handleMouseDown}></div>
+      <div className="h-full w-full overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 };

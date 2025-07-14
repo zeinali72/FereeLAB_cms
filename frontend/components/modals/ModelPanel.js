@@ -48,140 +48,171 @@ const ModelPanel = ({ isOpen, onClose, onOpenMarketplace, selectedModels = [] })
 
   // Effect to update max tokens when the model changes
   useEffect(() => {
-    const newModel = models.find(m => m.id === selectedModelId);
-    if (newModel) {
-      setMaxTokens(newModel.maxTokens);
+    const model = allModels.find(m => m.id === selectedModelId);
+    if (model) {
+      setMaxTokens(model.maxTokens);
     }
-  }, [selectedModelId]);
-
+  }, [selectedModelId, allModels]);
+  
   if (!isOpen) return null;
-
+  
   return (
-    // Backdrop
-    <div className="fixed inset-0 z-40" onClick={onClose}>
-        {/* Panel */}
-        <div
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-            className="absolute top-16 left-1/2 md:left-auto md:right-1/2 transform -translate-x-1/2 md:translate-x-0 w-full max-w-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50"
-        >
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Select a Model</h2>
-                <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <X size={20} />
-                </button>
-            </div>
-
-            {/* Model Selection Grid - More compact for multiple selections */}
-            <div className="p-4">
-                {selectedModels.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-                        {allModels.map((model) => (
-                            <button
-                                key={model.id}
-                                onClick={() => setSelectedModelId(model.id)}
-                                className={`p-3 border rounded-lg text-left hover:border-gray-500 dark:hover:border-gray-500 ${
-                                    selectedModelId === model.id ? 'border-gray-800 dark:border-gray-400 bg-gray-50 dark:bg-gray-800/50' : 'border-gray-200 dark:border-gray-600'
-                                }`}
-                            >
-                                <div className="flex items-center">
-                                    <span className="text-xl mr-2">{model.icon}</span>
-                                    <div>
-                                        <div className="font-semibold text-sm">{model.name}</div>
-                                        <div className="text-xs text-gray-500 dark:text-gray-400">{model.provider}</div>
-                                    </div>
-                                </div>
-                                {/* Simplified price info */}
-                                <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 flex justify-between">
-                                    <span>In: ${model.inputPrice.toFixed(5)}</span>
-                                    <span>Out: ${model.outputPrice.toFixed(5)}</span>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="py-8 text-center">
-                        <div className="mb-4 inline-block p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
-                            <Briefcase size={28} className="text-gray-500 dark:text-gray-400" />
-                        </div>
-                        <h3 className="text-lg font-semibold mb-2">No Models Selected</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto mb-6">
-                            Please select models from the Marketplace to use in your conversations
-                        </p>
-                        <button
-                            onClick={onOpenMarketplace}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                        >
-                            Browse Marketplace
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {/* Marketplace Section */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
+    <div className="fixed inset-0 z-modal animate-fade-in">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 modal-backdrop" 
+        onClick={onClose}
+      ></div>
+      
+      {/* Panel */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
+        <div className="panel-translucent panel-layout-default animate-slide-in-right">
+          {/* Header */}
+          <div className="panel-header">
+            <h2 className="text-xl font-semibold">Models</h2>
+            <button
+              onClick={onClose}
+              className="btn btn-icon btn-ghost"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          
+          {/* Content */}
+          <div className="panel-content">
+            {/* Model Selection */}
+            <div className="space-y-3">
+              <h3 className="font-medium">Select Model</h3>
+              <div className="grid gap-2">
+                {allModels.map(model => (
+                  <button
+                    key={model.id}
+                    onClick={() => setSelectedModelId(model.id)}
+                    className={`p-3 rounded-lg flex items-center justify-between transition-colors ${
+                      selectedModelId === model.id 
+                        ? 'bg-primary-50 dark:bg-primary-900 ring-1 ring-primary-500' 
+                        : 'hover:bg-surface-secondary'
+                    }`}
+                  >
                     <div className="flex items-center">
-                        <Briefcase size={18} className="mr-3 text-gray-500" />
-                        <div>
-                            <h3 className="font-semibold">Marketplace</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Discover more models from the community.</p>
-                        </div>
+                      <span className="text-lg mr-2">{model.icon}</span>
+                      <div className="text-left">
+                        <div className="font-medium">{model.name}</div>
+                        <div className="text-xs text-tertiary">{model.provider}</div>
+                      </div>
                     </div>
-                    {/* --- Updated button --- */}
-                    <button 
-                      onClick={onOpenMarketplace}
-                      className="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                        Explore
-                    </button>
-                    {/* -------------------- */}
-                </div>
+                    <div className="flex items-center text-xs">
+                      <div className="font-mono text-tertiary">
+                        ${model.outputPrice.toFixed(5)}/1K
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              
+              {/* Browse More Models Button */}
+              <button
+                onClick={onOpenMarketplace}
+                className="btn btn-outline w-full p-3 border-dashed"
+              >
+                <Briefcase size={16} className="mr-2 text-tertiary" />
+                <span className="text-sm font-medium">Browse AI Models</span>
+              </button>
             </div>
-
-            {/* Advanced Settings */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                <div
-                    onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="flex items-center justify-between cursor-pointer"
-                >
-                    <div className="flex items-center">
-                        <Settings size={18} className="mr-3 text-gray-500" />
-                        <h3 className="font-semibold">Advanced Settings</h3>
-                    </div>
-                    {showAdvanced ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-                </div>
-                {showAdvanced && (
-                    <div className="mt-4 space-y-4">
-                        <div>
-                            <div className="flex justify-between items-center mb-1">
-                                <label htmlFor="temp" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Temperature</label>
-                                <span className="text-sm font-mono text-gray-600 dark:text-gray-400">{temperature.toFixed(2)}</span>
-                            </div>
-                            <input 
-                                type="range" 
-                                id="temp" 
-                                min="0" 
-                                max="2" 
-                                step="0.01" 
-                                value={temperature}
-                                onChange={(e) => setTemperature(parseFloat(parseFloat(e.target.value).toFixed(2)))}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600" 
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="max-tokens" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Max Tokens</label>
-                            <input 
-                                type="number" 
-                                id="max-tokens" 
-                                value={maxTokens}
-                                onChange={(e) => setMaxTokens(parseInt(e.target.value, 10))}
-                                className="w-full mt-1 p-2 bg-transparent border border-gray-300 dark:border-gray-600 rounded-md" 
-                            />
-                        </div>
-                    </div>
-                )}
+            
+            {/* Advanced Settings Toggle */}
+            <div className="mt-6">
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center w-full p-2 text-sm font-medium hover:bg-surface-secondary rounded-md transition-colors"
+              >
+                <Settings size={16} className="mr-2" />
+                <span>Advanced Settings</span>
+                {showAdvanced ? <ChevronDown size={16} className="ml-auto" /> : <ChevronRight size={16} className="ml-auto" />}
+              </button>
             </div>
+            
+            {/* Advanced Settings Panel */}
+            {showAdvanced && (
+              <div className="mt-3 p-4 bg-surface-secondary rounded-lg space-y-4">
+                {/* Temperature Slider */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="temperature" className="text-sm font-medium">Temperature</label>
+                    <span className="text-sm font-mono">{temperature.toFixed(1)}</span>
+                  </div>
+                  <input
+                    id="temperature"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={temperature}
+                    onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                    className="w-full appearance-none bg-surface-tertiary rounded-full h-2 focus:outline-none cursor-pointer"
+                    style={{
+                      appearance: 'none',
+                      background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${temperature * 100}%, var(--color-surface-tertiary) ${temperature * 100}%, var(--color-surface-tertiary) 100%)`,
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-tertiary mt-1">
+                    <span>More focused</span>
+                    <span>More creative</span>
+                  </div>
+                </div>
+                
+                {/* Max Tokens Slider */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="maxTokens" className="text-sm font-medium">Max Tokens</label>
+                    <span className="text-sm font-mono">{maxTokens}</span>
+                  </div>
+                  <input
+                    id="maxTokens"
+                    type="range"
+                    min="1000"
+                    max="32000"
+                    step="1000"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+                    className="w-full appearance-none bg-surface-tertiary rounded-full h-2 focus:outline-none cursor-pointer"
+                    style={{
+                      appearance: 'none',
+                      background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${(maxTokens / 32000) * 100}%, var(--color-surface-tertiary) ${(maxTokens / 32000) * 100}%, var(--color-surface-tertiary) 100%)`,
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-tertiary mt-1">
+                    <span>Shorter responses</span>
+                    <span>Longer responses</span>
+                  </div>
+                </div>
+                
+                {/* Token usage info */}
+                <div className="text-xs text-tertiary">
+                  <div className="flex items-center mb-1">
+                    <Zap size={12} className="mr-1" />
+                    <span>Input: ${allModels.find(m => m.id === selectedModelId)?.inputPrice.toFixed(5)}/1K tokens</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Zap size={12} className="mr-1" />
+                    <span>Output: ${allModels.find(m => m.id === selectedModelId)?.outputPrice.toFixed(5)}/1K tokens</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Footer */}
+          <div className="panel-footer">
+            <button
+              onClick={onClose}
+              className="btn btn-md btn-primary"
+            >
+              Apply
+            </button>
+          </div>
         </div>
+      </div>
     </div>
   );
 };

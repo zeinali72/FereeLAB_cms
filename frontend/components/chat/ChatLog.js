@@ -11,7 +11,7 @@ const ChatLog = ({ messages = [] }) => {
   }, [messages]);
 
   return (
-    <div className="absolute inset-0 p-4 md:p-6 lg:p-8 pb-10 space-y-4 overflow-y-auto">
+    <div className="absolute inset-0 p-4 md:p-6 lg:p-8 pb-10 space-y-4 overflow-y-auto chat-container">
       {messages.map((msg) => (
         <ChatMessage key={msg.id} message={msg} />
       ))}

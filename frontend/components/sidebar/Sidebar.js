@@ -24,16 +24,16 @@ const Sidebar = ({
   onSwitchToProjectChat
 }) => {
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden sidebar">
       <div
-        className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 transition-opacity duration-200 ${
+        className={`flex items-center justify-between p-4 border-b flex-shrink-0 transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <h1 className="text-lg font-bold text-gray-800 dark:text-white">FereeLAB</h1>
+        <h1 className="text-lg font-bold">FereeLAB</h1>
         <button
           onClick={onToggle}
-          className="p-1 text-gray-500 rounded-md hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+          className="p-1 rounded-md hover:bg-surface-secondary"
           title="Collapse sidebar"
         >
           <ChevronsLeft size={20} />
@@ -57,19 +57,11 @@ const Sidebar = ({
           <ConversationHistory 
             conversations={conversations}
             activeConversationId={activeConversationId}
-            onNewConversation={onNewConversation}
             onSwitchConversation={onSwitchConversation}
             onRenameConversation={onRenameConversation}
+            onNewConversation={onNewConversation}
           />
         </div>
-      </div>
-
-      <div
-        className={`flex-shrink-0 transition-opacity duration-200 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        {/* Pass the props down to UserProfile */}
         <UserProfile theme={theme} setTheme={setTheme} />
       </div>
     </div>

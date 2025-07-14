@@ -48,12 +48,16 @@ const ConversationHistory = ({
     // Handle keyboard events for renaming
     const handleKeyDown = (e, conv) => {
         if (e.key === 'F2') {
-            e.preventDefault();
             handleStartRename(conv, e);
+        } else if (e.key === 'Escape') {
+            handleCancelRename();
+        } else if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSaveTitle(e);
         }
     };
 
-    // Focus the input when editing starts
+    // Focus input when editing starts
     useEffect(() => {
         if (editingId && inputRef.current) {
             inputRef.current.focus();
@@ -61,101 +65,101 @@ const ConversationHistory = ({
         }
     }, [editingId]);
 
-    const groupedConversations = conversations.reduce((acc, conv) => {
-        const dateKey = formatDateGroup(conv.timestamp);
-        if (!acc[dateKey]) acc[dateKey] = [];
-        acc[dateKey].push(conv);
-        return acc;
+    // Group conversations by date
+    const groupedConversations = conversations.reduce((groups, conv) => {
+        const date = new Date(conv.timestamp);
+        const dateKey = formatDateGroup(date);
+        
+        if (!groups[dateKey]) {
+            groups[dateKey] = [];
+        }
+        groups[dateKey].push(conv);
+        return groups;
     }, {});
 
-    // Handle clicks outside the editing field to cancel
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (editingId && inputRef.current && !inputRef.current.contains(event.target)) {
-                handleCancelRename();
-            }
-        }
-        
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [editingId]);
-
     return (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex flex-col flex-grow">
-             <div className="flex items-center justify-between cursor-pointer flex-shrink-0">
-                <div onClick={() => setIsSectionOpen(!isSectionOpen)} className="flex items-center flex-grow">
-                    <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Conversation History
-                    </h2>
-                    {isSectionOpen ? <ChevronDown size={20} className="ml-2 text-gray-400" /> : <ChevronRight size={20} className="ml-2 text-gray-400" />}
-                </div>
-                <button onClick={onNewConversation} className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200" aria-label="Add new conversation">
-                    <PlusIcon className="h-6 w-6" />
+        <div className="mt-2">
+            <div className="px-4 py-2">
+                <button
+                    onClick={() => setIsSectionOpen(!isSectionOpen)}
+                    className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                >
+                    <span>Conversations</span>
+                    {isSectionOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </button>
             </div>
+
             {isSectionOpen && (
-                <div className="mt-2 overflow-y-auto flex-grow">
-                    <ul className="space-y-4">
-                        {Object.entries(groupedConversations).map(([date, convs]) => (
-                            <li key={date}>
-                                <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-2">{date}</p>
-                                <ul className="space-y-1">
-                                    {convs.map((conv) => (
-                                        <li key={conv.id}>
-                                            {editingId === conv.id ? (
-                                                <form onSubmit={handleSaveTitle} className="flex items-center w-full p-1 rounded-lg bg-gray-200 dark:bg-gray-700">
-                                                    <MessageSquare size={20} className="ml-1 text-blue-500" />
-                                                    <input
-                                                        ref={inputRef}
-                                                        type="text"
-                                                        value={editTitle}
-                                                        onChange={(e) => setEditTitle(e.target.value)}
-                                                        className="ml-3 flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-gray-900 dark:text-white"
-                                                    />
-                                                    <button 
-                                                        type="submit"
-                                                        className="p-1 text-green-500 hover:text-green-600"
-                                                        title="Save"
-                                                    >
-                                                        <Check size={16} />
-                                                    </button>
-                                                    <button 
-                                                        type="button"
-                                                        onClick={handleCancelRename}
-                                                        className="p-1 text-red-500 hover:text-red-600 mr-1"
-                                                        title="Cancel"
-                                                    >
-                                                        <X size={16} />
-                                                    </button>
-                                                </form>
-                                            ) : (
+                <div className="mt-1">
+                    <button
+                        onClick={onNewConversation}
+                        className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-surface-secondary transition-colors"
+                    >
+                        <div className="flex items-center">
+                            <PlusIcon className="h-4 w-4 mr-2" />
+                            <span>New conversation</span>
+                        </div>
+                    </button>
+
+                    {Object.entries(groupedConversations).map(([dateGroup, convs]) => (
+                        <div key={dateGroup} className="mt-2">
+                            <div className="px-4 py-1">
+                                <p className="text-xs font-medium text-tertiary">{dateGroup}</p>
+                            </div>
+
+                            <ul>
+                                {convs.map((conv) => (
+                                    <li key={conv.id} tabIndex={0} onKeyDown={(e) => handleKeyDown(e, conv)}>
+                                        {editingId === conv.id ? (
+                                            // Editing state
+                                            <form onSubmit={handleSaveTitle} className="px-4 py-1 flex items-center">
+                                                <MessageSquare size={16} className="mr-2 flex-shrink-0 text-tertiary" />
+                                                <input
+                                                    ref={inputRef}
+                                                    type="text"
+                                                    value={editTitle}
+                                                    onChange={(e) => setEditTitle(e.target.value)}
+                                                    className="flex-grow text-sm bg-surface-secondary p-1 rounded focus:ring-1 focus:ring-primary-500 focus:outline-none"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Escape') {
+                                                            handleCancelRename();
+                                                        }
+                                                    }}
+                                                />
                                                 <button 
-                                                    onClick={() => onSwitchConversation(conv.id)}
-                                                    onDoubleClick={(e) => handleStartRename(conv, e)}
-                                                    onKeyDown={(e) => handleKeyDown(e, conv)}
-                                                    className={`flex items-center w-full p-2 text-base font-normal rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200
-                                                        ${activeConversationId === conv.id 
-                                                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white' 
-                                                            : 'text-gray-900 dark:text-white'}`}
-                                                    tabIndex={0}
+                                                    type="submit"
+                                                    className="ml-1 p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                                                    title="Save"
                                                 >
-                                                    <MessageSquare size={20} className={`${activeConversationId === conv.id ? 'text-blue-500' : 'text-gray-500'}`} />
-                                                    <span className="ml-3 flex-1 whitespace-nowrap overflow-hidden overflow-ellipsis text-left">
-                                                        {conv.title}
-                                                    </span>
-                                                    <span className="text-xs text-gray-400 dark:text-gray-500">
-                                                        {conv.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
+                                                    <Check size={14} className="text-primary-500" />
                                                 </button>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </li>
-                        ))}
-                    </ul>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCancelRename}
+                                                    className="p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                                                    title="Cancel"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </form>
+                                        ) : (
+                                            // Normal state
+                                            <button
+                                                onClick={() => onSwitchConversation(conv.id)}
+                                                onDoubleClick={(e) => handleStartRename(conv, e)}
+                                                className={`flex items-center w-full px-4 py-2 text-sm ${
+                                                    activeConversationId === conv.id ? 'list-item-active' : 'hover:bg-surface-secondary'
+                                                }`}
+                                            >
+                                                <MessageSquare size={16} className="mr-2 flex-shrink-0" />
+                                                <span className="truncate">{conv.title}</span>
+                                            </button>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>

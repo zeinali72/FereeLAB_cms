@@ -335,31 +335,42 @@ const ChatPage = () => {
     return "New Chat";
   };
   
+  // Set theme in both state and document
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  // Initialize theme on component mount
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
+    // Check for system preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
     
-    // Add global style for resize operation
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .resize-active {
-        user-select: none !important;
-        cursor: col-resize !important;
-      }
-      .resize-active * {
-        user-select: none !important;
-      }
-    `;
-    document.head.appendChild(style);
+    // Set initial theme based on saved preference or system preference
+    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+    handleThemeChange(initialTheme);
     
-    return () => {
-      document.head.removeChild(style);
+    // Listen for system preference changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => {
+      if (!localStorage.getItem('theme')) {
+        handleThemeChange(e.matches ? 'dark' : 'light');
+      }
     };
-  }, [theme]);
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
   
-  const isDarkMode = theme === 'dark';
-  // --- End Theme Management Update ---
+  // Save theme preference to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -416,96 +427,106 @@ const ChatPage = () => {
     setCanvasWidth(newWidth);
   };
 
+  // Function to handle applying selected models from marketplace
+  const handleApplyModels = (models) => {
+    setSelectedModels(models);
+    setIsMarketplaceOpen(false);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
-      {/* --- Conditionally render Marketplace or Chat UI --- */}
-      {isMarketplaceOpen ? (
-        <MarketplacePanel 
-          onClose={handleCloseMarketplace} 
-          theme={theme} 
-          setTheme={setTheme} 
-          selectedModels={selectedModels} 
-          onApplyModels={(modelIds) => {
-            setSelectedModels(modelIds);
-            setIsMarketplaceOpen(false);
-          }}
-        />
-      ) : (
-        <>
-          {/* Resizable Sidebar */}
-          <ResizablePanel 
-            direction="horizontal"
-            initialSize={sidebarWidth}
-            minSize={250}
-            maxSize={450}
+    <div className={`h-screen flex flex-col ${theme === 'dark' ? 'dark' : ''}`}>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <ResizablePanel
+          isOpen={isSidebarOpen}
+          direction="horizontal"
+          initialSize={280}
+          minSize={240}
+          maxSize={400}
+        >
+          <Sidebar
             isOpen={isSidebarOpen}
-            onResize={handleSidebarResize}
-            className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden h-screen"
-            handlePosition="right"
-          >
-            <Sidebar 
-              isOpen={isSidebarOpen} 
-              onToggle={toggleSidebar} 
-              theme={theme}
-              setTheme={setTheme}
-              width={sidebarWidth}
-              conversations={conversations}
-              activeConversationId={activeConversationId}
-              onNewConversation={handleNewConversation}
-              onSwitchConversation={handleSwitchConversation}
-              onRenameConversation={handleRenameConversation}
-              projects={projects}
-              activeProjectId={activeProjectId}
-              activeProjectChatId={activeProjectChatId}
-              onProjectAction={handleProjectAction}
-              onSwitchToProjectChat={handleSwitchToProjectChat}
-            />
-          </ResizablePanel>
-          
-          <ModelPanel 
-            isOpen={isModelPanelOpen} 
-            onClose={toggleModelPanel} 
-            onOpenMarketplace={handleOpenMarketplace} // <-- Pass the handler
-            selectedModels={selectedModels}
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            theme={theme}
+            setTheme={handleThemeChange}
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onNewConversation={handleNewConversation}
+            onSwitchConversation={handleSwitchConversation}
+            onRenameConversation={handleRenameConversation}
+            projects={projects}
+            activeProjectId={activeProjectId}
+            activeProjectChatId={activeProjectChatId}
+            onProjectAction={handleProjectAction}
+            onSwitchToProjectChat={handleSwitchToProjectChat}
+          />
+        </ResizablePanel>
+
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Chat Header */}
+          <ChatHeader
+            onToggleTheme={() => handleThemeChange(theme === 'light' ? 'dark' : 'light')}
+            isDarkMode={theme === 'dark'}
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            isSidebarOpen={isSidebarOpen}
+            onToggleModelPanel={() => setIsModelPanelOpen(true)}
+            onNewConversation={handleNewConversation}
+            chatTitle={getActiveChatTitle()}
           />
 
-          <div className="relative flex-grow flex flex-col flex-1">
-            <main className="flex-grow flex flex-col h-full">
-              <ChatHeader
-                onToggleTheme={() => setTheme(isDarkMode ? 'light' : 'dark')}
-                isDarkMode={isDarkMode}
-                onToggleSidebar={toggleSidebar}
-                isSidebarOpen={isSidebarOpen}
-                onToggleModelPanel={toggleModelPanel}
-                onNewConversation={handleNewConversation}
-                chatTitle={getActiveChatTitle()}
-              />
-              <div className="flex-grow overflow-hidden relative">
-                <ChatLog messages={messages} />
-              </div>
-              <ChatInput onToggleCanvas={toggleCanvas} onSendMessage={handleSendMessage} />
-            </main>
+          {/* Chat Messages */}
+          <div className="flex-1 relative">
+            <ChatLog messages={messages} />
           </div>
 
-          {/* Resizable Canvas/Inspector Panel */}
-          {isCanvasOpen && (
-            <ResizablePanel
-              direction="horizontal"
-              initialSize={canvasWidth}
-              minSize={300}
-              maxSize={600}
-              onResize={handleCanvasResize}
-              className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex-shrink-0"
-              handlePosition="left"
-            >
-              <InspectorPanel 
-                isOpen={isCanvasOpen} 
-                onClose={toggleCanvas} 
-                width={canvasWidth}
-              />
-            </ResizablePanel>
-          )}
-        </>
+          {/* Chat Input */}
+          <ChatInput
+            onToggleCanvas={() => setIsCanvasOpen(!isCanvasOpen)}
+            onSendMessage={handleSendMessage}
+          />
+        </div>
+
+        {/* Inspector Panel */}
+        {isCanvasOpen && (
+          <ResizablePanel
+            direction="horizontal"
+            initialSize={canvasWidth}
+            minSize={300}
+            maxSize={600}
+            onResize={handleCanvasResize}
+            className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex-shrink-0"
+            handlePosition="left"
+          >
+            <InspectorPanel 
+              isOpen={isCanvasOpen} 
+              onClose={toggleCanvas} 
+              width={canvasWidth}
+            />
+          </ResizablePanel>
+        )}
+      </div>
+
+      {/* Models Panel Modal */}
+      <ModelPanel
+        isOpen={isModelPanelOpen}
+        onClose={() => setIsModelPanelOpen(false)}
+        onOpenMarketplace={() => {
+          setIsModelPanelOpen(false);
+          setIsMarketplaceOpen(true);
+        }}
+        selectedModels={selectedModels.map(model => model.id)}
+      />
+
+      {/* Marketplace Panel Modal */}
+      {isMarketplaceOpen && (
+        <MarketplacePanel
+          onClose={() => setIsMarketplaceOpen(false)}
+          theme={theme}
+          setTheme={handleThemeChange}
+          selectedModels={selectedModels.map(model => model.id)}
+          onApplyModels={handleApplyModels}
+        />
       )}
     </div>
   );

@@ -48,130 +48,146 @@ const MarketplacePanel = ({ onClose, theme, setTheme, selectedModels = [], onApp
   
   const handleApplySelection = () => {
     // Pass selected models back to parent component and close
-    if (onApplyModels) {
-      onApplyModels(selectedModelIds);
-    } else {
-      onClose(selectedModelIds);
-    }
+    const selectedModelsDetails = mockModels.filter(model => selectedModelIds.includes(model.id));
+    onApplyModels(selectedModelsDetails);
+    onClose();
   };
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  
+  const filteredModels = mockModels.filter(model => 
+    model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    model.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="w-full h-screen flex flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div className="flex items-center">
-          <button 
-            onClick={toggleSidebar}
-            className="p-2 mr-2 text-gray-500 rounded-md hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
-            aria-label="Toggle filters"
-            title={isSidebarOpen ? "Hide filters" : "Show filters"}
-          >
-            {isSidebarOpen ? <ChevronsLeft size={20} /> : <ChevronsRight size={20} />}
-          </button>
-          <h1 className="text-xl font-semibold mr-4">Models</h1>
-          {selectedModelIds.length > 0 && (
-            <span className="text-sm bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 rounded-full px-3 py-1">
-              {selectedModelIds.length} selected
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="relative hidden md:block w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Filter models"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="md:hidden relative">
-            <button 
-              onClick={() => {
-                const searchInput = document.querySelector('#mobileSearchInput');
-                if (searchInput.classList.contains('hidden')) {
-                  searchInput.classList.remove('hidden');
-                  searchInput.classList.add('flex');
-                  searchInput.querySelector('input').focus();
-                } else {
-                  searchInput.classList.add('hidden');
-                  searchInput.classList.remove('flex');
-                }
-              }}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <Search size={20} />
-            </button>
-          </div>
-          <button className="hidden md:flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm">
-            Sort
-            <ChevronDown size={16} />
-          </button>
-          <>
-            {selectedModelIds.length > 0 && (
+    <div className="fixed inset-0 z-modal animate-fade-in">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 modal-backdrop" 
+        onClick={onClose}
+      ></div>
+      
+      {/* Modal Panel */}
+      <div className="absolute inset-0 flex">
+        <div className="animate-slide-in-right w-full max-w-7xl mx-auto flex flex-col market-panel shadow-xl">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <h2 className="text-xl font-semibold">AI Models Marketplace</h2>
+            
+            <div className="flex items-center space-x-2">
               <button
-                onClick={handleDeselectAll}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md flex items-center gap-2"
-                title="Deselect all models"
+                onClick={onClose}
+                className="p-2 rounded-md hover:bg-surface-secondary transition-colors"
+                title="Close marketplace"
               >
-                <XCircle size={16} />
-                <span className="hidden sm:inline">Deselect All</span>
+                <X size={20} />
               </button>
-            )}
-            <button
-              onClick={handleApplySelection}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded-md flex items-center"
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="flex flex-1 min-h-0">
+            {/* Filter Sidebar */}
+            <div 
+              className={`filter-sidebar h-full transition-all duration-300 ease-in-out ${
+                isSidebarOpen ? 'w-64' : 'w-0 overflow-hidden'
+              }`}
             >
-              Apply
-            </button>
-          </>
-          <button 
-            onClick={() => onClose()}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-            title="Close Marketplace"
-          >
-            <X size={24} />
-          </button>
+              {isSidebarOpen && <FilterSidebar />}
+            </div>
+            
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col min-w-0">
+              {/* Top Bar */}
+              <div className="p-4 flex items-center justify-between border-b gap-4">
+                {/* Sidebar Toggle */}
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="p-2 rounded-md hover:bg-surface-secondary flex-shrink-0"
+                >
+                  {isSidebarOpen ? <ChevronsLeft size={20} /> : <Filter size={20} />}
+                </button>
+                
+                {/* Search */}
+                <div className="relative flex-grow max-w-2xl">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search size={18} className="text-tertiary" />
+                  </div>
+                  <input
+                    type="text"
+                    className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-transparent rounded-md focus:outline-none focus:border-primary-400"
+                    placeholder="Search models..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      <XCircle size={16} className="text-tertiary hover:text-primary-500" />
+                    </button>
+                  )}
+                </div>
+                
+                {/* Selected Count */}
+                <div className="hidden md:flex items-center gap-2">
+                  <span className="text-sm">
+                    {selectedModelIds.length} {selectedModelIds.length === 1 ? 'model' : 'models'} selected
+                  </span>
+                  {selectedModelIds.length > 0 && (
+                    <button
+                      onClick={handleDeselectAll}
+                      className="text-sm text-primary-500 hover:text-primary-600 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Models List */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <ModelList 
+                  models={filteredModels}
+                  selectedModelIds={selectedModelIds}
+                  onToggleSelect={handleModelSelection}
+                />
+              </div>
+              
+              {/* Bottom Action Bar */}
+              <div className="p-4 border-t flex items-center justify-between">
+                <div className="md:hidden flex items-center gap-2">
+                  <span className="text-sm">
+                    {selectedModelIds.length} {selectedModelIds.length === 1 ? 'model' : 'models'} selected
+                  </span>
+                  {selectedModelIds.length > 0 && (
+                    <button
+                      onClick={handleDeselectAll}
+                      className="text-sm text-primary-500 hover:text-primary-600 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                
+                <div className="flex items-center space-x-3 ml-auto">
+                  <button
+                    onClick={onClose}
+                    className="px-4 py-2 border rounded-md hover:bg-surface-secondary transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleApplySelection}
+                    className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
+                  >
+                    Apply Selection
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </header>
-      
-      {/* Mobile search input (hidden by default) */}
-      <div id="mobileSearchInput" className="hidden p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Filter models"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-      
-      {/* Main Content */}
-      <div className="flex-grow flex overflow-hidden relative">
-        <FilterSidebar 
-          theme={theme} 
-          setTheme={setTheme} 
-          isOpen={isSidebarOpen} 
-          onToggle={toggleSidebar} 
-        />
-        
-        {/* We've removed the duplicate floating button since we now have a consistent header button */}
-        
-        <ModelList 
-          models={mockModels.filter(model => 
-            searchTerm ? model.name.toLowerCase().includes(searchTerm.toLowerCase()) : true
-          )} 
-          selectedModelIds={selectedModelIds} 
-          onToggleSelect={handleModelSelection}
-        />
       </div>
     </div>
   );
