@@ -106,7 +106,7 @@ const ProjectList = ({
       <div className="px-4 py-2">
         <button
           onClick={() => setIsSectionOpen(!isSectionOpen)}
-          className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-surface-secondary rounded-md transition-colors"
+          className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-surface-hover rounded-md transition-colors text-on-surface-variant"
         >
           <span>Projects</span>
           {isSectionOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -117,10 +117,10 @@ const ProjectList = ({
         <div className="mt-1">
           <button
             onClick={handleAddProject}
-            className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-surface-secondary transition-colors"
+            className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-surface-hover transition-colors text-on-surface-variant"
           >
             <div className="flex items-center">
-              <FolderPlusIcon className="h-4 w-4 mr-2" />
+              <FolderPlusIcon className="h-4 w-4 mr-2 text-on-surface-variant" />
               <span>New project</span>
             </div>
           </button>
@@ -132,11 +132,11 @@ const ProjectList = ({
                 <div className="flex items-center">
                   {editingId === project.id ? (
                     // Editing project name
-                    <form onSubmit={handleSaveName} className="px-2 py-1 flex items-center w-full">
+                    <form onSubmit={handleSaveName} className="px-2 py-1 flex items-center w-full bg-surface-container-low rounded-md">
                       <button
                         type="button"
                         onClick={(e) => toggleProject(project.id, e)}
-                        className="mr-1 p-1 hover:bg-surface-secondary rounded transition-colors flex-shrink-0"
+                        className="mr-1 p-1 hover:bg-surface-hover rounded transition-colors flex-shrink-0 text-on-surface-variant"
                       >
                         {openProjects[project.id] ? (
                           <ChevronDown size={14} />
@@ -149,11 +149,11 @@ const ProjectList = ({
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="flex-grow text-sm bg-surface-secondary p-1 rounded focus:ring-1 focus:ring-primary-500 focus:outline-none"
+                        className="flex-grow text-sm bg-surface-container-low p-1 rounded focus:ring-1 focus:ring-primary focus:outline-none text-on-surface"
                       />
                       <button 
                         type="submit"
-                        className="ml-1 p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                        className="ml-1 p-1 hover:bg-surface-hover rounded-md transition-colors text-primary"
                         title="Save"
                       >
                         <Check size={14} className="text-primary-500" />
@@ -161,7 +161,7 @@ const ProjectList = ({
                       <button
                         type="button"
                         onClick={handleCancelRename}
-                        className="p-1 hover:bg-surface-secondary rounded-md transition-colors"
+                        className="p-1 hover:bg-surface-hover rounded-md transition-colors text-on-surface-variant"
                         title="Cancel"
                       >
                         <X size={14} />
@@ -177,9 +177,7 @@ const ProjectList = ({
                           }
                         }}
                         onDoubleClick={(e) => handleStartRenameProject(project, e)}
-                        className={`flex items-center flex-grow px-4 py-1 text-sm hover:bg-surface-secondary transition-colors rounded-md ${
-                          activeProjectId === project.id ? 'font-medium' : ''
-                        }`}
+                        className={`flex items-center flex-grow px-4 py-1 text-sm hover:bg-surface-hover transition-colors rounded-md ${activeProjectId === project.id ? 'font-medium text-primary' : 'text-on-surface-variant'}`}
                       >
                         <span 
                           onClick={(e) => toggleProject(project.id, e)}

@@ -31,23 +31,23 @@ Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor
   }
 
   return (
-    <div className="h-full panel-translucent panel-layout-default">
-      <div className="panel-header">
-        <h2 className="text-lg font-semibold">Canvas Frame</h2>
+    <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Canvas Frame</h2>
         <div className="flex items-center">
           <button 
             onClick={handleCopy} 
-            className={`btn btn-icon mr-2 ${isCopied ? 'text-success' : ''}`}
+            className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mr-2 ${isCopied ? 'text-green-500' : 'text-gray-600 dark:text-gray-400'}`}
             title="Copy content"
           >
             {isCopied ? 
-              <Check size={20} className="animate-pulse" /> : 
+              <Check size={20} /> : 
               <Copy size={20} />
             }
           </button>
           <button
             onClick={onClose}
-            className="btn btn-icon"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-400"
             title="Close panel"
           >
             <X size={20} />
@@ -55,8 +55,8 @@ Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor
         </div>
       </div>
       
-      <div className="panel-content bg-surface-secondary">
-        <pre className="whitespace-pre-wrap text-sm">
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900 custom-scrollbar">
+        <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200">
           {canvasContent}
         </pre>
       </div>

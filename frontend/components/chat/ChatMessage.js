@@ -1,4 +1,4 @@
-// components/chat/ChatMessage.js
+// frontend/components/chat/ChatMessage.js
 import React, { useState, useEffect } from 'react';
 import { Copy, ThumbsUp, ThumbsDown, RefreshCw, Check } from 'react-feather';
 
@@ -7,18 +7,14 @@ const ChatMessage = ({ message }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [displayText, setDisplayText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  
-  // Animation effect for bot messages
+
   useEffect(() => {
-    // Only animate bot messages
     if (message.sender === 'bot') {
       setIsTyping(true);
       setDisplayText('');
       
-      // Animate the text typing character by character
-      const text = message.text;
       let index = 0;
-      
+      const text = message.text;
       const typingInterval = setInterval(() => {
         if (index < text.length) {
           setDisplayText(prev => prev + text.charAt(index));
@@ -27,87 +23,54 @@ const ChatMessage = ({ message }) => {
           clearInterval(typingInterval);
           setIsTyping(false);
         }
-      }, 20); // Speed of typing animation
+      }, 10);
       
       return () => clearInterval(typingInterval);
     } else {
       setDisplayText(message.text);
     }
   }, [message.text, message.sender]);
-  
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(message.text);
       setIsCopied(true);
-      
-      // Reset the copied state after 2 seconds
-      setTimeout(() => {
-        setIsCopied(false);
-      }, 2000);
+      setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
   };
-  
+
   return (
-    <div className={`flex ${isUser ? 'flex-row-reverse' : ''}`}>
-      <div className={`flex flex-shrink-0 items-start ${isUser ? 'ml-3' : 'mr-3'}`}>
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-text-inverse ${
-          isUser ? 'user-avatar' : 'bot-avatar'
-        }`}>
-          {isUser ? (message.name ? message.name.charAt(0) : 'U') : 'AI'}
-        </div>
+    <div className={`flex items-start gap-4 my-4 ${isUser ? 'flex-row-reverse' : ''}`}>
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${isUser ? 'bg-blue-500' : 'bg-pink-500'}`}>
+        {isUser ? (message.name ? message.name.charAt(0).toUpperCase() : 'U') : 'AI'}
       </div>
-      <div className={`max-w-[80%] ${isUser ? 'items-end' : 'items-start'}`}>
-        <div className={`px-4 py-3 rounded-lg ${
-          isUser 
-            ? 'bg-primary-500 text-white user-message' 
-            : 'bg-surface-secondary bot-message'
-        } shadow-sm`}>
-          <p className="whitespace-pre-wrap break-words">
+      <div className={`flex flex-col max-w-[85%] md:max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
+        <div className={`px-5 py-3 rounded-2xl shadow-md ${isUser ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'}`}>
+          <p className="whitespace-pre-wrap break-words leading-relaxed">
             {displayText}
-            {isTyping && (
-              <span className="inline-block animate-pulse-fast">▌</span>
-            )}
+            {isTyping && <span className="animate-pulse">▍</span>}
           </p>
         </div>
-        
         {!isUser && (
-          <div className="flex items-center mt-2 space-x-2">
-            <button 
-              className="p-1 rounded-md hover:bg-surface-secondary"
-              onClick={handleCopy}
-              title={isCopied ? "Copied!" : "Copy to clipboard"}
-            >
-              {isCopied ? <Check size={14} /> : <Copy size={14} />}
+          <div className="flex items-center mt-2 text-gray-400 dark:text-gray-500 space-x-3">
+            <button onClick={handleCopy} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title={isCopied ? "Copied!" : "Copy"}>
+              {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
             </button>
-            <button 
-              className="p-1 rounded-md hover:bg-surface-secondary"
-              title="Regenerate response"
-            >
-              <RefreshCw size={14} />
-            </button>
-            <button 
-              className="p-1 rounded-md hover:bg-surface-secondary"
-              title="Good response"
-            >
+            <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Good response">
               <ThumbsUp size={14} />
             </button>
-            <button 
-              className="p-1 rounded-md hover:bg-surface-secondary"
-              title="Bad response"
-            >
+            <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Bad response">
               <ThumbsDown size={14} />
             </button>
-            
+            <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Regenerate">
+              <RefreshCw size={14} />
+            </button>
             {message.meta && (
-              <div className="text-xs text-tertiary ml-auto">
-                {message.meta.tokens && (
-                  <span className="mr-2">{message.meta.tokens} tokens</span>
-                )}
-                {message.meta.cost && (
-                  <span>{message.meta.cost}</span>
-                )}
+              <div className="text-xs">
+                {message.meta.tokens && <span>{message.meta.tokens} tokens</span>}
+                {message.meta.cost && <span className="ml-2">{message.meta.cost}</span>}
               </div>
             )}
           </div>

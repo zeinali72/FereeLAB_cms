@@ -1,17 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronsLeft, MoreVertical } from 'react-feather';
+import { ChevronsLeft, MoreVertical, Menu } from 'react-feather';
 import SearchWithSuggestions from './SearchWithSuggestions';
 import ProjectList from './ProjectList';
 import ConversationHistory from './ConversationHistory';
 import UserMenuPanel from '../modals/UserMenuPanel';
 
 // Accept and pass down conversation and project-related props
-const Sidebar = ({ 
-  isOpen, 
+const Sidebar = ({
+  isOpen,
   onToggle,
   theme,
   setTheme,
-  width, 
   conversations = [],
   activeConversationId,
   onNewConversation,
@@ -24,37 +23,35 @@ const Sidebar = ({
   onSwitchToProjectChat
 }) => {
   return (
-    <div className="h-full flex flex-col overflow-hidden sidebar">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg">
       <div
-        className={`flex items-center justify-between p-4 border-b flex-shrink-0 transition-opacity duration-200 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0`}
       >
-        <h1 className="text-lg font-bold">FereeLAB</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">FereeLAB</h1>
         <button
           onClick={onToggle}
-          className="p-1 rounded-md hover:bg-surface-secondary"
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           title="Collapse sidebar"
         >
-          <ChevronsLeft size={20} />
+          <ChevronsLeft size={20} className="text-gray-600 dark:text-gray-400" />
         </button>
       </div>
 
       <div
-        className={`flex-grow flex flex-col min-h-0 transition-opacity duration-200 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`flex-grow flex flex-col min-h-0 overflow-hidden`}
       >
-        <SearchWithSuggestions />
-        <div className="flex-grow overflow-y-auto">
-          <ProjectList 
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <SearchWithSuggestions />
+        </div>
+        <div className="flex-grow overflow-y-auto custom-scrollbar">
+          <ProjectList
             projects={projects}
             activeProjectId={activeProjectId}
             activeProjectChatId={activeProjectChatId}
             onProjectAction={onProjectAction}
             onSwitchToProjectChat={onSwitchToProjectChat}
           />
-          <ConversationHistory 
+          <ConversationHistory
             conversations={conversations}
             activeConversationId={activeConversationId}
             onSwitchConversation={onSwitchConversation}
@@ -62,7 +59,7 @@ const Sidebar = ({
             onNewConversation={onNewConversation}
           />
         </div>
-        
+
         {/* User Profile Section */}
         <UserProfileSection theme={theme} setTheme={setTheme} />
       </div>
@@ -87,25 +84,25 @@ const UserProfileSection = ({ theme, setTheme }) => {
   }, [menuRef]);
 
   return (
-    <div className="p-4 border-t" ref={menuRef}>
+    <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0" ref={menuRef}>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-lg">
             U
           </div>
-          <span className="ml-3 font-semibold">User</span>
+          <span className="ml-3 font-semibold text-gray-800 dark:text-gray-200">User</span>
         </div>
         <div className="relative">
-          <button 
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-1 rounded-full hover:bg-surface-secondary"
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             aria-label="Open user menu"
           >
-            <MoreVertical size={20} />
+            <MoreVertical size={20} className="text-gray-600 dark:text-gray-400" />
           </button>
-          
-          <UserMenuPanel 
-            isOpen={isMenuOpen} 
+
+          <UserMenuPanel
+            isOpen={isMenuOpen}
             theme={theme}
             setTheme={setTheme}
           />
