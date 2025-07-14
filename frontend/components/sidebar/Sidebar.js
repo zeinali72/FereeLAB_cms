@@ -1,16 +1,16 @@
-import React from 'react';
-import { ChevronsLeft } from 'react-feather';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronsLeft, MoreVertical } from 'react-feather';
 import SearchWithSuggestions from './SearchWithSuggestions';
 import ProjectList from './ProjectList';
 import ConversationHistory from './ConversationHistory';
-import UserProfile from './UserProfile';
+import UserMenuPanel from '../modals/UserMenuPanel';
 
 // Accept and pass down conversation and project-related props
 const Sidebar = ({ 
   isOpen, 
-  onToggle, 
-  theme, 
-  setTheme, 
+  onToggle,
+  theme,
+  setTheme,
   width, 
   conversations = [],
   activeConversationId,
@@ -62,7 +62,54 @@ const Sidebar = ({
             onNewConversation={onNewConversation}
           />
         </div>
-        <UserProfile theme={theme} setTheme={setTheme} />
+        
+        {/* User Profile Section */}
+        <UserProfileSection theme={theme} setTheme={setTheme} />
+      </div>
+    </div>
+  );
+};
+
+// New User Profile section component
+const UserProfileSection = ({ theme, setTheme }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuRef]);
+
+  return (
+    <div className="p-4 border-t" ref={menuRef}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="w-10 h-10 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
+            U
+          </div>
+          <span className="ml-3 font-semibold">User</span>
+        </div>
+        <div className="relative">
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-1 rounded-full hover:bg-surface-secondary"
+            aria-label="Open user menu"
+          >
+            <MoreVertical size={20} />
+          </button>
+          
+          <UserMenuPanel 
+            isOpen={isMenuOpen} 
+            theme={theme}
+            setTheme={setTheme}
+          />
+        </div>
       </div>
     </div>
   );

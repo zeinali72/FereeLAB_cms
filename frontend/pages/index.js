@@ -522,8 +522,6 @@ const ChatPage = () => {
       {isMarketplaceOpen && (
         <MarketplacePanel
           onClose={() => setIsMarketplaceOpen(false)}
-          theme={theme}
-          setTheme={handleThemeChange}
           selectedModels={selectedModels.map(model => model.id)}
           onApplyModels={handleApplyModels}
         />

@@ -1,6 +1,6 @@
 // frontend/components/chat/ChatInput.js
 import React, { useState } from 'react';
-import { Paperclip, Layers, Send, Zap } from 'react-feather'; // Changed Zap for Lightbulb
+import { Paperclip, Layers, Send, Zap } from 'react-feather'; 
 import PromptSuggestions from './PromptSuggestions';
 
 const ChatInput = ({ onToggleCanvas, onSendMessage }) => {

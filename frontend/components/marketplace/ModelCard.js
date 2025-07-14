@@ -52,7 +52,7 @@ const ModelCard = ({ model, isSelected = false, onToggleSelect }) => {
                     <div className="h-2 w-16 bg-surface-secondary rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-primary-500 rounded-full" 
-                            style={{ width: `${Math.min(100, model.metrics.speed * 20)}%` }}
+                            style={{ width: `${Math.min(100, (model.metrics?.speed || 3) * 20)}%` }}
                         ></div>
                     </div>
                 </div>

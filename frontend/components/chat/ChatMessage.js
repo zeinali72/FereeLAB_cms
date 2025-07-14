@@ -61,8 +61,8 @@ const ChatMessage = ({ message }) => {
       <div className={`max-w-[80%] ${isUser ? 'items-end' : 'items-start'}`}>
         <div className={`px-4 py-3 rounded-lg ${
           isUser 
-            ? 'bg-primary-500 text-white' 
-            : 'bg-surface-primary'
+            ? 'bg-primary-500 text-white user-message' 
+            : 'bg-surface-secondary bot-message'
         } shadow-sm`}>
           <p className="whitespace-pre-wrap break-words">
             {displayText}

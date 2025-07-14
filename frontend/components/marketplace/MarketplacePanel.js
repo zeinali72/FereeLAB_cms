@@ -5,7 +5,7 @@ import FilterSidebar from './FilterSidebar';
 import ModelList from './ModelList';
 import { mockModels } from '../../data/mockModels';
 
-const MarketplacePanel = ({ onClose, theme, setTheme, selectedModels = [], onApplyModels }) => {
+const MarketplacePanel = ({ onClose, selectedModels = [], onApplyModels }) => {
   const [selectedModelIds, setSelectedModelIds] = useState(selectedModels);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

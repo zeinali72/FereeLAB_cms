@@ -409,6 +409,32 @@ body {
   color: var(--color-text-primary);
 }
 
+/* Chat Message Styles */
+.user-avatar {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.bot-avatar {
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+}
+
+/* Chat messages styling */
+.chat-container {
+  background-color: var(--color-background-secondary);
+}
+
+.bot-message {
+  background-color: var(--color-surface-primary);
+  border: 1px solid var(--color-border-light);
+}
+
+.user-message {
+  background-color: var(--color-primary);
+  color: white;
+}
+
 /* Utility Classes */
 /* Typing animation cursor */
 .typing-cursor {
@@ -567,7 +593,7 @@ body {
 }
 
 .z-dropdown {
-  z-index: var(--z-dropdown);
+  z-index: 9999;
 }
 
 .z-sticky {
@@ -580,4 +606,45 @@ body {
 
 .z-tooltip {
   z-index: var(--z-tooltip);
+}
+
+/* User Menu Panel Positioning */
+.user-menu-panel {
+  z-index: 100;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure theme dropdown is properly positioned */
+.theme-dropdown {
+  z-index: 110;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Animation for menu panels */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Triangle pointer for user menu */
+.user-menu-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  right: 12px;
+  width: 0; 
+  height: 0; 
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--color-surface-primary);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Make sure theme dropdown doesn't have triangle */
+.theme-dropdown::after {
+  display: none;
 }
