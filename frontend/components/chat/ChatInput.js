@@ -1,6 +1,7 @@
 // frontend/components/chat/ChatInput.js
 import React, { useState } from 'react';
 import { Paperclip, Layers, Send, Zap } from 'react-feather'; // Changed Zap for Lightbulb
+import PromptSuggestions from './PromptSuggestions';
 
 const ChatInput = ({ onToggleCanvas, onSendMessage }) => {
   const [message, setMessage] = useState('');
@@ -18,10 +19,17 @@ const ChatInput = ({ onToggleCanvas, onSendMessage }) => {
       handleSendMessage();
     }
   };
+  
+  const handleSuggestionClick = (suggestion) => {
+    setMessage(suggestion);
+    // Focus on the textarea after setting the suggestion
+    document.querySelector('textarea').focus();
+  };
 
   return (
     <div className="p-4 md:p-6 lg:p-8 border-t border-gray-200 dark:border-gray-700">
-      <div className="relative">
+      <PromptSuggestions onSuggestionClick={handleSuggestionClick} />
+      <div className="relative mt-4">
         <textarea
           className="w-full h-12 p-3 pr-40 bg-gray-100 dark:bg-gray-800 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Write your prompt..."

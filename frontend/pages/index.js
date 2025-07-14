@@ -3,7 +3,6 @@ import Sidebar from '../components/sidebar/Sidebar.js';
 import InspectorPanel from '../components/shared/InspectorPanel';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatLog from '../components/chat/ChatLog';
-import PromptSuggestions from '../components/chat/PromptSuggestions';
 import ChatInput from '../components/chat/ChatInput';
 import ModelPanel from '../components/modals/ModelPanel.js';
 import ResizablePanel from '../components/shared/ResizablePanel';
@@ -440,7 +439,6 @@ const ChatPage = () => {
           <div className="flex-grow overflow-hidden relative">
             <ChatLog messages={messages} />
           </div>
-          <PromptSuggestions />
           <ChatInput onToggleCanvas={toggleCanvas} onSendMessage={handleSendMessage} />
         </main>
       </div>
