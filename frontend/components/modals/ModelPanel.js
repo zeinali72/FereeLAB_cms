@@ -10,9 +10,35 @@ const models = [
   { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', icon: '✨', maxTokens: 4096, inputPrice: 0.0005, outputPrice: 0.0015 },
 ];
 
-const ModelPanel = ({ isOpen, onClose, onOpenMarketplace }) => { // <-- Add onOpenMarketplace prop
+const ModelPanel = ({ isOpen, onClose, onOpenMarketplace, selectedModels = [] }) => {
   const [selectedModelId, setSelectedModelId] = useState('gemini-flash');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  
+  // Filter models to include both default and selected from marketplace
+  const allModels = React.useMemo(() => {
+    // Get selected models from marketplace that aren't in the default list
+    const marketplaceModels = selectedModels
+      .filter(modelId => !models.some(m => m.id === modelId))
+      .map(modelId => {
+        const modelNameParts = modelId.split('/');
+        const providerName = modelNameParts[0] || 'Unknown';
+        const modelName = modelNameParts.length > 1 
+          ? modelNameParts[1].replace(/-/g, ' ') 
+          : modelId.replace(/-/g, ' ');
+        
+        return {
+          id: modelId,
+          name: modelName,
+          provider: providerName,
+          icon: '✨',
+          maxTokens: 8192,
+          inputPrice: 0.0001,
+          outputPrice: 0.0001
+        };
+      });
+    
+    return [...models, ...marketplaceModels];
+  }, [selectedModels]);
   
   // State for advanced settings
   const [temperature, setTemperature] = useState(0.7);
@@ -43,30 +69,28 @@ const ModelPanel = ({ isOpen, onClose, onOpenMarketplace }) => { // <-- Add onOp
                 </button>
             </div>
 
-            {/* Model Selection Grid */}
+            {/* Model Selection Grid - More compact for multiple selections */}
             <div className="p-4">
-                <div className="grid grid-cols-2 gap-3">
-                    {models.map((model) => (
+                <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+                    {allModels.map((model) => (
                         <button
                             key={model.id}
                             onClick={() => setSelectedModelId(model.id)}
-                            className={`p-3 border rounded-lg text-left hover:border-blue-500 dark:hover:border-blue-500 ${
-                                selectedModelId === model.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/50' : 'border-gray-200 dark:border-gray-600'
+                            className={`p-3 border rounded-lg text-left hover:border-gray-500 dark:hover:border-gray-500 ${
+                                selectedModelId === model.id ? 'border-gray-800 dark:border-gray-400 bg-gray-50 dark:bg-gray-800/50' : 'border-gray-200 dark:border-gray-600'
                             }`}
                         >
-                            <div className="text-2xl mb-2">{model.icon}</div>
-                            <div className="font-semibold">{model.name}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{model.provider}</div>
-                            {/* Token price info */}
-                            <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
-                              <span>
-                                Input: <span className="font-mono">${model.inputPrice.toFixed(5)}</span>
-                              </span>
+                            <div className="flex items-center">
+                                <span className="text-xl mr-2">{model.icon}</span>
+                                <div>
+                                    <div className="font-semibold text-sm">{model.name}</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">{model.provider}</div>
+                                </div>
                             </div>
-                            <div className="text-xs text-gray-600 dark:text-gray-300">
-                              <span>
-                                Output: <span className="font-mono">${model.outputPrice.toFixed(5)}</span>
-                              </span>
+                            {/* Simplified price info */}
+                            <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 flex justify-between">
+                                <span>In: ${model.inputPrice.toFixed(5)}</span>
+                                <span>Out: ${model.outputPrice.toFixed(5)}</span>
                             </div>
                         </button>
                     ))}

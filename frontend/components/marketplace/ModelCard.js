@@ -1,7 +1,7 @@
 // frontend/components/marketplace/ModelCard.js
 import React from 'react';
 
-const ModelCard = ({ model }) => {
+const ModelCard = ({ model, isSelected = false, onToggleSelect }) => {
     // Format context length for better readability
     const formatContext = (tokens) => {
         if (tokens >= 1000000) {
@@ -14,7 +14,21 @@ const ModelCard = ({ model }) => {
     };
 
     return (
-        <div className="p-5 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors duration-200">
+        <div 
+            className={`p-5 border rounded-lg transition-colors duration-200 cursor-pointer relative
+                ${isSelected 
+                    ? 'border-gray-800 dark:border-gray-400 ring-1 ring-gray-800 dark:ring-gray-400' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                }`}
+            onClick={onToggleSelect}
+        >
+            {isSelected && (
+                <div className="absolute bottom-4 right-4">
+                    <div className="w-5 h-5 border border-gray-800 dark:border-gray-400 rounded flex items-center justify-center">
+                        <div className="w-3 h-3 bg-gray-800 dark:bg-gray-400 rounded-sm"></div>
+                    </div>
+                </div>
+            )}
             <div className="flex justify-between items-start">
                 <div>
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{model.name}</h2>
@@ -30,10 +44,10 @@ const ModelCard = ({ model }) => {
                 {model.description}
             </p>
             <div className="mt-4 flex items-center space-x-6 text-sm">
-                 <div className="text-gray-500 dark:text-gray-400">
+                <div className="text-gray-500 dark:text-gray-400">
                     Input: <span className="font-mono text-gray-700 dark:text-gray-200">${model.pricing.prompt}/M</span>
                 </div>
-                 <div className="text-gray-500 dark:text-gray-400">
+                <div className="text-gray-500 dark:text-gray-400">
                     Output: <span className="font-mono text-gray-700 dark:text-gray-200">${model.pricing.completion}/M</span>
                 </div>
             </div>

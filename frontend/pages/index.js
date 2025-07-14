@@ -13,6 +13,9 @@ const ChatPage = () => {
   // --- Start Theme Management Update ---
   const [theme, setTheme] = useState('light'); // 'light', 'dark'
   
+  // State for selected models from marketplace
+  const [selectedModels, setSelectedModels] = useState([]);
+
   // Sample projects data
   const initialProjects = [
     { 
@@ -417,7 +420,16 @@ const ChatPage = () => {
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
       {/* --- Conditionally render Marketplace or Chat UI --- */}
       {isMarketplaceOpen ? (
-        <MarketplacePanel onClose={handleCloseMarketplace} />
+        <MarketplacePanel 
+          onClose={handleCloseMarketplace} 
+          theme={theme} 
+          setTheme={setTheme} 
+          selectedModels={selectedModels} 
+          onApplyModels={(modelIds) => {
+            setSelectedModels(modelIds);
+            setIsMarketplaceOpen(false);
+          }}
+        />
       ) : (
         <>
           {/* Resizable Sidebar */}
@@ -454,6 +466,7 @@ const ChatPage = () => {
             isOpen={isModelPanelOpen} 
             onClose={toggleModelPanel} 
             onOpenMarketplace={handleOpenMarketplace} // <-- Pass the handler
+            selectedModels={selectedModels}
           />
 
           <div className="relative flex-grow flex flex-col flex-1">
