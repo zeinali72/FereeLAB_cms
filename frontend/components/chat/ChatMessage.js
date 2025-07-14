@@ -7,7 +7,7 @@ const ChatMessage = ({ message }) => {
 
   const UserAvatar = () => (
     <div className="w-8 h-8 rounded-full bg-indigo-500 flex-shrink-0 flex items-center justify-center text-white font-bold">
-      {message.name.charAt(0).toUpperCase()}
+      {message.name ? message.name.charAt(0).toUpperCase() : 'U'}
     </div>
   );
 
@@ -18,11 +18,11 @@ const ChatMessage = ({ message }) => {
   );
 
   return (
-    <div className={`flex items-start gap-4 ${isUser ? 'justify-end' : ''}`}>
+    <div className={`flex items-start gap-4 mb-4 ${isUser ? 'justify-end' : ''}`}>
       {!isUser && <BotAvatar />}
-      <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+      <div className={`flex flex-col max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
         <div
-          className={`max-w-xl p-4 rounded-lg ${
+          className={`w-full p-4 rounded-lg ${
             isUser
               ? 'bg-blue-500 text-white rounded-br-none'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'

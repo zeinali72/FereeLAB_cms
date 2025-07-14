@@ -12,6 +12,50 @@ const ChatPage = () => {
   // --- Start Theme Management Update ---
   const [theme, setTheme] = useState('light'); // 'light', 'dark'
   
+  // Initial messages state with sample messages
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      sender: 'user',
+      text: 'This is my first prompt',
+      meta: { tokens: 4, cost: '$0.0001' },
+      name: 'User'
+    },
+    {
+      id: 2,
+      sender: 'bot',
+      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vitae ex feugiat, varius nunc viverra in bibendum. Duis sit cursus pulvinar sit faucibus. Vitae vitae at tellus ultrices in. Commodo sed convallis in sit. Sed ut sed proin neque. Eget netus ipsum morbi condimentum quis amet sit. Varius et feugiat placerat in accumsan iaculis massa. Nibh neque feugiat faucibus interdum vitae varius in nibh. Non enim odio odio pellentesque risus congue a. A mauris imperdiet adipiscing cursus nunc. At arcu sem orci feugiat in massa massa. Liberum dignissim quis convallis aliquet magna nec fermentum sit. Velit turpis dui sagittis egestas duis aliquet. Duis donec urna iaculis et.",
+      meta: { tokens: 152, cost: '$0.002' },
+    },
+  ]);
+  
+  // Function to handle sending a new message
+  const handleSendMessage = (text) => {
+    // Create a new user message
+    const userMessage = {
+      id: Date.now(),
+      sender: 'user',
+      text: text,
+      meta: { tokens: text.split(' ').length, cost: '$0.0001' },
+      name: 'User'
+    };
+    
+    // Add user message to chat
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Simulate bot response with "Hello world!"
+    setTimeout(() => {
+      const botResponse = {
+        id: Date.now() + 1,
+        sender: 'bot',
+        text: "Hello world!",
+        meta: { tokens: 2, cost: '$0.00005' },
+      };
+      
+      setMessages(prev => [...prev, botResponse]);
+    }, 500);
+  };
+  
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
@@ -83,7 +127,7 @@ const ChatPage = () => {
         maxSize={450}
         isOpen={isSidebarOpen}
         onResize={handleSidebarResize}
-        className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden"
+        className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden h-screen"
         handlePosition="right"
       >
         <Sidebar 
@@ -98,7 +142,7 @@ const ChatPage = () => {
       <ModelPanel isOpen={isModelPanelOpen} onClose={toggleModelPanel} />
 
       <div className="relative flex-grow flex flex-col flex-1">
-        <main className="flex-grow flex flex-col flex-1">
+        <main className="flex-grow flex flex-col h-full">
           <ChatHeader
             onToggleTheme={() => setTheme(isDarkMode ? 'light' : 'dark')} // Simple toggle for header button
             isDarkMode={isDarkMode}
@@ -106,11 +150,11 @@ const ChatPage = () => {
             isSidebarOpen={isSidebarOpen}
             onToggleModelPanel={toggleModelPanel}
           />
-          <div className="flex-grow overflow-y-auto">
-            <ChatLog />
+          <div className="flex-grow overflow-hidden relative">
+            <ChatLog messages={messages} />
           </div>
           <PromptSuggestions />
-          <ChatInput onToggleCanvas={toggleCanvas} />
+          <ChatInput onToggleCanvas={toggleCanvas} onSendMessage={handleSendMessage} />
         </main>
       </div>
 
