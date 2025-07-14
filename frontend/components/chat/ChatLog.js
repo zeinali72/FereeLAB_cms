@@ -7,6 +7,45 @@ const ChatLog = ({ messages = [] }) => {
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [processedMessages, setProcessedMessages] = useState([]);
+  
+  // Process messages to ensure correct animation state
+  useEffect(() => {
+    // Check if this is a page reload
+    const isPageReload = !sessionStorage.getItem('pageHasLoaded');
+    
+    // Mark the page as loaded
+    if (isPageReload) {
+      sessionStorage.setItem('pageHasLoaded', 'true');
+    }
+    
+    // Create a flag to track if this is a new message being added
+    // We only want animation for newly added messages
+    const isNewMessageAdded = sessionStorage.getItem('lastMessageCount') && 
+                             parseInt(sessionStorage.getItem('lastMessageCount')) < messages.length;
+    
+    // Store the current message count for future comparison
+    sessionStorage.setItem('lastMessageCount', messages.length.toString());
+    
+    const updatedMessages = messages.map((msg, index) => {
+      // Disable all animations when:
+      // 1. Page is being reloaded OR
+      // 2. This is not a new message being added OR
+      // 3. This isn't the last message (we only animate the newest message)
+      const shouldAnimate = 
+        msg.animate && // Message was marked for animation
+        !isPageReload && // Not a page reload
+        isNewMessageAdded && // New message was added
+        index === messages.length - 1; // Only animate the last message
+        
+      return {
+        ...msg,
+        animate: shouldAnimate
+      };
+    });
+    
+    setProcessedMessages(updatedMessages);
+  }, [messages]);
 
   const scrollToBottom = (behavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -21,7 +60,7 @@ const ChatLog = ({ messages = [] }) => {
         scrollToBottom();
       }
     }
-  }, [messages]);
+  }, [processedMessages]);
 
   const handleScroll = () => {
     if (chatContainerRef.current) {
@@ -45,7 +84,7 @@ const ChatLog = ({ messages = [] }) => {
         ref={chatContainerRef}
         className="absolute inset-0 p-4 md:p-6 lg:p-8 space-y-6 overflow-y-auto custom-scrollbar"
       >
-        {messages.map((msg) => (
+        {processedMessages.map((msg) => (
           <ChatMessage key={msg.id} message={msg} />
         ))}
         <div ref={messagesEndRef} className="h-1" />

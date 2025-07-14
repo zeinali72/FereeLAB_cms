@@ -107,7 +107,9 @@ export const useChatState = () => {
       sender: 'user',
       text: text,
       meta: { tokens: text.split(' ').length, cost: '$0.0001' },
-      name: 'User'
+      name: 'User',
+      // Always animate new user messages when they're sent
+      animate: true
     };
 
     const updatedMessages = [...messages, userMessage];
@@ -138,20 +140,15 @@ export const useChatState = () => {
       );
     }
 
-    const hasAnimated = sessionStorage.getItem('hasAnimatedInSession');
-
     setTimeout(() => {
+      // Always animate new bot messages when they're sent
       const botResponse = {
         id: Date.now() + 1,
         sender: 'bot',
         text: `You said: "${text}". I am a simple bot and this is a canned response.`,
         meta: { tokens: 20, cost: '$0.0002' },
-        animate: !hasAnimated
+        animate: true
       };
-      
-      if (!hasAnimated) {
-        sessionStorage.setItem('hasAnimatedInSession', 'true');
-      }
 
       const updatedMessagesWithResponse = [...updatedMessages, botResponse];
       setMessages(updatedMessagesWithResponse);
@@ -197,12 +194,29 @@ export const useChatState = () => {
     setActiveProjectId(null);
     setActiveProjectChatId(null);
     setMessages([]);
+    
+    // Reset the message count in sessionStorage to ensure proper animation tracking
+    sessionStorage.setItem('lastMessageCount', '0');
   };
 
   const handleSwitchConversation = (conversationId) => {
     setActiveConversationId(conversationId);
     setActiveProjectId(null);
     setActiveProjectChatId(null);
+    
+    // When switching to an existing conversation, make sure no messages are animated
+    const activeConversation = conversations.find(c => c.id === conversationId);
+    if (activeConversation && activeConversation.messages) {
+      // When viewing history, we want to show the completed state without animation
+      const messagesWithoutAnimation = activeConversation.messages.map(message => ({
+        ...message,
+        animate: false // explicitly disable animations for history
+      }));
+      
+      // Update lastMessageCount so we know these aren't new messages
+      sessionStorage.setItem('lastMessageCount', activeConversation.messages.length.toString());
+      setMessages(messagesWithoutAnimation);
+    }
   };
 
   const handleRenameConversation = (conversationId, newTitle) => {
@@ -225,7 +239,21 @@ export const useChatState = () => {
     setActiveProjectId(projectId);
     setActiveProjectChatId(chatId);
     setActiveConversationId(null);
-    setMessages(chat.messages || []);
+    
+    // When viewing existing chat history, disable animations
+    if (chat.messages && chat.messages.length > 0) {
+      const messagesWithoutAnimation = chat.messages.map(message => ({
+        ...message,
+        animate: false // no animations when viewing history
+      }));
+      
+      // Update lastMessageCount so we know these aren't new messages
+      sessionStorage.setItem('lastMessageCount', chat.messages.length.toString());
+      setMessages(messagesWithoutAnimation);
+    } else {
+      sessionStorage.setItem('lastMessageCount', '0');
+      setMessages(chat.messages || []);
+    }
   };
 
   const handleProjectAction = {

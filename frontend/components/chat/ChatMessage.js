@@ -7,29 +7,45 @@ const ChatMessage = ({ message }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [displayText, setDisplayText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [animationClass, setAnimationClass] = useState('');
 
   useEffect(() => {
-    if (message.sender === 'bot' && message.animate) {
-      setIsTyping(true);
-      setDisplayText('');
+    // Apply animation ONLY for new messages (with animate flag true)
+    if (message.animate) {
+      // Apply slide-in animation based on sender type
+      setAnimationClass(isUser ? 'animate-slide-in-left' : 'animate-slide-in-right');
       
-      let index = 0;
-      const text = message.text;
-      const typingInterval = setInterval(() => {
-        if (index < text.length) {
-          setDisplayText(prev => prev + text.charAt(index));
-          index++;
-        } else {
-          clearInterval(typingInterval);
-          setIsTyping(false);
-        }
-      }, 10);
+      // Remove animation class after animation completes to prevent re-animation
+      setTimeout(() => {
+        setAnimationClass('');
+      }, 500); // Animation duration plus buffer
       
-      return () => clearInterval(typingInterval);
+      // Only do typing animation for new bot messages
+      if (message.sender === 'bot') {
+        setIsTyping(true);
+        setDisplayText('');
+        
+        let index = 0;
+        const text = message.text;
+        const typingInterval = setInterval(() => {
+          if (index < text.length) {
+            setDisplayText(prev => prev + text.charAt(index));
+            index++;
+          } else {
+            clearInterval(typingInterval);
+            setIsTyping(false);
+          }
+        }, 10);
+        
+        return () => clearInterval(typingInterval);
+      }
     } else {
+      // For ANY existing message (history, reload, etc.), no animations
+      setAnimationClass('');
       setDisplayText(message.text);
+      setIsTyping(false);
     }
-  }, [message.text, message.sender, message.animate]);
+  }, [message.text, message.sender, message.animate, isUser]);
 
   const handleCopy = async () => {
     try {
@@ -43,10 +59,10 @@ const ChatMessage = ({ message }) => {
 
   return (
     <div className={`flex items-start gap-4 my-4 ${isUser ? 'flex-row-reverse' : ''}`}>
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${isUser ? 'bg-blue-500' : 'bg-pink-500'}`}>
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${isUser ? 'bg-blue-500' : 'bg-pink-500'} ${message.animate ? 'animate-fade-in' : ''}`}>
         {isUser ? (message.name ? message.name.charAt(0).toUpperCase() : 'U') : 'AI'}
       </div>
-      <div className={`flex flex-col max-w-[85%] md:max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
+      <div className={`flex flex-col max-w-[85%] md:max-w-[75%] ${isUser ? 'items-end' : 'items-start'} ${animationClass}`}>
         <div className={`px-5 py-3 rounded-2xl shadow-md ${isUser ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'}`}>
           <p className="whitespace-pre-wrap break-words leading-relaxed">
             {displayText}
