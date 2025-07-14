@@ -1,3 +1,4 @@
+// frontend/components/modals/ModelPanel.js
 import React, { useState, useEffect } from 'react';
 import { Briefcase, Zap, Settings, ChevronDown, ChevronRight, X } from 'react-feather';
 
@@ -9,7 +10,7 @@ const models = [
   { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', icon: '✨', maxTokens: 4096, inputPrice: 0.0005, outputPrice: 0.0015 },
 ];
 
-const ModelPanel = ({ isOpen, onClose }) => {
+const ModelPanel = ({ isOpen, onClose, onOpenMarketplace }) => { // <-- Add onOpenMarketplace prop
   const [selectedModelId, setSelectedModelId] = useState('gemini-flash');
   const [showAdvanced, setShowAdvanced] = useState(false);
   
@@ -27,7 +28,7 @@ const ModelPanel = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-return (
+  return (
     // Backdrop
     <div className="fixed inset-0 z-40" onClick={onClose}>
         {/* Panel */}
@@ -82,9 +83,14 @@ return (
                             <p className="text-sm text-gray-500 dark:text-gray-400">Discover more models from the community.</p>
                         </div>
                     </div>
-                    <button className="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
+                    {/* --- Updated button --- */}
+                    <button 
+                      onClick={onOpenMarketplace}
+                      className="px-3 py-1 text-sm font-medium border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
                         Explore
                     </button>
+                    {/* -------------------- */}
                 </div>
             </div>
 
@@ -105,12 +111,7 @@ return (
                         <div>
                             <div className="flex justify-between items-center mb-1">
                                 <label htmlFor="temp" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Temperature</label>
-                                {/* Display the temperature value */}
                                 <span className="text-sm font-mono text-gray-600 dark:text-gray-400">{temperature.toFixed(2)}</span>
-                            </div>
-                            {/* Show the value above the bar */}
-                            <div className="flex justify-end mb-1">
-                                <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{temperature.toFixed(2)}</span>
                             </div>
                             <input 
                                 type="range" 
@@ -138,7 +139,7 @@ return (
             </div>
         </div>
     </div>
-);
+  );
 };
 
 export default ModelPanel;
