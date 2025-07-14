@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Import useEffect
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/sidebar/Sidebar.js';
 import InspectorPanel from '../components/shared/InspectorPanel';
 import ChatHeader from '../components/chat/ChatHeader';
@@ -361,14 +361,22 @@ const ChatPage = () => {
   const [isModelPanelOpen, setIsModelPanelOpen] = useState(false);
   
   // State for panel sizes with localStorage persistence
-  const [sidebarWidth, setSidebarWidth] = useState(() => {
-    const saved = localStorage.getItem('sidebarWidth');
-    return saved ? parseInt(saved, 10) : 280;
-  });
-  const [canvasWidth, setCanvasWidth] = useState(() => {
-    const saved = localStorage.getItem('canvasWidth');
-    return saved ? parseInt(saved, 10) : 380;
-  });
+  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [canvasWidth, setCanvasWidth] = useState(380);
+
+  // Load sizes from localStorage on the client side
+  useEffect(() => {
+    const savedSidebarWidth = localStorage.getItem('sidebarWidth');
+    if (savedSidebarWidth) {
+      setSidebarWidth(parseInt(savedSidebarWidth, 10));
+    }
+
+    const savedCanvasWidth = localStorage.getItem('canvasWidth');
+    if (savedCanvasWidth) {
+      setCanvasWidth(parseInt(savedCanvasWidth, 10));
+    }
+  }, []);
+
   
   // Save sizes to localStorage when they change
   useEffect(() => {
