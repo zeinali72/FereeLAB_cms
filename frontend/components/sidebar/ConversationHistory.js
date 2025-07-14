@@ -1,6 +1,6 @@
 // frontend/components/sidebar/ConversationHistory.js
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, ChevronDown, ChevronRight, Check, X } from 'react-feather';
+import { MessageSquare, ChevronDown, ChevronRight, Check, X, Edit, Trash2, FolderPlus } from 'react-feather';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 const formatDateGroup = (date) => {
@@ -17,16 +17,20 @@ const ConversationHistory = ({
     activeConversationId, 
     onNewConversation, 
     onSwitchConversation,
-    onRenameConversation 
+    onRenameConversation,
+    onDeleteConversation,
+    onAddToProject,
+    onContextMenu
 }) => {
     const [isSectionOpen, setIsSectionOpen] = useState(true);
     const [editingId, setEditingId] = useState(null);
     const [editTitle, setEditTitle] = useState('');
+    const [selectedId, setSelectedId] = useState(null);
     const inputRef = useRef(null);
 
     // Start renaming a conversation
     const handleStartRename = (conv, e) => {
-        e.stopPropagation();
+        if(e) e.stopPropagation();
         setEditingId(conv.id);
         setEditTitle(conv.title);
     };
@@ -54,6 +58,10 @@ const ConversationHistory = ({
         } else if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSaveTitle(e);
+        } else if (e.key === 'Delete') {
+            if(selectedId && onDeleteConversation) {
+                onDeleteConversation(selectedId);
+            }
         }
     };
 
@@ -64,6 +72,33 @@ const ConversationHistory = ({
             inputRef.current.select();
         }
     }, [editingId]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Delete') {
+                if(selectedId && onDeleteConversation) {
+                    onDeleteConversation(selectedId);
+                    setSelectedId(null);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [selectedId, onDeleteConversation]);
+
+    const handleContextMenu = (e, conv) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const items = [
+            { label: 'Add to Project', icon: <FolderPlus size={14} />, action: () => onAddToProject && onAddToProject(conv.id) },
+            { separator: true },
+            { label: 'Rename', icon: <Edit size={14} />, action: () => handleStartRename(conv) },
+            { label: 'Delete', icon: <Trash2 size={14} />, action: () => onDeleteConversation && onDeleteConversation(conv.id) },
+        ];
+        onContextMenu(e, items);
+    };
 
     // Group conversations by date
     const groupedConversations = conversations.reduce((groups, conv) => {
@@ -109,7 +144,14 @@ const ConversationHistory = ({
 
                             <ul>
                                 {convs.map((conv) => (
-                                    <li key={conv.id} tabIndex={0} onKeyDown={(e) => handleKeyDown(e, conv)}>
+                                    <li 
+                                        key={conv.id} 
+                                        tabIndex={0} 
+                                        onKeyDown={(e) => handleKeyDown(e, conv)}
+                                        onContextMenu={(e) => handleContextMenu(e, conv)}
+                                        onClick={() => setSelectedId(conv.id)}
+                                        className={`${selectedId === conv.id ? 'bg-surface-secondary' : ''}`}
+                                    >
                                         {editingId === conv.id ? (
                                             // Editing state
                                             <form onSubmit={handleSaveTitle} className="px-4 py-1 flex items-center">

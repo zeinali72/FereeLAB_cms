@@ -1,6 +1,6 @@
 // frontend/components/sidebar/ProjectList.js
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, ChevronRight, ChevronDown, Check, X } from 'react-feather';
+import { MessageSquare, ChevronRight, ChevronDown, Check, X, Edit, Trash2 } from 'react-feather';
 import { FolderPlusIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const ProjectList = ({ 
@@ -8,13 +8,16 @@ const ProjectList = ({
   activeProjectId, 
   activeProjectChatId,
   onProjectAction = {},
-  onSwitchToProjectChat 
+  onSwitchToProjectChat,
+  onContextMenu
 }) => {
   const [isSectionOpen, setIsSectionOpen] = useState(true);
   const [openProjects, setOpenProjects] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [editingChildId, setEditingChildId] = useState(null);
   const [editName, setEditName] = useState('');
+  const [selectedId, setSelectedId] = useState(null);
+  const [selectedChildId, setSelectedChildId] = useState(null);
   const inputRef = useRef(null);
 
   // Initialize open state for projects with content
@@ -38,6 +41,24 @@ const ProjectList = ({
     }
   }, [activeProjectId]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+        if (e.key === 'Delete') {
+            if (selectedId && onProjectAction.deleteProject) {
+                onProjectAction.deleteProject(selectedId);
+                setSelectedId(null);
+            } else if (selectedChildId && onProjectAction.deleteChat) {
+                onProjectAction.deleteChat(selectedChildId);
+                setSelectedChildId(null);
+            }
+        }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedId, selectedChildId, onProjectAction]);
+
   const toggleProject = (projectId, e) => {
     e.stopPropagation();
     setOpenProjects(prev => ({ ...prev, [projectId]: !prev[projectId] }));
@@ -57,14 +78,14 @@ const ProjectList = ({
 
   // Start renaming a project
   const handleStartRenameProject = (project, e) => {
-    e.stopPropagation();
+    if(e) e.stopPropagation();
     setEditingId(project.id);
     setEditName(project.name);
   };
 
   // Start renaming a chat
   const handleStartRenameChat = (chat, e) => {
-    e.stopPropagation();
+    if(e) e.stopPropagation();
     setEditingChildId(chat.id);
     setEditName(chat.name);
   };
@@ -99,6 +120,28 @@ const ProjectList = ({
     }
   }, [editingId, editingChildId]);
 
+  const handleProjectContextMenu = (e, project) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const items = [
+        { label: 'Rename', icon: <Edit size={14} />, action: () => handleStartRenameProject(project) },
+        { separator: true },
+        { label: 'Delete', icon: <Trash2 size={14} />, action: () => onProjectAction.deleteProject && onProjectAction.deleteProject(project.id) },
+    ];
+    onContextMenu(e, items);
+  };
+
+  const handleChatContextMenu = (e, chat) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const items = [
+        { label: 'Rename', icon: <Edit size={14} />, action: () => handleStartRenameChat(chat) },
+        { separator: true },
+        { label: 'Delete', icon: <Trash2 size={14} />, action: () => onProjectAction.deleteChat && onProjectAction.deleteChat(chat.id) },
+    ];
+    onContextMenu(e, items);
+  };
+
   if (projects.length === 0) return null;
 
   return (
@@ -127,7 +170,12 @@ const ProjectList = ({
 
           <div className="mt-1">
             {projects.map((project) => (
-              <div key={project.id} className="my-1">
+              <div 
+                key={project.id} 
+                className={`my-1 ${selectedId === project.id ? 'bg-surface-secondary' : ''}`}
+                onClick={() => {setSelectedId(project.id); setSelectedChildId(null);}}
+                onContextMenu={(e) => handleProjectContextMenu(e, project)}
+              >
                 {/* Project title row */}
                 <div className="flex items-center">
                   {editingId === project.id ? (
@@ -207,7 +255,12 @@ const ProjectList = ({
                 {openProjects[project.id] && project.children && project.children.length > 0 && (
                   <ul className="ml-6 mt-1">
                     {project.children.map((chat) => (
-                      <li key={chat.id}>
+                      <li 
+                        key={chat.id}
+                        className={`${selectedChildId === chat.id ? 'bg-surface-secondary' : ''}`}
+                        onClick={(e) => {e.stopPropagation(); setSelectedId(null); setSelectedChildId(chat.id);}}
+                        onContextMenu={(e) => handleChatContextMenu(e, chat)}
+                      >
                         {editingChildId === chat.id ? (
                           // Editing chat name
                           <form onSubmit={handleSaveName} className="px-4 py-1 flex items-center">

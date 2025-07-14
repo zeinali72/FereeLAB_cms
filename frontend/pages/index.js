@@ -25,6 +25,8 @@ const ChatPage = () => {
     handleNewConversation,
     handleSwitchConversation,
     handleRenameConversation,
+    handleDeleteConversation,
+    handleAddToProject,
     handleSwitchToProjectChat,
     handleProjectAction,
     getActiveChatTitle,
@@ -73,6 +75,8 @@ const ChatPage = () => {
             onNewConversation={handleNewConversation}
             onSwitchConversation={handleSwitchConversation}
             onRenameConversation={handleRenameConversation}
+            onDeleteConversation={handleDeleteConversation}
+            onAddToProject={handleAddToProject}
             projects={projects}
             activeProjectId={activeProjectId}
             activeProjectChatId={activeProjectChatId}

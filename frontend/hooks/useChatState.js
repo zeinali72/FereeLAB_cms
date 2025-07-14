@@ -229,6 +229,17 @@ export const useChatState = () => {
     );
   };
 
+  const handleDeleteConversation = (conversationId) => {
+    setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+    if (activeConversationId === conversationId) {
+      setActiveConversationId(conversations[0]?.id || null);
+    }
+  };
+
+  const handleAddToProject = (conversationId) => {
+    console.log(`Add conversation ${conversationId} to a project`);
+  };
+
   const handleSwitchToProjectChat = (projectId, chatId) => {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
@@ -275,6 +286,15 @@ export const useChatState = () => {
         )
       );
     },
+
+    deleteProject: (projectId) => {
+        setProjects(prev => prev.filter(proj => proj.id !== projectId));
+        if (activeProjectId === projectId) {
+            setActiveProjectId(null);
+            setActiveProjectChatId(null);
+            setActiveConversationId(conversations[0]?.id || null);
+        }
+    },
     
     addChat: (projectId) => {
       const newChat = {
@@ -295,21 +315,31 @@ export const useChatState = () => {
       handleSwitchToProjectChat(projectId, newChat.id);
     },
     
-    renameChat: (projectId, chatId, newName) => {
-      setProjects(prev => 
-        prev.map(proj => 
-          proj.id === projectId
-            ? {
+    renameChat: (chatId, newName) => {
+        setProjects(prev =>
+            prev.map(proj => ({
                 ...proj,
-                children: proj.children.map(chat => 
-                  chat.id === chatId
-                    ? { ...chat, name: newName }
-                    : chat
+                children: proj.children.map(chat =>
+                    chat.id === chatId
+                        ? { ...chat, name: newName }
+                        : chat
                 )
-              }
-            : proj
-        )
-      );
+            }))
+        );
+    },
+
+    deleteChat: (chatId) => {
+        setProjects(prev =>
+            prev.map(proj => ({
+                ...proj,
+                children: proj.children.filter(chat => chat.id !== chatId)
+            }))
+        );
+        if (activeProjectChatId === chatId) {
+            setActiveProjectChatId(null);
+            setActiveProjectId(null);
+            setActiveConversationId(conversations[0]?.id || null);
+        }
     }
   };
 
@@ -338,8 +368,11 @@ export const useChatState = () => {
     handleNewConversation,
     handleSwitchConversation,
     handleRenameConversation,
+    handleDeleteConversation,
+    handleAddToProject,
     handleSwitchToProjectChat,
     handleProjectAction,
     getActiveChatTitle,
   };
 };
+

@@ -4,6 +4,7 @@ import SearchWithSuggestions from './SearchWithSuggestions';
 import ProjectList from './ProjectList';
 import ConversationHistory from './ConversationHistory';
 import UserMenuPanel from '../modals/UserMenuPanel';
+import ContextMenu from '../shared/ContextMenu';
 
 // Accept and pass down conversation and project-related props
 const Sidebar = ({
@@ -16,12 +17,29 @@ const Sidebar = ({
   onNewConversation,
   onSwitchConversation,
   onRenameConversation,
+  onDeleteConversation,
+  onAddToProject,
   projects = [],
   activeProjectId,
   activeProjectChatId,
   onProjectAction,
   onSwitchToProjectChat
 }) => {
+  const [contextMenu, setContextMenu] = useState(null);
+
+  const handleContextMenu = (e, items) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: items,
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg overflow-visible">
       <div
@@ -43,19 +61,30 @@ const Sidebar = ({
             activeProjectChatId={activeProjectChatId}
             onProjectAction={onProjectAction}
             onSwitchToProjectChat={onSwitchToProjectChat}
+            onContextMenu={handleContextMenu}
           />
           <ConversationHistory
             conversations={conversations}
             activeConversationId={activeConversationId}
             onSwitchConversation={onSwitchConversation}
             onRenameConversation={onRenameConversation}
+            onDeleteConversation={onDeleteConversation}
+            onAddToProject={onAddToProject}
             onNewConversation={onNewConversation}
+            onContextMenu={handleContextMenu}
           />
         </div>
 
         {/* User Profile Section */}
         <UserProfileSection theme={theme} setTheme={setTheme} />
       </div>
+      {contextMenu && (
+        <ContextMenu
+          items={contextMenu.items}
+          position={{ x: contextMenu.x, y: contextMenu.y }}
+          onClose={closeContextMenu}
+        />
+      )}
     </div>
   );
 };

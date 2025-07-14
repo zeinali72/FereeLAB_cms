@@ -1,0 +1,41 @@
+/* frontend/styles/context-menu.css */
+
+.context-menu {
+  position: absolute;
+  background-color: var(--color-surface-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  z-index: var(--z-dropdown);
+  width: 224px; /* w-56 */
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 16px; /* py-2 px-4 */
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--color-text-primary);
+}
+
+.context-menu-item:hover {
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+}
+
+.context-menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.context-menu-icon {
+  margin-right: 12px;
+  color: var(--color-text-secondary);
+}
+
+.context-menu-separator {
+  border-top: 1px solid var(--color-border);
+  margin: 4px 0;
+}
