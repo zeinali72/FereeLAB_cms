@@ -1,9 +1,24 @@
 // components/chat/ChatMessage.js
-import React from 'react';
-import { Copy,ThumbsUp, ThumbsDown, RefreshCw } from 'react-feather';
+import React, { useState } from 'react';
+import { Copy, ThumbsUp, ThumbsDown, RefreshCw, Check } from 'react-feather';
 
 const ChatMessage = ({ message }) => {
   const isUser = message.sender === 'user';
+  const [isCopied, setIsCopied] = useState(false);
+  
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.text);
+      setIsCopied(true);
+      
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
 
   const UserAvatar = () => (
     <div className="w-8 h-8 rounded-full bg-indigo-500 flex-shrink-0 flex items-center justify-center text-white font-bold">
@@ -34,7 +49,16 @@ const ChatMessage = ({ message }) => {
           <span>{`no. of output tokens: ${message.meta.tokens} | output cost: ${message.meta.cost}`}</span>
           {!isUser && (
             <div className="flex items-center space-x-2">
-              <button className="hover:text-gray-700 dark:hover:text-gray-200"><Copy size={14} /></button>
+              <button 
+                onClick={handleCopy} 
+                className={`hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-300 ${isCopied ? 'text-green-500' : ''}`}
+                title="Copy message"
+              >
+                {isCopied ? 
+                  <Check size={14} className="animate-pulse" /> : 
+                  <Copy size={14} />
+                }
+              </button>
               <button className="hover:text-gray-700 dark:hover:text-gray-200"><ThumbsUp size={14} /></button>
               <button className="hover:text-gray-700 dark:hover:text-gray-200"><ThumbsDown size={14} /></button>
               <button className="hover:text-gray-700 dark:hover:text-gray-200"><RefreshCw size={14} /></button>
