@@ -139,6 +139,17 @@ const ChatPage = () => {
     setActiveConversationId(conversationId);
   };
   
+  // Function to rename a conversation
+  const handleRenameConversation = (conversationId, newTitle) => {
+    setConversations(prevConversations => 
+      prevConversations.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, title: newTitle }
+          : conv
+      )
+    );
+  };
+  
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
@@ -223,6 +234,7 @@ const ChatPage = () => {
           activeConversationId={activeConversationId}
           onNewConversation={handleNewConversation}
           onSwitchConversation={handleSwitchConversation}
+          onRenameConversation={handleRenameConversation}
         />
       </ResizablePanel>
       
