@@ -185,13 +185,13 @@ const ChatPage = () => {
       );
     }
     
-    // Simulate bot response with "Hello world!"
+    // Simulate bot response with "Hello world!" 
     setTimeout(() => {
       const botResponse = {
         id: Date.now() + 1,
         sender: 'bot',
-        text: "Hello world!",
-        meta: { tokens: 2, cost: '$0.00005' },
+        text: "Hello world! I'm an AI assistant ready to help you with any questions you might have. Feel free to ask me anything!",
+        meta: { tokens: 20, cost: '$0.0002' },
       };
       
       const updatedMessagesWithResponse = [...updatedMessages, botResponse];

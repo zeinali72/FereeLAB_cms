@@ -1,10 +1,39 @@
 // components/chat/ChatMessage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Copy, ThumbsUp, ThumbsDown, RefreshCw, Check } from 'react-feather';
 
 const ChatMessage = ({ message }) => {
   const isUser = message.sender === 'user';
   const [isCopied, setIsCopied] = useState(false);
+  const [displayText, setDisplayText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  
+  // Animation effect for bot messages
+  useEffect(() => {
+    // Only animate bot messages
+    if (message.sender === 'bot') {
+      setIsTyping(true);
+      setDisplayText('');
+      
+      // Animate the text typing character by character
+      const text = message.text;
+      let index = 0;
+      
+      const typingInterval = setInterval(() => {
+        if (index < text.length) {
+          setDisplayText(prev => prev + text.charAt(index));
+          index++;
+        } else {
+          clearInterval(typingInterval);
+          setIsTyping(false);
+        }
+      }, 20); // Speed of typing animation
+      
+      return () => clearInterval(typingInterval);
+    } else {
+      setDisplayText(message.text);
+    }
+  }, [message.text, message.sender]);
   
   const handleCopy = async () => {
     try {
@@ -33,7 +62,7 @@ const ChatMessage = ({ message }) => {
   );
 
   return (
-    <div className={`flex items-start gap-4 mb-4 ${isUser ? 'justify-end' : ''}`}>
+    <div className={`flex items-end gap-4 mb-4 ${isUser ? 'justify-end' : ''}`}>
       {!isUser && <BotAvatar />}
       <div className={`flex flex-col max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
         <div
@@ -43,7 +72,10 @@ const ChatMessage = ({ message }) => {
               : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
           }`}
         >
-          <p className="text-sm leading-relaxed">{message.text}</p>
+          <p className="text-sm leading-relaxed">
+            {displayText}
+            {isTyping && <span className="typing-cursor">|</span>}
+          </p>
         </div>
         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-4">
           <span>{`no. of output tokens: ${message.meta.tokens} | output cost: ${message.meta.cost}`}</span>

@@ -42,6 +42,19 @@ body {
   height: 2px;
 }
 
+/* Typing animation cursor */
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  margin-left: 1px;
+  animation: cursor-blink 1s infinite step-end;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 /* Adjust cursor for resize operations */
 .cursor-resize-ew {
   cursor: ew-resize;
