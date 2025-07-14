@@ -5,7 +5,7 @@ import ProjectList from './ProjectList';
 import ConversationHistory from './ConversationHistory';
 import UserProfile from './UserProfile';
 
-// Accept and pass down conversation-related props including onRenameConversation
+// Accept and pass down conversation and project-related props
 const Sidebar = ({ 
   isOpen, 
   onToggle, 
@@ -16,7 +16,12 @@ const Sidebar = ({
   activeConversationId,
   onNewConversation,
   onSwitchConversation,
-  onRenameConversation
+  onRenameConversation,
+  projects = [],
+  activeProjectId,
+  activeProjectChatId,
+  onProjectAction,
+  onSwitchToProjectChat
 }) => {
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -42,7 +47,13 @@ const Sidebar = ({
       >
         <SearchWithSuggestions />
         <div className="flex-grow overflow-y-auto">
-          <ProjectList />
+          <ProjectList 
+            projects={projects}
+            activeProjectId={activeProjectId}
+            activeProjectChatId={activeProjectChatId}
+            onProjectAction={onProjectAction}
+            onSwitchToProjectChat={onSwitchToProjectChat}
+          />
           <ConversationHistory 
             conversations={conversations}
             activeConversationId={activeConversationId}

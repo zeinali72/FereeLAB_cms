@@ -8,7 +8,7 @@ const ChatHeader = ({
   isSidebarOpen, 
   onToggleModelPanel,
   onNewConversation,
-  activeConversation
+  chatTitle
 }) => {
   return (
     <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
@@ -30,9 +30,9 @@ const ChatHeader = ({
           <Menu size={24} />
         </button>
 
-        {/* Display active conversation title */}
+        {/* Display active chat title */}
         <div className="mr-4 font-medium text-gray-800 dark:text-white truncate max-w-[150px] md:max-w-xs">
-          {activeConversation?.title || "New Chat"}
+          {chatTitle || "New Chat"}
         </div>
 
         {/* This button now opens the Model Panel */}

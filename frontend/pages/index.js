@@ -12,6 +12,44 @@ const ChatPage = () => {
   // --- Start Theme Management Update ---
   const [theme, setTheme] = useState('light'); // 'light', 'dark'
   
+  // Sample projects data
+  const initialProjects = [
+    { 
+      id: 'proj-1', 
+      name: 'Project A', 
+      children: [
+        { id: 'chat-1', name: 'Initial discussion', type: 'chat', messages: [
+          {
+            id: 101,
+            sender: 'user',
+            text: 'Project A - Initial discussion message',
+            meta: { tokens: 7, cost: '$0.0001' },
+            name: 'User'
+          },
+          {
+            id: 102,
+            sender: 'bot',
+            text: "This is a response in the Project A initial discussion.",
+            meta: { tokens: 10, cost: '$0.0001' },
+          },
+        ] }, 
+        { id: 'chat-2', name: 'Design meeting', type: 'chat', messages: [] }
+      ] 
+    },
+    { 
+      id: 'proj-2', 
+      name: 'Project B', 
+      children: [
+        { id: 'chat-3', name: 'API planning', type: 'chat', messages: [] }
+      ] 
+    },
+  ];
+
+  // Project state
+  const [projects, setProjects] = useState(initialProjects);
+  const [activeProjectId, setActiveProjectId] = useState(null);
+  const [activeProjectChatId, setActiveProjectChatId] = useState(null);
+  
   // Sample conversations data
   const initialConversations = [
     {
@@ -64,14 +102,42 @@ const ChatPage = () => {
   
   // Current messages (from the active conversation)
   const [messages, setMessages] = useState(initialConversations[0].messages);
+
+  // Handle switching to a project chat
+  const handleSwitchToProjectChat = (projectId, chatId) => {
+    // Find the project and chat
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    const chat = project.children.find(c => c.id === chatId);
+    if (!chat) return;
+    
+    // Update active ids
+    setActiveProjectId(projectId);
+    setActiveProjectChatId(chatId);
+    setActiveConversationId(null);
+    
+    // Set messages from this chat
+    setMessages(chat.messages || []);
+  };
   
-  // Update messages when active conversation changes
+  // Update messages when active conversation or project chat changes
   useEffect(() => {
-    const activeConversation = conversations.find(c => c.id === activeConversationId);
-    if (activeConversation) {
-      setMessages(activeConversation.messages);
+    if (activeConversationId) {
+      const activeConversation = conversations.find(c => c.id === activeConversationId);
+      if (activeConversation) {
+        setMessages(activeConversation.messages);
+      }
+    } else if (activeProjectId && activeProjectChatId) {
+      const project = projects.find(p => p.id === activeProjectId);
+      if (project) {
+        const chat = project.children.find(c => c.id === activeProjectChatId);
+        if (chat) {
+          setMessages(chat.messages || []);
+        }
+      }
     }
-  }, [activeConversationId, conversations]);
+  }, [activeConversationId, conversations, activeProjectId, activeProjectChatId, projects]);
   
   // Function to handle sending a new message
   const handleSendMessage = (text) => {
@@ -88,14 +154,32 @@ const ChatPage = () => {
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     
-    // Update the conversation in the conversations list
-    setConversations(prevConversations => 
-      prevConversations.map(conv => 
-        conv.id === activeConversationId 
-          ? { ...conv, messages: updatedMessages, timestamp: new Date() }
-          : conv
-      )
-    );
+    if (activeConversationId) {
+      // Update the conversation in the conversations list
+      setConversations(prevConversations => 
+        prevConversations.map(conv => 
+          conv.id === activeConversationId 
+            ? { ...conv, messages: updatedMessages, timestamp: new Date() }
+            : conv
+        )
+      );
+    } else if (activeProjectId && activeProjectChatId) {
+      // Update the project chat messages
+      setProjects(prevProjects => 
+        prevProjects.map(proj => 
+          proj.id === activeProjectId
+            ? {
+                ...proj,
+                children: proj.children.map(chat => 
+                  chat.id === activeProjectChatId
+                    ? { ...chat, messages: updatedMessages }
+                    : chat
+                )
+              }
+            : proj
+        )
+      );
+    }
     
     // Simulate bot response with "Hello world!"
     setTimeout(() => {
@@ -109,14 +193,32 @@ const ChatPage = () => {
       const updatedMessagesWithResponse = [...updatedMessages, botResponse];
       setMessages(updatedMessagesWithResponse);
       
-      // Update the conversation in the conversations list again with the bot response
-      setConversations(prevConversations => 
-        prevConversations.map(conv => 
-          conv.id === activeConversationId 
-            ? { ...conv, messages: updatedMessagesWithResponse }
-            : conv
-        )
-      );
+      if (activeConversationId) {
+        // Update the conversation in the conversations list again with the bot response
+        setConversations(prevConversations => 
+          prevConversations.map(conv => 
+            conv.id === activeConversationId 
+              ? { ...conv, messages: updatedMessagesWithResponse }
+              : conv
+          )
+        );
+      } else if (activeProjectId && activeProjectChatId) {
+        // Update the project chat messages with the bot response
+        setProjects(prevProjects => 
+          prevProjects.map(proj => 
+            proj.id === activeProjectId
+              ? {
+                  ...proj,
+                  children: proj.children.map(chat => 
+                    chat.id === activeProjectChatId
+                      ? { ...chat, messages: updatedMessagesWithResponse }
+                      : chat
+                  )
+                }
+              : proj
+          )
+        );
+      }
     }, 500);
   };
   
@@ -132,11 +234,16 @@ const ChatPage = () => {
     
     setConversations([newConversation, ...conversations]);
     setActiveConversationId(newConversationId);
+    setActiveProjectId(null);
+    setActiveProjectChatId(null);
+    setMessages([]);
   };
   
   // Function to switch to an existing conversation
   const handleSwitchConversation = (conversationId) => {
     setActiveConversationId(conversationId);
+    setActiveProjectId(null);
+    setActiveProjectChatId(null);
   };
   
   // Function to rename a conversation
@@ -148,6 +255,80 @@ const ChatPage = () => {
           : conv
       )
     );
+  };
+  
+  // Function to handle project actions
+  const handleProjectAction = {
+    addProject: () => {
+      const newProject = {
+        id: `proj-${Date.now()}`,
+        name: `New Project`,
+        children: []
+      };
+      setProjects([newProject, ...projects]);
+    },
+    
+    renameProject: (projectId, newName) => {
+      setProjects(prevProjects => 
+        prevProjects.map(proj => 
+          proj.id === projectId
+            ? { ...proj, name: newName }
+            : proj
+        )
+      );
+    },
+    
+    addChat: (projectId) => {
+      const newChat = {
+        id: `chat-${Date.now()}`,
+        name: `New Chat`,
+        type: 'chat',
+        messages: []
+      };
+      
+      setProjects(prevProjects => 
+        prevProjects.map(proj => 
+          proj.id === projectId
+            ? { ...proj, children: [...proj.children, newChat] }
+            : proj
+        )
+      );
+      
+      // Switch to the new chat
+      handleSwitchToProjectChat(projectId, newChat.id);
+    },
+    
+    renameChat: (projectId, chatId, newName) => {
+      setProjects(prevProjects => 
+        prevProjects.map(proj => 
+          proj.id === projectId
+            ? {
+                ...proj,
+                children: proj.children.map(chat => 
+                  chat.id === chatId
+                    ? { ...chat, name: newName }
+                    : chat
+                )
+              }
+            : proj
+        )
+      );
+    }
+  };
+  
+  // Get the active chat title (either from conversation or project)
+  const getActiveChatTitle = () => {
+    if (activeConversationId) {
+      const conv = conversations.find(c => c.id === activeConversationId);
+      return conv ? conv.title : "New Chat";
+    } else if (activeProjectId && activeProjectChatId) {
+      const project = projects.find(p => p.id === activeProjectId);
+      if (project) {
+        const chat = project.children.find(c => c.id === activeProjectChatId);
+        return chat ? `${project.name} › ${chat.name}` : "New Chat";
+      }
+    }
+    return "New Chat";
   };
   
   useEffect(() => {
@@ -235,6 +416,11 @@ const ChatPage = () => {
           onNewConversation={handleNewConversation}
           onSwitchConversation={handleSwitchConversation}
           onRenameConversation={handleRenameConversation}
+          projects={projects}
+          activeProjectId={activeProjectId}
+          activeProjectChatId={activeProjectChatId}
+          onProjectAction={handleProjectAction}
+          onSwitchToProjectChat={handleSwitchToProjectChat}
         />
       </ResizablePanel>
       
@@ -249,7 +435,7 @@ const ChatPage = () => {
             isSidebarOpen={isSidebarOpen}
             onToggleModelPanel={toggleModelPanel}
             onNewConversation={handleNewConversation}
-            activeConversation={conversations.find(c => c.id === activeConversationId)}
+            chatTitle={getActiveChatTitle()}
           />
           <div className="flex-grow overflow-hidden relative">
             <ChatLog messages={messages} />
