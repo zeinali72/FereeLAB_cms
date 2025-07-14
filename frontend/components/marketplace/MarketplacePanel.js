@@ -1,12 +1,32 @@
 // frontend/components/marketplace/MarketplacePanel.js
 import React, { useState, useEffect } from 'react';
-import { X, Search, ChevronDown, Check } from 'react-feather';
+import { X, Search, ChevronDown, Check, Menu, Filter, XCircle, ChevronsRight, ChevronLeft, ChevronsLeft } from 'react-feather';
 import FilterSidebar from './FilterSidebar';
 import ModelList from './ModelList';
 import { mockModels } from '../../data/mockModels';
 
 const MarketplacePanel = ({ onClose, theme, setTheme, selectedModels = [], onApplyModels }) => {
   const [selectedModelIds, setSelectedModelIds] = useState(selectedModels);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Check screen size on initial load
+  useEffect(() => {
+    const checkScreenSize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    // Check on initial load
+    checkScreenSize();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkScreenSize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   
   useEffect(() => {
     setSelectedModelIds(selectedModels);
@@ -22,6 +42,10 @@ const MarketplacePanel = ({ onClose, theme, setTheme, selectedModels = [], onApp
     });
   };
   
+  const handleDeselectAll = () => {
+    setSelectedModelIds([]);
+  };
+  
   const handleApplySelection = () => {
     // Pass selected models back to parent component and close
     if (onApplyModels) {
@@ -30,11 +54,24 @@ const MarketplacePanel = ({ onClose, theme, setTheme, selectedModels = [], onApp
       onClose(selectedModelIds);
     }
   };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
     <div className="w-full h-screen flex flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
       {/* Header */}
       <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center">
+          <button 
+            onClick={toggleSidebar}
+            className="p-2 mr-2 text-gray-500 rounded-md hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
+            aria-label="Toggle filters"
+            title={isSidebarOpen ? "Hide filters" : "Show filters"}
+          >
+            {isSidebarOpen ? <ChevronsLeft size={20} /> : <ChevronsRight size={20} />}
+          </button>
           <h1 className="text-xl font-semibold mr-4">Models</h1>
           {selectedModelIds.length > 0 && (
             <span className="text-sm bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 rounded-full px-3 py-1">
@@ -43,26 +80,56 @@ const MarketplacePanel = ({ onClose, theme, setTheme, selectedModels = [], onApp
           )}
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative w-96">
+          <div className="relative hidden md:block w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Filter models"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm">
+          <div className="md:hidden relative">
+            <button 
+              onClick={() => {
+                const searchInput = document.querySelector('#mobileSearchInput');
+                if (searchInput.classList.contains('hidden')) {
+                  searchInput.classList.remove('hidden');
+                  searchInput.classList.add('flex');
+                  searchInput.querySelector('input').focus();
+                } else {
+                  searchInput.classList.add('hidden');
+                  searchInput.classList.remove('flex');
+                }
+              }}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <Search size={20} />
+            </button>
+          </div>
+          <button className="hidden md:flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm">
             Sort
             <ChevronDown size={16} />
           </button>
-          {selectedModelIds.length > 0 && (
+          <>
+            {selectedModelIds.length > 0 && (
+              <button
+                onClick={handleDeselectAll}
+                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md flex items-center gap-2"
+                title="Deselect all models"
+              >
+                <XCircle size={16} />
+                <span className="hidden sm:inline">Deselect All</span>
+              </button>
+            )}
             <button
               onClick={handleApplySelection}
               className="px-4 py-2 bg-gray-800 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded-md flex items-center"
             >
               Apply
             </button>
-          )}
+          </>
           <button 
             onClick={() => onClose()}
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -73,11 +140,35 @@ const MarketplacePanel = ({ onClose, theme, setTheme, selectedModels = [], onApp
         </div>
       </header>
       
+      {/* Mobile search input (hidden by default) */}
+      <div id="mobileSearchInput" className="hidden p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Filter models"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+      
       {/* Main Content */}
-      <div className="flex-grow flex overflow-hidden">
-        <FilterSidebar theme={theme} setTheme={setTheme} />
+      <div className="flex-grow flex overflow-hidden relative">
+        <FilterSidebar 
+          theme={theme} 
+          setTheme={setTheme} 
+          isOpen={isSidebarOpen} 
+          onToggle={toggleSidebar} 
+        />
+        
+        {/* We've removed the duplicate floating button since we now have a consistent header button */}
+        
         <ModelList 
-          models={mockModels} 
+          models={mockModels.filter(model => 
+            searchTerm ? model.name.toLowerCase().includes(searchTerm.toLowerCase()) : true
+          )} 
           selectedModelIds={selectedModelIds} 
           onToggleSelect={handleModelSelection}
         />

@@ -14,12 +14,11 @@ const ModelPanel = ({ isOpen, onClose, onOpenMarketplace, selectedModels = [] })
   const [selectedModelId, setSelectedModelId] = useState('gemini-flash');
   const [showAdvanced, setShowAdvanced] = useState(false);
   
-  // Filter models to include both default and selected from marketplace
+  // Use only models from the marketplace if any are selected, otherwise use default models
   const allModels = React.useMemo(() => {
-    // Get selected models from marketplace that aren't in the default list
-    const marketplaceModels = selectedModels
-      .filter(modelId => !models.some(m => m.id === modelId))
-      .map(modelId => {
+    if (selectedModels.length > 0) {
+      // Use marketplace models
+      const marketplaceModels = selectedModels.map(modelId => {
         const modelNameParts = modelId.split('/');
         const providerName = modelNameParts[0] || 'Unknown';
         const modelName = modelNameParts.length > 1 
@@ -36,13 +35,16 @@ const ModelPanel = ({ isOpen, onClose, onOpenMarketplace, selectedModels = [] })
           outputPrice: 0.0001
         };
       });
-    
-    return [...models, ...marketplaceModels];
+      return marketplaceModels;
+    } else {
+      // Use default models if no marketplace models are selected
+      return models;
+    }
   }, [selectedModels]);
   
   // State for advanced settings
   const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(models.find(m => m.id === 'gemini-flash').maxTokens);
+  const [maxTokens, setMaxTokens] = useState(models.find(m => m.id === 'gemini-flash')?.maxTokens || 8192);
 
   // Effect to update max tokens when the model changes
   useEffect(() => {
@@ -71,30 +73,48 @@ const ModelPanel = ({ isOpen, onClose, onOpenMarketplace, selectedModels = [] })
 
             {/* Model Selection Grid - More compact for multiple selections */}
             <div className="p-4">
-                <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-                    {allModels.map((model) => (
-                        <button
-                            key={model.id}
-                            onClick={() => setSelectedModelId(model.id)}
-                            className={`p-3 border rounded-lg text-left hover:border-gray-500 dark:hover:border-gray-500 ${
-                                selectedModelId === model.id ? 'border-gray-800 dark:border-gray-400 bg-gray-50 dark:bg-gray-800/50' : 'border-gray-200 dark:border-gray-600'
-                            }`}
-                        >
-                            <div className="flex items-center">
-                                <span className="text-xl mr-2">{model.icon}</span>
-                                <div>
-                                    <div className="font-semibold text-sm">{model.name}</div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">{model.provider}</div>
+                {selectedModels.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+                        {allModels.map((model) => (
+                            <button
+                                key={model.id}
+                                onClick={() => setSelectedModelId(model.id)}
+                                className={`p-3 border rounded-lg text-left hover:border-gray-500 dark:hover:border-gray-500 ${
+                                    selectedModelId === model.id ? 'border-gray-800 dark:border-gray-400 bg-gray-50 dark:bg-gray-800/50' : 'border-gray-200 dark:border-gray-600'
+                                }`}
+                            >
+                                <div className="flex items-center">
+                                    <span className="text-xl mr-2">{model.icon}</span>
+                                    <div>
+                                        <div className="font-semibold text-sm">{model.name}</div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">{model.provider}</div>
+                                    </div>
                                 </div>
-                            </div>
-                            {/* Simplified price info */}
-                            <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 flex justify-between">
-                                <span>In: ${model.inputPrice.toFixed(5)}</span>
-                                <span>Out: ${model.outputPrice.toFixed(5)}</span>
-                            </div>
+                                {/* Simplified price info */}
+                                <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 flex justify-between">
+                                    <span>In: ${model.inputPrice.toFixed(5)}</span>
+                                    <span>Out: ${model.outputPrice.toFixed(5)}</span>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="py-8 text-center">
+                        <div className="mb-4 inline-block p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
+                            <Briefcase size={28} className="text-gray-500 dark:text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold mb-2">No Models Selected</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto mb-6">
+                            Please select models from the Marketplace to use in your conversations
+                        </p>
+                        <button
+                            onClick={onOpenMarketplace}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                        >
+                            Browse Marketplace
                         </button>
-                    ))}
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* Marketplace Section */}
