@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Briefcase, Zap, Settings, ChevronDown, ChevronRight, X } from 'react-feather';
 
-// Mock data for models, now including default maxTokens
+// Mock data for models, now including default maxTokens and token prices
 const models = [
-  { id: 'gemini-flash', name: 'Gemini Flash', provider: 'Google', icon: '⚡️', maxTokens: 8192 },
-  { id: 'claude-haiku', name: 'Claude 3 Haiku', provider: 'Anthropic', icon: '🍀', maxTokens: 4096 },
-  { id: 'llama3-8b', name: 'Llama 3 8B', provider: 'Meta', icon: '🦙', maxTokens: 8192 },
-  { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', icon: '✨', maxTokens: 4096 },
+  { id: 'gemini-flash', name: 'Gemini Flash', provider: 'Google', icon: '⚡️', maxTokens: 8192, inputPrice: 0.00025, outputPrice: 0.0005 },
+  { id: 'claude-haiku', name: 'Claude 3 Haiku', provider: 'Anthropic', icon: '🍀', maxTokens: 4096, inputPrice: 0.000125, outputPrice: 0.000125 },
+  { id: 'llama3-8b', name: 'Llama 3 8B', provider: 'Meta', icon: '🦙', maxTokens: 8192, inputPrice: 0.0001, outputPrice: 0.0001 },
+  { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', icon: '✨', maxTokens: 4096, inputPrice: 0.0005, outputPrice: 0.0015 },
 ];
 
 const ModelPanel = ({ isOpen, onClose }) => {
@@ -56,6 +56,17 @@ return (
                             <div className="text-2xl mb-2">{model.icon}</div>
                             <div className="font-semibold">{model.name}</div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">{model.provider}</div>
+                            {/* Token price info */}
+                            <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                              <span>
+                                Input: <span className="font-mono">${model.inputPrice.toFixed(5)}</span>
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-300">
+                              <span>
+                                Output: <span className="font-mono">${model.outputPrice.toFixed(5)}</span>
+                              </span>
+                            </div>
                         </button>
                     ))}
                 </div>
