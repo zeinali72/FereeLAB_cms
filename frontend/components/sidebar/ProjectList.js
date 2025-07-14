@@ -1,30 +1,41 @@
-// components/sidebar/ProjectList.js
-import React from 'react';
-import { Folder } from 'react-feather';
+// frontend/components/sidebar/ProjectList.js
+import React, { useState } from 'react';
+import { Folder, ChevronRight, ChevronDown } from 'react-feather';
 
+// Sample data for demonstration
 const projects = [
-  { id: 1, name: 'Project A' },
-  { id: 2, name: 'Project B' },
+  { id: 'proj-1', name: 'Project A' },
+  { id: 'proj-2', name: 'Project B' },
 ];
 
 const ProjectList = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
   return (
-    <nav className="space-y-1">
-      {projects.map((project, index) => (
-        <a
-          key={project.id}
-          href="#"
-          className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
-            index === 0
-              ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
-              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-        >
-          <Folder size={18} className="mr-3" />
-          <span>{project.name}</span>
-        </a>
-      ))}
-    </nav>
+    <div className="p-4">
+      <h2
+        className="flex items-center justify-between text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>Project Folders</span>
+        {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+      </h2>
+      {isOpen && (
+        <ul className="mt-2 space-y-1">
+          {projects.map((project) => (
+            <li key={project.id}>
+              <a
+                href="#"
+                className="flex items-center p-2 text-base font-normal text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <Folder size={20} className="text-gray-500" />
+                <span className="ml-3">{project.name}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 };
 
