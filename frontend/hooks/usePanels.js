@@ -7,6 +7,7 @@ export const usePanels = () => {
   const [isModelPanelOpen, setIsModelPanelOpen] = useState(false);
   const [isMarketplaceOpen, setIsMarketplaceOpen] = useState(false);
   const [selectedModels, setSelectedModels] = useState([]);
+  const [shouldStartNewConversation, setShouldStartNewConversation] = useState(false);
 
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [canvasWidth, setCanvasWidth] = useState(380);
@@ -53,8 +54,20 @@ export const usePanels = () => {
   };
 
   const handleApplyModels = (models) => {
+    // Trigger new conversation when model changes
+    if (selectedModels.length === 0 || 
+        (models.length > 0 && selectedModels.length > 0 && models[0].id !== selectedModels[0].id)) {
+      setShouldStartNewConversation(true);
+    }
     setSelectedModels(models);
     setIsMarketplaceOpen(false);
+  };
+
+  // Reset the flag after it's been consumed
+  const consumeNewConversationFlag = () => {
+    const shouldStart = shouldStartNewConversation;
+    setShouldStartNewConversation(false);
+    return shouldStart;
   };
 
   return {
@@ -65,6 +78,8 @@ export const usePanels = () => {
     selectedModels,
     sidebarWidth,
     canvasWidth,
+    shouldStartNewConversation,
+    consumeNewConversationFlag,
     toggleCanvas,
     toggleSidebar,
     toggleModelPanel,

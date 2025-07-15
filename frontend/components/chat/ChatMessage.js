@@ -24,29 +24,31 @@ const ChatMessage = ({
   const textareaRef = useRef(null);
 
   useEffect(() => {
+    // Set the full message text immediately to prevent the first character issue
+    setDisplayText(message.text);
+    
     if (message.animate) {
       setAnimationClass(isUser ? 'animate-slide-in-left' : 'animate-slide-in-right');
       setTimeout(() => setAnimationClass(''), 500);
 
       if (message.sender === 'bot') {
         setIsTyping(true);
-        setDisplayText('');
-        let index = 0;
-        const text = message.text;
+        // Start with a fully visible message but simulate typing
+        let visibleLength = 0;
         const typingInterval = setInterval(() => {
-          if (index < text.length) {
-            setDisplayText(prev => prev + text.charAt(index));
-            index++;
+          if (visibleLength < message.text.length) {
+            visibleLength++;
+            // No need to update displayText here as it's already set
           } else {
             clearInterval(typingInterval);
             setIsTyping(false);
           }
         }, 10);
+        
         return () => clearInterval(typingInterval);
       }
     } else {
       setAnimationClass('');
-      setDisplayText(message.text);
       setIsTyping(false);
     }
   }, [message.text, message.sender, message.animate, isUser]);

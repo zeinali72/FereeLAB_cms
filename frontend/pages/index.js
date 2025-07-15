@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Sidebar from '../components/sidebar/Sidebar.js';
 import InspectorPanel from '../components/shared/InspectorPanel';
 import ChatHeader from '../components/chat/ChatHeader';
@@ -46,6 +46,8 @@ const ChatPage = () => {
     selectedModels,
     sidebarWidth,
     canvasWidth,
+    shouldStartNewConversation,
+    consumeNewConversationFlag,
     toggleCanvas,
     toggleSidebar,
     toggleModelPanel,
@@ -58,8 +60,22 @@ const ChatPage = () => {
 
   const selectedModelId = selectedModels.length > 0 ? selectedModels[0].id : null;
 
+  // Start a new conversation when model changes
+  useEffect(() => {
+    if (shouldStartNewConversation) {
+      handleNewConversation();
+      consumeNewConversationFlag();
+    }
+  }, [shouldStartNewConversation, handleNewConversation, consumeNewConversationFlag]);
+
   const providers = React.useMemo(() => [...new Set(mockModels.map(m => m.provider.name))].map(name => ({ id: name, name })).sort((a,b) => a.name.localeCompare(b.name)), []);
   const categories = React.useMemo(() => [...new Set(mockModels.flatMap(m => m.categories))].map(name => ({ id: name, name })).sort((a,b) => a.name.localeCompare(b.name)), []);
+
+  useEffect(() => {
+    if (selectedModelId) {
+      handleNewConversation(mockModels.find(model => model.id === selectedModelId));
+    }
+  }, [selectedModelId, handleNewConversation]);
 
   return (
     <div className={`h-screen flex flex-col bg-background text-on-background ${theme}`}>
@@ -99,6 +115,7 @@ const ChatPage = () => {
             onToggleModelPanel={toggleModelPanel}
             onNewConversation={handleNewConversation}
             chatTitle={getActiveChatTitle()}
+            currentModel={selectedModels.length > 0 ? selectedModels[0] : mockModels.find(m => m.id === 'gemini-flash')}
           />
 
           <div className="flex-1 relative">

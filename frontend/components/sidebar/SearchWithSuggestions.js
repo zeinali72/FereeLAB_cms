@@ -1,6 +1,6 @@
 // frontend/components/sidebar/SearchWithSuggestions.js
 import React, { useState, useEffect, useRef } from 'react';
-import { Search } from 'react-feather';
+import { Search, X } from 'react-feather';
 
 const defaultSuggestions = [
   'How to use React hooks?',
@@ -107,38 +107,37 @@ const SearchWithSuggestions = ({ conversations = [], onSearchResults }) => {
     if (onSearchResults) {
       onSearchResults([], '');
     }
-  };    return (
-    <div className="p-4 border-b border-outline-variant relative" ref={searchContainerRef}>
+  };
+  
+  return (
+    <div className="relative" ref={searchContainerRef}>
       <div className="relative">
-        <Search className="absolute top-1/2 left-3 transform -translate-y-1/2 text-on-surface-variant" size={20} />
+        <Search className="absolute top-1/2 left-3 transform -translate-y-1/2 text-[var(--text-secondary)]" size={18} />
         <input
           type="text"
           placeholder="Search conversations..."
           value={query}
           onChange={handleChange}
           onFocus={() => setIsFocused(true)}
-          className={`w-full pl-10 pr-4 py-2 bg-surface-container-low rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-on-surface ${searchResults.length > 0 ? 'ring-1 ring-primary-500' : ''}`}
+          className={`w-full pl-10 pr-4 py-2 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-primary)] focus:outline-none focus:ring-2 focus:ring-primary-500 text-[var(--text-primary)] placeholder-[var(--text-secondary)] ${searchResults.length > 0 ? 'ring-1 ring-primary-500' : ''}`}
           aria-label="Search through conversations"
         />
         {query && (
           <button 
             onClick={handleClearSearch}
-            className="absolute top-1/2 right-3 transform -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+            className="absolute top-1/2 right-3 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <X size={16} />
           </button>
         )}
       </div>
       {isFocused && filteredSuggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mx-4 mt-1 bg-surface-container-high border border-outline rounded-lg shadow-lg z-dropdown animate-fade-in">
-          <ul>
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded-lg shadow-lg z-50 overflow-hidden animate-fade-in">
+          <ul className="py-1">
             {filteredSuggestions.map((suggestion, index) => (
               <li
                 key={index}
-                className="p-3 hover:bg-surface-container-low cursor-pointer text-sm text-on-surface"
+                className="px-4 py-2 hover:bg-[var(--bg-secondary)] cursor-pointer text-sm text-[var(--text-primary)] transition-colors"
                 onClick={() => handleSuggestionClick(suggestion)}
               >
                 {suggestion}
@@ -148,7 +147,7 @@ const SearchWithSuggestions = ({ conversations = [], onSearchResults }) => {
         </div>
       )}
       {query.length > 1 && searchResults.length > 0 && (
-        <div className="mt-2 text-xs text-on-surface-variant">
+        <div className="mt-2 text-xs text-[var(--text-primary)]">
           Found {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'}
         </div>
       )}

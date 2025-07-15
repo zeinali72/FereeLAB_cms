@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, Sun, Moon, Menu, Plus, ChevronsLeft } from 'react-feather';
+import { ChevronDown, Sun, Moon, Menu, Plus, ChevronsLeft, Cpu } from 'react-feather';
 
 const ChatHeader = ({ 
   onToggleTheme, 
@@ -8,28 +8,49 @@ const ChatHeader = ({
   isSidebarOpen, 
   onToggleModelPanel,
   onNewConversation,
-  chatTitle
+  chatTitle,
+  currentModel
 }) => {
   return (
-    <div className="flex items-center justify-between p-4 bg-surface border-b border-outline-variant h-16 flex-shrink-0">
+    <div className="flex items-center justify-between p-4 bg-[var(--bg-tertiary)] border-b border-[var(--border-primary)] h-16 flex-shrink-0">
       <div className="flex items-center space-x-2">
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-full hover:bg-surface-secondary text-on-surface-variant transition-colors"
+          className="p-2 rounded-full hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] transition-colors"
           title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
         >
           {isSidebarOpen ? <ChevronsLeft size={20} /> : <Menu size={20} />}
         </button>
         
-        <div className="font-semibold text-lg text-on-surface truncate">
+        <div className="font-semibold text-lg text-[var(--text-primary)] truncate">
           {chatTitle || "New Chat"}
         </div>
       </div>
 
       <div className="flex items-center space-x-2">
+        {/* Enhanced Model indicator */}
+        {currentModel && (
+          <div 
+            className="hidden sm:flex items-center px-3 py-1.5 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] hover:bg-[var(--bg-tertiary)] cursor-pointer transition-colors"
+            onClick={onToggleModelPanel}
+            title="Change model"
+          >
+            <div className="flex items-center">
+              <span className="mr-1 text-base">{currentModel.icon || '✨'}</span>
+              <Cpu size={12} className="mr-1.5 text-primary-500" />
+              <span className="text-xs font-medium text-[var(--text-primary)]">{currentModel.name}</span>
+              {currentModel.provider && (
+                <span className="ml-1.5 text-xs text-[var(--text-secondary)] border-l border-[var(--border-primary)] pl-1.5">
+                  {currentModel.provider}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         <button 
           onClick={onToggleModelPanel}
-          className="flex items-center px-4 py-2 bg-surface-secondary rounded-lg text-sm font-medium text-on-surface-secondary hover:bg-surface-tertiary transition-colors"
+          className="flex items-center px-4 py-2 bg-[var(--bg-secondary)] rounded-lg text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-primary)] transition-colors"
         >
           <span>Models</span>
           <ChevronDown size={16} className="ml-2" />

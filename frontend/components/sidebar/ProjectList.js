@@ -251,10 +251,17 @@ const ProjectList = ({
                   )}
                 </div>
 
-                {/* Project children (chats) */}
+                {/* Project children (chats) - sorted by date (newest first) */}
                 {openProjects[project.id] && project.children && project.children.length > 0 && (
                   <ul className="ml-6 mt-1">
-                    {project.children.map((chat) => (
+                    {[...project.children]
+                      .sort((a, b) => {
+                        // Sort by date in descending order (newest first)
+                        const dateA = new Date(a.updatedAt || a.createdAt || 0);
+                        const dateB = new Date(b.updatedAt || b.createdAt || 0);
+                        return dateB - dateA;
+                      })
+                      .map((chat) => (
                       <li 
                         key={chat.id}
                         className={`rounded-md ${selectedChildId === chat.id ? 'bg-[var(--bg-tertiary)]' : ''}`}
