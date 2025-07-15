@@ -9,7 +9,8 @@ const ChatMessage = ({
   onRegenerate, 
   onFeedback, 
   onReply,
-  replyActive
+  replyActive,
+  messages // Added messages prop
 }) => {
   const isUser = message.sender === 'user';
   const [isCopied, setIsCopied] = useState(false);
@@ -21,37 +22,44 @@ const ChatMessage = ({
   const [feedback, setFeedback] = useState(null); // 'good' or 'bad'
   const [liveTokenCount, setLiveTokenCount] = useState(message.meta?.tokens || 0);
   const [liveTokenCost, setLiveTokenCost] = useState(message.meta?.cost || '$0.0000');
+  const [showControls, setShowControls] = useState(false);
   const textareaRef = useRef(null);
+  const messageRef = useRef(null);
 
   useEffect(() => {
-    // Set the full message text immediately to prevent the first character issue
-    setDisplayText(message.text);
+    // Always animate the first message (regardless of the animate flag)
+    const shouldAnimate = message.animate || (messages && messages.length === 1);
     
-    if (message.animate) {
+    if (shouldAnimate) {
+      // Set animation class based on sender
       setAnimationClass(isUser ? 'animate-slide-in-left' : 'animate-slide-in-right');
       setTimeout(() => setAnimationClass(''), 500);
 
-      if (message.sender === 'bot') {
-        setIsTyping(true);
-        // Start with a fully visible message but simulate typing
-        let visibleLength = 0;
-        const typingInterval = setInterval(() => {
-          if (visibleLength < message.text.length) {
-            visibleLength++;
-            // No need to update displayText here as it's already set
-          } else {
-            clearInterval(typingInterval);
-            setIsTyping(false);
-          }
-        }, 10);
-        
-        return () => clearInterval(typingInterval);
-      }
+      // Start with empty text for typing animation
+      setDisplayText('');
+      setIsTyping(true);
+      
+      // Simulate typing animation for both bot and user messages
+      const typingSpeed = isUser ? 20 : 10; // User messages type faster
+      let visibleLength = 0;
+      const typingInterval = setInterval(() => {
+        if (visibleLength < message.text.length) {
+          visibleLength++;
+          setDisplayText(message.text.substring(0, visibleLength));
+        } else {
+          clearInterval(typingInterval);
+          setIsTyping(false);
+        }
+      }, typingSpeed);
+      
+      return () => clearInterval(typingInterval);
     } else {
+      // No animation, just show the full text
+      setDisplayText(message.text);
       setAnimationClass('');
       setIsTyping(false);
     }
-  }, [message.text, message.sender, message.animate, isUser]);
+  }, [message.text, message.sender, message.animate, isUser, messages]);
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
@@ -99,12 +107,46 @@ const ChatMessage = ({
     }
   };
 
+  // Show reply info if this message is being replied to
+  const renderReplyInfo = () => {
+    if (!message.replyTo) return null;
+    
+    const replyText = message.replyTo.text.length > 60 
+      ? message.replyTo.text.substring(0, 60) + '...' 
+      : message.replyTo.text;
+    
+    return (
+      <div className="mb-1 text-xs text-[var(--text-secondary)] flex items-center">
+        <span className="bg-[var(--bg-secondary)] px-2 py-1 rounded-lg">
+          Replying to: "{replyText}"
+        </span>
+      </div>
+    );
+  };
+
+  // Display model info for bot messages
+  const renderModelInfo = () => {
+    if (isUser || !message.meta?.model) return null;
+    
+    return (
+      <div className="text-xs text-[var(--text-tertiary)] ml-2">
+        via {message.meta.model}
+      </div>
+    );
+  };
+
   return (
-    <div className={`flex items-start gap-3 my-4 ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div 
+      className={`flex items-start gap-3 my-4 ${isUser ? 'flex-row-reverse' : ''} message-container`}
+      ref={messageRef}
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
+    >
       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${isUser ? 'bg-primary-500' : 'bg-gray-500'} ${message.animate ? 'animate-fade-in' : ''}`}>
         {isUser ? (message.name ? message.name.charAt(0).toUpperCase() : 'U') : 'AI'}
       </div>
       <div className={`flex flex-col max-w-[85%] md:max-w-[75%] ${isUser ? 'items-end' : 'items-start'} ${animationClass}`}>
+        {renderReplyInfo()}
         <div className={`px-4 py-2 rounded-lg shadow-md ${isUser ? 'bg-primary-500 text-white rounded-br-none' : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-bl-none'}`}>
           {isEditing ? (
             <div className="flex flex-col gap-2">
@@ -143,11 +185,11 @@ const ChatMessage = ({
             </p>
           )}
         </div>
-        <div className={`flex items-center mt-2 text-[var(--text-secondary)] space-x-3 ${isUser ? 'justify-end' : ''}`}>
+        <div className={`flex flex-wrap items-center mt-2 text-[var(--text-secondary)] gap-x-3 gap-y-1 ${isUser ? 'justify-end' : ''} ${showControls ? 'opacity-100' : 'opacity-0 md:opacity-100'} transition-opacity message-controls`}>
           {isUser ? (
             <>
               {message.meta && (
-                <div className="text-xs flex space-x-2">
+                <div className="text-xs flex space-x-2 order-first w-full sm:w-auto sm:order-none">
                   {message.meta.tokens && <span>{message.meta.tokens} tokens</span>}
                   {message.meta.inputCost && <span>Input: {message.meta.inputCost}</span>}
                   {message.meta.cost && !message.meta.inputCost && <span>{message.meta.cost}</span>}
@@ -179,10 +221,11 @@ const ChatMessage = ({
                 <MessageSquare size={14} />
               </button>
               {message.meta && (
-                <div className="text-xs flex space-x-2">
+                <div className="text-xs flex flex-wrap gap-x-2 gap-y-1 order-last w-full sm:w-auto mt-1 sm:mt-0">
                   {message.meta.tokens && <span>{message.meta.tokens} tokens</span>}
                   {message.meta.outputCost && <span>Output: {message.meta.outputCost}</span>}
-                  {message.meta.cost && !message.meta.outputCost && <span className="ml-2">{message.meta.cost}</span>}
+                  {message.meta.cost && !message.meta.outputCost && <span>{message.meta.cost}</span>}
+                  {renderModelInfo()}
                 </div>
               )}
             </>

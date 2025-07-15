@@ -257,8 +257,8 @@ const ProjectList = ({
                     {[...project.children]
                       .sort((a, b) => {
                         // Sort by date in descending order (newest first)
-                        const dateA = new Date(a.updatedAt || a.createdAt || 0);
-                        const dateB = new Date(b.updatedAt || b.createdAt || 0);
+                        const dateA = new Date(a.updatedAt || a.timestamp || a.createdAt || 0);
+                        const dateB = new Date(b.updatedAt || b.timestamp || b.createdAt || 0);
                         return dateB - dateA;
                       })
                       .map((chat) => (

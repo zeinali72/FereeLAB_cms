@@ -28,10 +28,10 @@ const ChatHeader = ({
       </div>
 
       <div className="flex items-center space-x-2">
-        {/* Enhanced Model indicator */}
+        {/* Enhanced Model indicator - now visible on all screen sizes */}
         {currentModel && (
           <div 
-            className="hidden sm:flex items-center px-3 py-1.5 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] hover:bg-[var(--bg-tertiary)] cursor-pointer transition-colors"
+            className="flex items-center px-3 py-1.5 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] hover:bg-[var(--bg-tertiary)] cursor-pointer transition-colors"
             onClick={onToggleModelPanel}
             title="Change model"
           >
@@ -40,7 +40,7 @@ const ChatHeader = ({
               <Cpu size={12} className="mr-1.5 text-primary-500" />
               <span className="text-xs font-medium text-[var(--text-primary)]">{currentModel.name}</span>
               {currentModel.provider && (
-                <span className="ml-1.5 text-xs text-[var(--text-secondary)] border-l border-[var(--border-primary)] pl-1.5">
+                <span className="hidden md:inline ml-1.5 text-xs text-[var(--text-secondary)] border-l border-[var(--border-primary)] pl-1.5">
                   {currentModel.provider}
                 </span>
               )}
@@ -66,7 +66,7 @@ const ChatHeader = ({
         
         <button 
           onClick={onToggleTheme} 
-          className="p-2 rounded-full hover:bg-surface-secondary text-on-surface-variant transition-colors"
+          className="p-2 rounded-full hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] transition-colors"
           title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
           {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}

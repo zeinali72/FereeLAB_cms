@@ -17,8 +17,37 @@ const ChatLog = ({
   const [userHasScrolled, setUserHasScrolled] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
-
-  // (All useEffect hooks and handlers remain the same as before)
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [isReplyMode, setIsReplyMode] = useState(false);
+  
+  // Track reply mode changes
+  useEffect(() => {
+    const wasInReplyMode = isReplyMode;
+    const nowInReplyMode = Boolean(replyTo);
+    
+    // If entering reply mode, save scroll position
+    if (!wasInReplyMode && nowInReplyMode) {
+      setScrollPosition(chatContainerRef.current?.scrollTop || 0);
+    }
+    
+    // If exiting reply mode, restore normal scrolling behavior
+    if (wasInReplyMode && !nowInReplyMode) {
+      setUserHasScrolled(false);
+    }
+    
+    setIsReplyMode(nowInReplyMode);
+  }, [replyTo, isReplyMode]);
+  
+  // Maintain scroll position when in reply mode
+  useEffect(() => {
+    if (isReplyMode && chatContainerRef.current) {
+      // Ensure scroll position is maintained in reply mode
+      requestAnimationFrame(() => {
+        chatContainerRef.current.scrollTop = scrollPosition;
+      });
+    }
+  }, [scrollPosition, isReplyMode, messages, processedMessages]);
+  
   useEffect(() => {
     // Check if this is a page reload
     const isPageReload = !sessionStorage.getItem('pageHasLoaded');
@@ -29,7 +58,6 @@ const ChatLog = ({
     }
     
     // Create a flag to track if this is a new message being added
-    // We only want animation for newly added messages
     const previousMessageCount = parseInt(sessionStorage.getItem('lastMessageCount') || '0');
     const isNewMessageAdded = previousMessageCount < messages.length;
     
@@ -38,15 +66,13 @@ const ChatLog = ({
     setLastMessageCount(messages.length);
     
     const updatedMessages = messages.map((msg, index) => {
-      // Disable all animations when:
-      // 1. Page is being reloaded OR
-      // 2. This is not a new message being added OR
-      // 3. This isn't the last message (we only animate the newest message)
+      // Always animate new messages that are added
+      // But don't animate on page reload or when showing history
       const shouldAnimate = 
-        msg.animate && // Message was marked for animation
         !isPageReload && // Not a page reload
         isNewMessageAdded && // New message was added
-        index === messages.length - 1; // Only animate the last message
+        index === messages.length - 1 && // Only animate the last message
+        (msg.animate !== false); // Respect explicit animation setting
         
       return {
         ...msg,
@@ -57,12 +83,11 @@ const ChatLog = ({
     setProcessedMessages(updatedMessages);
     
     // If a new message arrived, check if we should scroll
-    if (isNewMessageAdded && !userHasScrolled && !isSelecting) {
+    if (isNewMessageAdded && !userHasScrolled && !isSelecting && !isReplyMode) {
       // Reset userHasScrolled when a new message arrives
-      // This allows auto-scrolling to resume after new bot messages
       setUserHasScrolled(false);
     }
-  }, [messages, userHasScrolled, isSelecting]);
+  }, [messages, userHasScrolled, isSelecting, isReplyMode]);
 
   const scrollToBottom = (behavior = 'smooth') => {
     if (messagesEndRef.current) {
@@ -78,6 +103,12 @@ const ChatLog = ({
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 100; // 100px tolerance
     
+    // If in reply mode, maintain the scroll position
+    if (isReplyMode) {
+      chatContainerRef.current.scrollTop = scrollPosition;
+      return;
+    }
+    
     // If user hasn't manually scrolled or we're already at bottom, scroll to bottom
     if (!userHasScrolled || isAtBottom) {
       scrollToBottom('auto');
@@ -87,11 +118,11 @@ const ChatLog = ({
     if (messages.length > lastMessageCount && !isAtBottom) {
       setShowScrollToBottom(true);
     }
-  }, [processedMessages, userHasScrolled, lastMessageCount, messages.length]);
+  }, [processedMessages, userHasScrolled, lastMessageCount, messages.length, isReplyMode, scrollPosition]);
 
   // Handle scrolling - detect when user manually scrolls
   const handleScroll = () => {
-    if (!chatContainerRef.current) return;
+    if (!chatContainerRef.current || isReplyMode) return;
     
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
@@ -140,7 +171,7 @@ const ChatLog = ({
       chatContainer.removeEventListener('mousedown', handleMouseDown);
       chatContainer.removeEventListener('mouseup', handleMouseUp);
     };
-  }, []);
+  }, [isReplyMode]);
 
   return (
     <div className="relative h-full bg-[var(--bg-primary)]">
@@ -152,6 +183,7 @@ const ChatLog = ({
           <ChatMessage 
             key={msg.id} 
             message={msg} 
+            messages={processedMessages}
             onEdit={onEditMessage}
             onRegenerate={onRegenerateResponse}
             onFeedback={onFeedback}
@@ -161,7 +193,7 @@ const ChatLog = ({
         ))}
         <div ref={messagesEndRef} className="h-1" />
       </div>
-      {showScrollToBottom && (
+      {showScrollToBottom && !isReplyMode && (
         <button
           onClick={() => {
             scrollToBottom();

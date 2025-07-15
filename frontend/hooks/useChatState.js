@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react';
 import { estimateTokenCount } from '../utils/tokenCalculator';
 
+// Default model
+const defaultModel = {
+  id: 'gemini-flash',
+  name: 'Gemini Flash',
+  provider: 'Google', 
+  icon: '⚡️'
+};
+
 // (Keep initialConversations and initialProjects as they are)
 const initialConversations = [
   {
     id: 'conv-1',
     title: 'First Chat Session',
     timestamp: new Date(),
+    model: defaultModel,
     messages: [
       {
         id: 1,
@@ -27,6 +36,7 @@ const initialConversations = [
     id: 'conv-2',
     title: 'Second Chat Session',
     timestamp: new Date(new Date().setDate(new Date().getDate() - 1)),
+    model: defaultModel,
     messages: [
       {
         id: 1,
@@ -50,7 +60,7 @@ const initialProjects = [
     id: 'proj-1', 
     name: 'Project A', 
     children: [
-      { id: 'chat-1', name: 'Initial discussion', type: 'chat', messages: [
+      { id: 'chat-1', name: 'Initial discussion', type: 'chat', model: defaultModel, messages: [
         {
           id: 101,
           sender: 'user',
@@ -65,14 +75,14 @@ const initialProjects = [
           meta: { tokens: 10, cost: '$0.0001' },
         },
       ] }, 
-      { id: 'chat-2', name: 'Design meeting', type: 'chat', messages: [] }
+      { id: 'chat-2', name: 'Design meeting', type: 'chat', model: defaultModel, messages: [] }
     ] 
   },
   { 
     id: 'proj-2', 
     name: 'Project B', 
     children: [
-      { id: 'chat-3', name: 'API planning', type: 'chat', messages: [] }
+      { id: 'chat-3', name: 'API planning', type: 'chat', model: defaultModel, messages: [] }
     ] 
   },
 ];
@@ -85,8 +95,27 @@ export const useChatState = () => {
   const [activeProjectChatId, setActiveProjectChatId] = useState(null);
   const [messages, setMessages] = useState(initialConversations[0].messages);
   const [replyTo, setReplyTo] = useState(null);
+  const [currentModel, setCurrentModel] = useState(defaultModel);
+  
+  // Sync currentModel with the active conversation or project chat
+  useEffect(() => {
+    if (activeConversationId) {
+      const activeConversation = conversations.find(c => c.id === activeConversationId);
+      if (activeConversation) {
+        setCurrentModel(activeConversation.model || defaultModel);
+      }
+    } else if (activeProjectId && activeProjectChatId) {
+      const project = projects.find(p => p.id === activeProjectId);
+      if (project) {
+        const chat = project.children.find(c => c.id === activeProjectChatId);
+        if (chat) {
+          setCurrentModel(chat.model || defaultModel);
+        }
+      }
+    }
+  }, [activeConversationId, conversations, activeProjectId, activeProjectChatId, projects]);
 
-  // (useEffect for syncing messages remains the same)
+  // useEffect for syncing messages
   useEffect(() => {
     if (activeConversationId) {
       const activeConversation = conversations.find(c => c.id === activeConversationId);
@@ -122,7 +151,7 @@ export const useChatState = () => {
                 ...proj,
                 children: proj.children.map(chat =>
                   chat.id === activeProjectChatId
-                    ? { ...chat, messages: updatedMessages }
+                    ? { ...chat, messages: updatedMessages, timestamp: new Date() }
                     : chat
                 )
               }
@@ -157,7 +186,8 @@ export const useChatState = () => {
     setReplyTo(null); // Clear reply state after sending
 
     setTimeout(() => {
-      const responseText = `You said: "${text}". I am a simple bot and this is a canned response.`;
+      // Generate a response that mentions the model being used
+      const responseText = `You said: "${text}". I am responding as ${currentModel.name} from ${currentModel.provider}.`;
       const botTokenCount = estimateTokenCount(responseText);
       const botTokenCost = botTokenCount * 0.0001;
       
@@ -168,7 +198,8 @@ export const useChatState = () => {
         meta: { 
           tokens: botTokenCount, 
           cost: `$${botTokenCost.toFixed(4)}`,
-          outputCost: `$${botTokenCost.toFixed(4)}` // Specifically track output cost
+          outputCost: `$${botTokenCost.toFixed(4)}`, // Specifically track output cost
+          model: currentModel.name
         },
         animate: true
       };
@@ -200,13 +231,17 @@ export const useChatState = () => {
     
     // Generate new bot response based on the edited message
     setTimeout(() => {
-      const responseText = `You edited your message to: "${newText}". This is a regenerated response.`;
+      const responseText = `You edited your message to: "${newText}". This is a regenerated response from ${currentModel.name}.`;
       const botTokenCount = estimateTokenCount(responseText);
       const botResponse = {
         id: Date.now(),
         sender: 'bot',
         text: responseText,
-        meta: { tokens: botTokenCount, cost: `$${(botTokenCount * 0.0001).toFixed(4)}` },
+        meta: { 
+          tokens: botTokenCount, 
+          cost: `$${(botTokenCount * 0.0001).toFixed(4)}`,
+          model: currentModel.name
+        },
         animate: true
       };
       const messagesWithNewResponse = [...messagesBeforeResponse, botResponse];
@@ -226,8 +261,12 @@ export const useChatState = () => {
       const botResponse = {
         id: Date.now(),
         sender: 'bot',
-        text: `This is a regenerated response to: "${userMessage.text}".`,
-        meta: { tokens: 25, cost: '$0.0003' },
+        text: `This is a regenerated response from ${currentModel.name} to: "${userMessage.text}".`,
+        meta: { 
+          tokens: 25, 
+          cost: '$0.0003',
+          model: currentModel.name
+        },
         animate: true
       };
       const updatedMessagesWithResponse = [...messagesWithoutOldResponse, botResponse];
@@ -255,6 +294,34 @@ export const useChatState = () => {
     setReplyTo(null);
   };
 
+  // Handle model switching
+  const handleModelChange = (model) => {
+    // Only proceed if the model is actually changing
+    if (currentModel && currentModel.id === model.id) return;
+    
+    // Save the current model
+    setCurrentModel(model);
+    
+    // Create a new conversation with the selected model
+    const newConversationId = `conv-${Date.now()}`;
+    const newConversation = {
+      id: newConversationId,
+      title: `New Chat with ${model.name}`,
+      timestamp: new Date(),
+      model: model,
+      messages: []
+    };
+    
+    setConversations(prev => [newConversation, ...prev]);
+    setActiveConversationId(newConversationId);
+    setActiveProjectId(null);
+    setActiveProjectChatId(null);
+    setMessages([]);
+    
+    // Reset the message count in sessionStorage to ensure proper animation tracking
+    sessionStorage.setItem('lastMessageCount', '0');
+  };
+
   // (Keep other handlers like handleNewConversation, handleSwitchConversation, etc. as they are)
   const handleNewConversation = () => {
     const newConversationId = `conv-${Date.now()}`;
@@ -262,6 +329,7 @@ export const useChatState = () => {
       id: newConversationId,
       title: `New Chat ${conversations.length + 1}`,
       timestamp: new Date(),
+      model: currentModel, // Use the current model
       messages: []
     };
     
@@ -283,6 +351,9 @@ export const useChatState = () => {
     // When switching to an existing conversation, make sure no messages are animated
     const activeConversation = conversations.find(c => c.id === conversationId);
     if (activeConversation && activeConversation.messages) {
+      // Update the current model
+      setCurrentModel(activeConversation.model || defaultModel);
+      
       // When viewing history, we want to show the completed state without animation
       const messagesWithoutAnimation = activeConversation.messages.map(message => ({
         ...message,
@@ -312,8 +383,42 @@ export const useChatState = () => {
     }
   };
 
-  const handleAddToProject = (conversationId) => {
-    console.log(`Add conversation ${conversationId} to a project`);
+  const handleAddToProject = (conversationId, projectId) => {
+    // Find the conversation
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation) return;
+    
+    // Create a new chat from the conversation
+    const newChat = {
+      id: `chat-${Date.now()}`,
+      name: conversation.title,
+      type: 'chat',
+      model: conversation.model || defaultModel,
+      messages: conversation.messages,
+      timestamp: new Date(),
+      updatedAt: new Date(),
+      createdAt: new Date()
+    };
+    
+    // Add the chat to the project at the top
+    setProjects(prev => 
+      prev.map(proj => {
+        if (proj.id === projectId) {
+          return {
+            ...proj,
+            children: [newChat, ...proj.children].sort((a, b) => {
+              const dateA = new Date(a.updatedAt || a.timestamp || a.createdAt || 0);
+              const dateB = new Date(b.updatedAt || b.timestamp || b.createdAt || 0);
+              return dateB - dateA; // Sort newest first
+            })
+          };
+        }
+        return proj;
+      })
+    );
+    
+    // Switch to the newly created project chat
+    handleSwitchToProjectChat(projectId, newChat.id);
   };
 
   const handleSwitchToProjectChat = (projectId, chatId) => {
@@ -326,6 +431,9 @@ export const useChatState = () => {
     setActiveProjectId(projectId);
     setActiveProjectChatId(chatId);
     setActiveConversationId(null);
+    
+    // Update the current model
+    setCurrentModel(chat.model || defaultModel);
     
     // When viewing existing chat history, disable animations
     if (chat.messages && chat.messages.length > 0) {
@@ -364,12 +472,12 @@ export const useChatState = () => {
     },
 
     deleteProject: (projectId) => {
-        setProjects(prev => prev.filter(proj => proj.id !== projectId));
-        if (activeProjectId === projectId) {
-            setActiveProjectId(null);
-            setActiveProjectChatId(null);
-            setActiveConversationId(conversations[0]?.id || null);
-        }
+      setProjects(prev => prev.filter(proj => proj.id !== projectId));
+      if (activeProjectId === projectId) {
+        setActiveProjectId(null);
+        setActiveProjectChatId(null);
+        setActiveConversationId(conversations[0]?.id || null);
+      }
     },
     
     addChat: (projectId) => {
@@ -377,13 +485,21 @@ export const useChatState = () => {
         id: `chat-${Date.now()}`,
         name: `New Chat`,
         type: 'chat',
-        messages: []
+        model: currentModel, // Use the current model
+        messages: [],
+        timestamp: new Date()
       };
       
       setProjects(prev => 
         prev.map(proj => 
           proj.id === projectId
-            ? { ...proj, children: [...proj.children, newChat] }
+            ? { 
+                ...proj, 
+                children: [
+                  newChat, 
+                  ...proj.children
+                ].sort((a, b) => (b.timestamp || new Date()) - (a.timestamp || new Date()))
+              }
             : proj
         )
       );
@@ -392,30 +508,30 @@ export const useChatState = () => {
     },
     
     renameChat: (chatId, newName) => {
-        setProjects(prev =>
-            prev.map(proj => ({
-                ...proj,
-                children: proj.children.map(chat =>
-                    chat.id === chatId
-                        ? { ...chat, name: newName }
-                        : chat
-                )
-            }))
-        );
+      setProjects(prev =>
+        prev.map(proj => ({
+          ...proj,
+          children: proj.children.map(chat =>
+            chat.id === chatId
+              ? { ...chat, name: newName }
+              : chat
+          )
+        }))
+      );
     },
 
     deleteChat: (chatId) => {
-        setProjects(prev =>
-            prev.map(proj => ({
-                ...proj,
-                children: proj.children.filter(chat => chat.id !== chatId)
-            }))
-        );
-        if (activeProjectChatId === chatId) {
-            setActiveProjectChatId(null);
-            setActiveProjectId(null);
-            setActiveConversationId(conversations[0]?.id || null);
-        }
+      setProjects(prev =>
+        prev.map(proj => ({
+          ...proj,
+          children: proj.children.filter(chat => chat.id !== chatId)
+        }))
+      );
+      if (activeProjectChatId === chatId) {
+        setActiveProjectChatId(null);
+        setActiveProjectId(null);
+        setActiveConversationId(conversations[0]?.id || null);
+      }
     }
   };
 
@@ -432,6 +548,11 @@ export const useChatState = () => {
     }
     return "New Chat";
   };
+  
+  // Get the active model for displaying in UI
+  const getActiveModel = () => {
+    return currentModel || defaultModel;
+  };
 
   // Estimator for live token counting during message editing
   const getLiveTokenCount = (text) => {
@@ -442,6 +563,106 @@ export const useChatState = () => {
     };
   };
 
+  // Search across all conversations and project chats
+  const searchAllMessages = (query) => {
+    if (!query || query.trim().length === 0) return [];
+    
+    const results = [];
+    
+    // Search in regular conversations
+    conversations.forEach(conv => {
+      // Search in conversation title
+      if (conv.title.toLowerCase().includes(query.toLowerCase())) {
+        results.push({
+          id: conv.id,
+          type: 'conversation',
+          title: conv.title,
+          snippet: conv.title,
+          projectId: null,
+          projectName: null
+        });
+      }
+      
+      // Search in messages
+      const matchingMessages = conv.messages.filter(msg => 
+        msg.text.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      matchingMessages.forEach(msg => {
+        results.push({
+          id: conv.id,
+          type: 'conversation',
+          title: conv.title,
+          messageId: msg.id,
+          snippet: createSnippet(msg.text, query),
+          projectId: null,
+          projectName: null
+        });
+      });
+    });
+    
+    // Search in project conversations
+    projects.forEach(project => {
+      project.children.forEach(chat => {
+        // Search in chat title
+        if (chat.name.toLowerCase().includes(query.toLowerCase())) {
+          results.push({
+            id: chat.id,
+            type: 'project-chat',
+            title: chat.name,
+            snippet: chat.name,
+            projectId: project.id,
+            projectName: project.name
+          });
+        }
+        
+        // Search in messages
+        if (chat.messages && chat.messages.length > 0) {
+          const matchingMessages = chat.messages.filter(msg => 
+            msg.text.toLowerCase().includes(query.toLowerCase())
+          );
+          
+          matchingMessages.forEach(msg => {
+            results.push({
+              id: chat.id,
+              type: 'project-chat',
+              title: chat.name,
+              messageId: msg.id,
+              snippet: createSnippet(msg.text, query),
+              projectId: project.id,
+              projectName: project.name
+            });
+          });
+        }
+      });
+    });
+    
+    return results;
+  };
+  
+  // Helper function to create a snippet around the search query
+  const createSnippet = (text, query) => {
+    const index = text.toLowerCase().indexOf(query.toLowerCase());
+    if (index === -1) return text.substring(0, 100) + '...';
+    
+    const start = Math.max(0, index - 40);
+    const end = Math.min(text.length, index + query.length + 40);
+    const prefix = start > 0 ? '...' : '';
+    const suffix = end < text.length ? '...' : '';
+    
+    return prefix + text.substring(start, end) + suffix;
+  };
+
+  const handleNavigateToSearchResult = (result) => {
+    if (result.type === 'conversation') {
+      handleSwitchConversation(result.id);
+      // Could implement scrolling to the specific message in future
+    } else if (result.type === 'project-chat') {
+      handleSwitchToProjectChat(result.projectId, result.id);
+      // Could implement scrolling to the specific message in future
+    }
+  };
+
   return {
     conversations,
     activeConversationId,
@@ -450,6 +671,7 @@ export const useChatState = () => {
     activeProjectChatId,
     messages,
     replyTo,
+    currentModel,
     handleSendMessage,
     handleEditMessage,
     handleRegenerateResponse,
@@ -464,7 +686,11 @@ export const useChatState = () => {
     handleSwitchToProjectChat,
     handleProjectAction,
     getActiveChatTitle,
-    getLiveTokenCount, // Expose the live token counter
+    getActiveModel,
+    getLiveTokenCount,
+    searchAllMessages,
+    handleNavigateToSearchResult,
+    handleModelChange
   };
 };
 

@@ -8,6 +8,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Responsive improvements */
+@media screen and (max-width: 640px) {
+  .message-controls {
+    opacity: 0;
+  }
+  
+  .message-container:active .message-controls,
+  .message-container:focus .message-controls {
+    opacity: 1;
+  }
+  
+  .chat-input-container {
+    padding: 8px;
+  }
+  
+  .sidebar-button {
+    display: flex;
+  }
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
