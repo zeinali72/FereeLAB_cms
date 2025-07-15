@@ -69,14 +69,12 @@ const CheckboxGroup = ({ items, selected, onChange }) => (
     </div>
 );
 
-const FilterSidebar = ({ onFilterChange, providers, categories }) => {
-    const [filters, setFilters] = useState({
-        modalities: ['text'],
-        contextLength: 4000,
-        maxPrice: 0,
-        categories: [],
-        providers: [],
-    });
+const FilterSidebar = ({ onFilterChange, onResetFilters, filters: activeFilters, providers, categories }) => {
+    const [filters, setFilters] = useState(activeFilters);
+
+    useEffect(() => {
+        setFilters(activeFilters);
+    }, [activeFilters]);
 
     const handleCheckboxChange = (group, id) => {
         const newGroup = filters[group].includes(id)
@@ -93,9 +91,30 @@ const FilterSidebar = ({ onFilterChange, providers, categories }) => {
         onFilterChange(updatedFilters);
         setFilters(updatedFilters);
     };
+
+    const isFilterActive = () => {
+        return (
+            activeFilters.modalities.length > 0 ||
+            activeFilters.contextLength > 0 ||
+            activeFilters.maxPrice > 0 ||
+            activeFilters.categories.length > 0 ||
+            activeFilters.providers.length > 0
+        );
+    };
     
     return (
         <div className="h-full flex flex-col">
+            <div className="p-4 flex items-center justify-between border-b border-[var(--border-primary)]">
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Filters</h2>
+                {isFilterActive() && (
+                    <button 
+                        onClick={onResetFilters} 
+                        className="text-sm text-primary-500 hover:underline"
+                    >
+                        Reset
+                    </button>
+                )}
+            </div>
             <div className="overflow-y-auto flex-grow custom-scrollbar">
                 <FilterSection title="Input Modalities" icon={<Type size={16} />} defaultOpen={true}>
                     <CheckboxGroup 
@@ -107,12 +126,12 @@ const FilterSidebar = ({ onFilterChange, providers, categories }) => {
 
                 <FilterSection title="Context Length" icon={<Clock size={16} />} defaultOpen={true}>
                     <RangeSlider 
-                        min={4000} 
+                        min={0} 
                         max={128000} 
                         step={1000}
                         value={filters.contextLength} 
                         onChange={(e) => handleValueChange('contextLength', parseInt(e.target.value))} 
-                        displayFormat={(val) => `${(val / 1000)}K`}
+                        displayFormat={(val) => val === 0 ? 'Any' : `${(val / 1000)}K`}
                     />
                 </FilterSection>
 
@@ -123,7 +142,7 @@ const FilterSidebar = ({ onFilterChange, providers, categories }) => {
                         step={0.01}
                         value={filters.maxPrice} 
                         onChange={(e) => handleValueChange('maxPrice', parseFloat(e.target.value))} 
-                        displayFormat={(val) => val === 0 ? 'Any' : `${val.toFixed(2)}`}
+                        displayFormat={(val) => val === 0 ? 'Any' : `$${val.toFixed(2)}`}
                     />
                 </FilterSection>
 

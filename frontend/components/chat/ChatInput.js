@@ -3,6 +3,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import { Paperclip, Layers, Send, Zap, X } from 'react-feather';
 import PromptSuggestions from './PromptSuggestions';
 import { mockModels } from '../../data/mockModels';
+import { estimateTokenCount } from '../../utils/tokenCalculator';
 
 const ChatInput = ({ 
   onSendMessage, 
@@ -22,8 +23,8 @@ const ChatInput = ({
     return model ? model.context_length : 4000;
   };
 
-  const maxChars = getMaxContextLength();
-  const charCount = message.length;
+  const maxTokens = getMaxContextLength();
+  const tokenCount = estimateTokenCount(message);
 
   const handleSendMessage = () => {
     if (message.trim() || attachedFile) {
@@ -67,7 +68,7 @@ const ChatInput = ({
   }, [replyTo]);
 
   const canSendMessage = message.trim() || attachedFile;
-  const isOverLimit = charCount > maxChars;
+  const isOverLimit = tokenCount > maxTokens;
 
   return (
     <div className="p-4 bg-[var(--bg-secondary)] border-t border-[var(--border-primary)]">
@@ -135,7 +136,7 @@ const ChatInput = ({
         </div>
         
         <div className={`text-xs text-right pr-2 mt-1 ${isOverLimit ? 'text-red-500' : 'text-[var(--text-secondary)]'}`}>
-          {charCount}/{maxChars} characters
+          {tokenCount} tokens
         </div>
       </div>
     </div>

@@ -38,6 +38,8 @@
   border: 3px solid var(--bg-primary);
   transition: background-color 0.2s, transform 0.1s;
   transform: scale(1);
+  position: relative;
+  z-index: 2;
 }
 
 .range-slider::-moz-range-thumb {
@@ -49,6 +51,8 @@
   border: 3px solid var(--bg-primary);
   transition: background-color 0.2s, transform 0.1s;
   transform: scale(1);
+  position: relative;
+  z-index: 2;
 }
 
 .range-slider:hover::-webkit-slider-thumb {

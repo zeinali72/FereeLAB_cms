@@ -7,13 +7,14 @@ const MarketplacePanel = ({ onClose, selectedModels: initialSelectedModels = [],
   const [selectedModelIds, setSelectedModelIds] = useState(initialSelectedModels);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
+  const initialFilters = {
     modalities: [],
     contextLength: 0,
     maxPrice: 0,
     categories: [],
     providers: [],
-  });
+  };
+  const [filters, setFilters] = useState(initialFilters);
 
   useEffect(() => {
     const checkScreenSize = () => setIsSidebarOpen(window.innerWidth >= 1024);
@@ -28,6 +29,10 @@ const MarketplacePanel = ({ onClose, selectedModels: initialSelectedModels = [],
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(initialFilters);
   };
 
   const filteredModels = useMemo(() => {
@@ -85,7 +90,7 @@ const MarketplacePanel = ({ onClose, selectedModels: initialSelectedModels = [],
         </div>
         <div className="flex flex-1 min-h-0">
           <div className={`bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] h-full transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-72' : 'w-0'} overflow-hidden`}>
-            {isSidebarOpen && <FilterSidebar onFilterChange={handleFilterChange} providers={providers} categories={categories} />}
+            {isSidebarOpen && <FilterSidebar onFilterChange={handleFilterChange} onResetFilters={handleResetFilters} filters={filters} providers={providers} categories={categories} />}
           </div>
           <div className="flex-1 flex flex-col min-w-0 bg-[var(--bg-primary)]">
             <div className="p-4 flex items-center justify-between border-b border-[var(--border-primary)] gap-4 flex-shrink-0">

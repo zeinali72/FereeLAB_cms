@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { estimateTokenCount } from '../utils/tokenCalculator';
 
 // (Keep initialConversations and initialProjects as they are)
 const initialConversations = [
@@ -132,13 +133,14 @@ export const useChatState = () => {
   };
 
   const handleSendMessage = (text, file) => {
+    const tokenCount = estimateTokenCount(text);
     const userMessage = {
       id: Date.now(),
       sender: 'user',
       text: text,
       file: file,
       replyTo: replyTo,
-      meta: { tokens: text.split(' ').length, cost: '$0.0001' },
+      meta: { tokens: tokenCount, cost: `$${(tokenCount * 0.0001).toFixed(4)}` },
       name: 'User',
       animate: true
     };
@@ -148,11 +150,13 @@ export const useChatState = () => {
     setReplyTo(null); // Clear reply state after sending
 
     setTimeout(() => {
+      const responseText = `You said: "${text}". I am a simple bot and this is a canned response.`;
+      const tokenCount = estimateTokenCount(responseText);
       const botResponse = {
         id: Date.now() + 1,
         sender: 'bot',
-        text: `You said: "${text}". I am a simple bot and this is a canned response.`,
-        meta: { tokens: 20, cost: '$0.0002' },
+        text: responseText,
+        meta: { tokens: tokenCount, cost: `$${(tokenCount * 0.0001).toFixed(4)}` },
         animate: true
       };
       const updatedMessagesWithResponse = [...updatedMessages, botResponse];
@@ -161,8 +165,18 @@ export const useChatState = () => {
   };
 
   const handleEditMessage = (messageId, newText) => {
+    const tokenCount = estimateTokenCount(newText);
     const updatedMessages = messages.map(msg => 
-      msg.id === messageId ? { ...msg, text: newText, animate: false } : msg
+      msg.id === messageId ? { 
+        ...msg, 
+        text: newText, 
+        animate: false,
+        meta: { 
+          ...msg.meta, 
+          tokens: tokenCount,
+          cost: `$${(tokenCount * 0.0001).toFixed(4)}`
+        }
+      } : msg
     );
     updateMessagesInState(updatedMessages);
   };
@@ -196,7 +210,12 @@ export const useChatState = () => {
   };
 
   const handleReply = (message) => {
-    setReplyTo(message);
+    // Toggle reply - if already replying to this message, cancel the reply
+    if (replyTo && replyTo.id === message.id) {
+      setReplyTo(null);
+    } else {
+      setReplyTo(message);
+    }
   };
 
   const cancelReply = () => {

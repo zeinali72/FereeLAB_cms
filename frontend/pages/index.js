@@ -108,6 +108,7 @@ const ChatPage = () => {
               onRegenerateResponse={handleRegenerateResponse}
               onFeedback={handleFeedback}
               onReply={handleReply}
+              replyTo={replyTo}
             />
           </div>
 

@@ -7,7 +7,8 @@ const ChatLog = ({
   onEditMessage, 
   onRegenerateResponse, 
   onFeedback, 
-  onReply 
+  onReply,
+  replyTo
 }) => {
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -155,6 +156,7 @@ const ChatLog = ({
             onRegenerate={onRegenerateResponse}
             onFeedback={onFeedback}
             onReply={onReply}
+            replyActive={replyTo && replyTo.id === msg.id}
           />
         ))}
         <div ref={messagesEndRef} className="h-1" />

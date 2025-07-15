@@ -7,7 +7,8 @@ const ChatMessage = ({
   onEdit, 
   onRegenerate, 
   onFeedback, 
-  onReply 
+  onReply,
+  replyActive
 }) => {
   const isUser = message.sender === 'user';
   const [isCopied, setIsCopied] = useState(false);
@@ -146,7 +147,11 @@ const ChatMessage = ({
               <button onClick={() => onRegenerate(message.id)} className="p-1 rounded-full hover:bg-[var(--bg-secondary)] transition-colors" title="Regenerate">
                 <RefreshCw size={14} />
               </button>
-              <button onClick={() => onReply(message)} className="p-1 rounded-full hover:bg-[var(--bg-secondary)] transition-colors" title="Reply">
+              <button 
+                onClick={() => onReply(message)} 
+                className={`p-1 rounded-full hover:bg-[var(--bg-secondary)] transition-colors ${replyActive ? 'text-primary-500' : ''}`} 
+                title={replyActive ? "Cancel Reply" : "Reply"}
+              >
                 <MessageSquare size={14} />
               </button>
               {message.meta && (
