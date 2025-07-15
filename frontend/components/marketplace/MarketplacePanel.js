@@ -36,35 +36,79 @@ const MarketplacePanel = ({ onClose, selectedModels: initialSelectedModels = [],
   };
 
   const filteredModels = useMemo(() => {
+    // Trim and lowercase the search term once for better performance
+    const normalizedSearchTerm = searchTerm.toLowerCase().trim();
+    
     const filtered = mockModels.filter(model => {
-      const searchMatch = searchTerm === '' ||
-        model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        model.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        model.provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        model.categories.some(c => c.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      const priceMatch = filters.maxPrice === 0 ? true : (model.pricing.prompt / 1000) <= filters.maxPrice;
+      // Skip search filtering if search term is empty
+      if (normalizedSearchTerm === '') return true;
       
-      const contextMatch = filters.contextLength === 0 ? true : model.context_length >= filters.contextLength;
+      // Check for model properties - handle potential undefined values
+      const nameMatch = model.name?.toLowerCase().includes(normalizedSearchTerm) || false;
+      const descMatch = model.description?.toLowerCase().includes(normalizedSearchTerm) || false;
+      const providerMatch = model.provider?.name?.toLowerCase().includes(normalizedSearchTerm) || false;
+      
+      // Check categories with null/undefined safety
+      const categoryMatch = Array.isArray(model.categories) && 
+        model.categories.some(c => c?.toLowerCase().includes(normalizedSearchTerm));
+      
+      // ID match - useful for power users
+      const idMatch = model.id?.toLowerCase().includes(normalizedSearchTerm) || false;
 
-      const filterMatch = 
-        (filters.modalities?.length ? filters.modalities.every(m => (model.modalities || []).includes(m)) : true) &&
-        contextMatch &&
-        priceMatch &&
-        (filters.providers?.length ? filters.providers.includes(model.provider.name) : true) &&
-        (filters.categories?.length ? filters.categories.every(c => (model.categories || []).includes(c)) : true);
+      // Search match combines all potential matches
+      const searchMatch = nameMatch || descMatch || providerMatch || categoryMatch || idMatch;
 
-      return searchMatch && filterMatch;
+      return searchMatch;
+    }).filter(model => {
+      // Apply filters separately for better readability
+      
+      // Price filtering
+      const priceMatch = filters.maxPrice === 0 ? true : 
+        ((model.pricing?.prompt || 0) / 1000) <= filters.maxPrice;
+      
+      // Context length filtering
+      const contextMatch = filters.contextLength === 0 ? true : 
+        (model.context_length || 0) >= filters.contextLength;
+
+      // Modality filtering
+      const modalitiesMatch = !filters.modalities?.length ? true : 
+        filters.modalities.every(m => (model.modalities || []).includes(m));
+      
+      // Provider filtering
+      const providerMatch = !filters.providers?.length ? true : 
+        filters.providers.includes(model.provider?.name || '');
+      
+      // Categories filtering
+      const categoriesMatch = !filters.categories?.length ? true : 
+        filters.categories.every(c => (model.categories || []).includes(c));
+
+      // Combine all filters
+      return priceMatch && contextMatch && modalitiesMatch && providerMatch && categoriesMatch;
     });
 
+    // Sort with selected models at the top
     return filtered.sort((a, b) => {
-        const aIsSelected = selectedModelIds.includes(a.id);
-        const bIsSelected = selectedModelIds.includes(b.id);
-        if (aIsSelected && !bIsSelected) return -1;
-        if (!aIsSelected && bIsSelected) return 1;
-        return 0;
+      // First by selection status
+      const aIsSelected = selectedModelIds.includes(a.id);
+      const bIsSelected = selectedModelIds.includes(b.id);
+      
+      if (aIsSelected && !bIsSelected) return -1;
+      if (!aIsSelected && bIsSelected) return 1;
+      
+      // Then by name if search is empty
+      if (normalizedSearchTerm === '') {
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      
+      // If searching, prioritize exact matches in name
+      const aNameStartsWith = a.name?.toLowerCase().startsWith(normalizedSearchTerm) || false;
+      const bNameStartsWith = b.name?.toLowerCase().startsWith(normalizedSearchTerm) || false;
+      
+      if (aNameStartsWith && !bNameStartsWith) return -1;
+      if (!aNameStartsWith && bNameStartsWith) return 1;
+      
+      return (a.name || '').localeCompare(b.name || '');
     });
-
   }, [searchTerm, filters, mockModels, selectedModelIds]);
 
   const handleModelSelection = (modelId) => {
@@ -107,11 +151,23 @@ const MarketplacePanel = ({ onClose, selectedModels: initialSelectedModels = [],
                   placeholder="Search models, providers, or categories..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  autoComplete="off"
+                  aria-label="Search models"
+                  spellCheck="false"
                 />
                 {searchTerm && (
-                  <button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" title="Clear search">
-                    <XCircle size={16} />
-                  </button>
+                  <div className="absolute inset-y-0 right-0 flex items-center">
+                    <span className="text-xs text-[var(--text-secondary)] pr-2 border-r border-[var(--border-primary)] mr-2">
+                      {filteredModels.length} found
+                    </span>
+                    <button 
+                      onClick={() => setSearchTerm('')} 
+                      className="flex items-center pr-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" 
+                      title="Clear search"
+                    >
+                      <XCircle size={16} />
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="hidden md:flex items-center gap-2 text-[var(--text-secondary)]">

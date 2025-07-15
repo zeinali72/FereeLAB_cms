@@ -12,6 +12,17 @@ const formatDateGroup = (date) => {
     return date.toLocaleDateString();
 };
 
+// Utility to highlight search term in text
+const highlightText = (text, searchTerm) => {
+    if (!searchTerm || typeof text !== 'string') return text;
+    
+    const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+    return parts.map((part, i) => 
+        part.toLowerCase() === searchTerm.toLowerCase() ? 
+        <span key={i} className="bg-yellow-300 text-black dark:bg-yellow-600 dark:text-white rounded-sm px-0.5">{part}</span> : part
+    );
+};
+
 const ConversationHistory = ({ 
     conversations = [], 
     activeConversationId, 
@@ -20,7 +31,9 @@ const ConversationHistory = ({
     onRenameConversation,
     onDeleteConversation,
     onAddToProject,
-    onContextMenu
+    onContextMenu,
+    isSearchResult = false,
+    searchTerm = ''
 }) => {
     const [isSectionOpen, setIsSectionOpen] = useState(true);
     const [editingId, setEditingId] = useState(null);
@@ -126,15 +139,24 @@ const ConversationHistory = ({
 
             {isSectionOpen && (
                 <div className="mt-1">
-                    <button
-                        onClick={onNewConversation}
-                        className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-[var(--bg-tertiary)] transition-colors"
-                    >
-                        <div className="flex items-center text-[var(--text-primary)]">
-                            <PlusIcon className="h-4 w-4 mr-2" />
-                            <span>New conversation</span>
+                    {!isSearchResult && (
+                        <button
+                            onClick={onNewConversation}
+                            className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-[var(--bg-tertiary)] transition-colors"
+                        >
+                            <div className="flex items-center text-[var(--text-primary)]">
+                                <PlusIcon className="h-4 w-4 mr-2" />
+                                <span>New conversation</span>
+                            </div>
+                        </button>
+                    )}
+                    
+                    {isSearchResult && conversations.length === 0 && (
+                        <div className="px-4 py-6 text-center text-[var(--text-secondary)]">
+                            <p className="text-sm mb-1">No conversations found</p>
+                            <p className="text-xs">Try a different search term</p>
                         </div>
-                    </button>
+                    )}
 
                     {Object.entries(groupedConversations).map(([dateGroup, convs]) => (
                         <div key={dateGroup} className="mt-2">
@@ -194,7 +216,12 @@ const ConversationHistory = ({
                                                 }`}
                                             >
                                                 <MessageSquare size={16} className="mr-2 flex-shrink-0" />
-                                                <span className="truncate">{conv.title}</span>
+                                                <span className="truncate">{isSearchResult ? highlightText(conv.title, searchTerm) : conv.title}</span>
+                                                {isSearchResult && (
+                                                    <span className="ml-auto text-xs text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded-full">
+                                                        Match
+                                                    </span>
+                                                )}
                                             </button>
                                         )}
                                     </li>

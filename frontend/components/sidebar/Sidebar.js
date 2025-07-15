@@ -28,6 +28,9 @@ const Sidebar = ({
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
+  const [filteredConversations, setFilteredConversations] = useState([]);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleContextMenu = (e, items) => {
     e.preventDefault();
@@ -37,6 +40,18 @@ const Sidebar = ({
       y: e.clientY,
       items: items,
     });
+  };
+  
+  const handleSearchResults = (results, query = '') => {
+    if (results && results.length > 0) {
+      setFilteredConversations(results);
+      setIsSearchActive(true);
+      setSearchQuery(query);
+    } else {
+      setFilteredConversations([]);
+      setIsSearchActive(false);
+      setSearchQuery('');
+    }
   };
 
   const closeContextMenu = () => {
@@ -72,19 +87,24 @@ const Sidebar = ({
 
       <div className="flex-grow flex flex-col min-h-0 overflow-hidden">
         <div className="p-4 border-b border-[var(--border-primary)]">
-          <SearchWithSuggestions />
+          <SearchWithSuggestions 
+            conversations={conversations} 
+            onSearchResults={handleSearchResults} 
+          />
         </div>
         <div className="flex-grow overflow-y-auto custom-scrollbar">
-          <ProjectList
-            projects={projects}
-            activeProjectId={activeProjectId}
-            activeProjectChatId={activeProjectChatId}
-            onProjectAction={onProjectAction}
-            onSwitchToProjectChat={onSwitchToProjectChat}
-            onContextMenu={handleContextMenu}
-          />
+          {!isSearchActive && (
+            <ProjectList
+              projects={projects}
+              activeProjectId={activeProjectId}
+              activeProjectChatId={activeProjectChatId}
+              onProjectAction={onProjectAction}
+              onSwitchToProjectChat={onSwitchToProjectChat}
+              onContextMenu={handleContextMenu}
+            />
+          )}
           <ConversationHistory
-            conversations={conversations}
+            conversations={isSearchActive ? filteredConversations : conversations}
             activeConversationId={activeConversationId}
             onSwitchConversation={onSwitchConversation}
             onRenameConversation={onRenameConversation}
@@ -92,6 +112,8 @@ const Sidebar = ({
             onAddToProject={onAddToProject}
             onNewConversation={onNewConversation}
             onContextMenu={handleContextMenu}
+            searchTerm={searchQuery}
+            isSearchResult={isSearchActive}
           />
         </div>
 
