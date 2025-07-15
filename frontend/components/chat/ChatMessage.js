@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { Copy, ThumbsUp, ThumbsDown, RefreshCw, Check, Edit, X, MessageSquare } from 'react-feather';
+import { Copy, ThumbsUp, ThumbsDown, RefreshCw, Check, Edit, X, MessageSquare, Cpu } from 'react-feather';
 import TextareaAutosize from 'react-textarea-autosize';
 import { estimateTokenCount } from '../../utils/tokenCalculator';
 
@@ -129,8 +129,9 @@ const ChatMessage = ({
     if (isUser || !message.meta?.model) return null;
     
     return (
-      <div className="text-xs text-[var(--text-tertiary)] ml-2">
-        via {message.meta.model}
+      <div className="flex items-center text-xs text-[var(--text-tertiary)] ml-2 bg-[var(--bg-secondary)] px-2 py-0.5 rounded-full">
+        <Cpu size={10} className="mr-1 text-primary-500" />
+        {message.meta.model}
       </div>
     );
   };

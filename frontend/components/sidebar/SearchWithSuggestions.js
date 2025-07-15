@@ -156,15 +156,79 @@ const SearchWithSuggestions = ({ conversations = [], projects = [], onSearchResu
   const handleSuggestionClick = (suggestion) => {
     setQuery(suggestion);
     setFilteredSuggestions([]);
+    setIsFocused(false); // Hide suggestions when one is selected
     
     // Immediately perform search with the selected suggestion without waiting for debounce
-    const results = conversations.filter(conv => 
-      conv.title?.toLowerCase().includes(suggestion.toLowerCase()) || 
-      conv.summary?.toLowerCase().includes(suggestion.toLowerCase()) ||
-      conv.messages?.some(msg => 
+    // Search in both conversations and projects
+    const results = [];
+    
+    // Search in regular conversations
+    conversations.forEach(conv => {
+      // Search in conversation title
+      if (conv.title?.toLowerCase().includes(suggestion.toLowerCase())) {
+        results.push({
+          id: conv.id,
+          type: 'conversation',
+          title: conv.title,
+          snippet: highlightText(conv.title, suggestion),
+          projectId: null,
+          projectName: null
+        });
+      }
+      
+      // Search in messages
+      const matchingMessages = conv.messages?.filter(msg => 
         msg.text?.toLowerCase().includes(suggestion.toLowerCase())
-      )
-    );
+      ) || [];
+      
+      matchingMessages.forEach(msg => {
+        results.push({
+          id: conv.id,
+          type: 'conversation',
+          title: conv.title,
+          messageId: msg.id,
+          snippet: createSnippet(msg.text, suggestion),
+          projectId: null,
+          projectName: null
+        });
+      });
+    });
+    
+    // Search in project conversations
+    projects.forEach(project => {
+      project.children?.forEach(chat => {
+        // Search in chat title
+        if (chat.name?.toLowerCase().includes(suggestion.toLowerCase())) {
+          results.push({
+            id: chat.id,
+            type: 'project-chat',
+            title: chat.name,
+            snippet: highlightText(chat.name, suggestion),
+            projectId: project.id,
+            projectName: project.name
+          });
+        }
+        
+        // Search in messages
+        if (chat.messages && chat.messages.length > 0) {
+          const matchingMessages = chat.messages.filter(msg => 
+            msg.text?.toLowerCase().includes(suggestion.toLowerCase())
+          );
+          
+          matchingMessages.forEach(msg => {
+            results.push({
+              id: chat.id,
+              type: 'project-chat',
+              title: chat.name,
+              messageId: msg.id,
+              snippet: createSnippet(msg.text, suggestion),
+              projectId: project.id,
+              projectName: project.name
+            });
+          });
+        }
+      });
+    });
     
     setSearchResults(results);
     if (onSearchResults) {
@@ -178,10 +242,32 @@ const SearchWithSuggestions = ({ conversations = [], projects = [], onSearchResu
         setIsFocused(false);
       }
     };
+    
+    const handleKeyDown = (e) => {
+      // Close search on Escape key press
+      if (e.key === 'Escape') {
+        setIsFocused(false);
+        handleClearSearch();
+      }
+      // Submit search on Enter key press
+      else if (e.key === 'Enter' && isFocused && query) {
+        setIsFocused(false);
+        // Use current query to perform search immediately
+        const results = searchResults;
+        if (onSearchResults && results.length > 0) {
+          onSearchResults(results, query);
+        }
+      }
+    };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFocused, query, searchResults, onSearchResults]);
 
   const handleResultClick = (result) => {
     // This should navigate to the conversation and highlight the message

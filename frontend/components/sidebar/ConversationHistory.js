@@ -60,6 +60,7 @@ const ConversationHistory = ({
     // Cancel renaming
     const handleCancelRename = () => {
         setEditingId(null);
+        setEditTitle('');
     };
 
     // Handle keyboard events for renaming
@@ -84,6 +85,38 @@ const ConversationHistory = ({
             inputRef.current.focus();
             inputRef.current.select();
         }
+    }, [editingId]);
+    
+    // Handle Escape key and double-click outside
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && editingId) {
+                handleCancelRename();
+            }
+        };
+
+        const handleDoubleClickOutside = (e) => {
+            if (
+                editingId && 
+                inputRef.current && 
+                !inputRef.current.contains(e.target)
+            ) {
+                // Check if this is a double click
+                const timeDiff = e.timeStamp - (window.lastClickTime || 0);
+                if (timeDiff < 300) {  // Typical double-click threshold
+                    handleCancelRename();
+                }
+                window.lastClickTime = e.timeStamp;
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('click', handleDoubleClickOutside);
+        
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('click', handleDoubleClickOutside);
+        };
     }, [editingId]);
 
     useEffect(() => {
