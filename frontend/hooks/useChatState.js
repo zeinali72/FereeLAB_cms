@@ -133,14 +133,21 @@ export const useChatState = () => {
   };
 
   const handleSendMessage = (text, file) => {
+    // Calculate input tokens and cost
     const tokenCount = estimateTokenCount(text);
+    const tokenCost = tokenCount * 0.0001;
+    
     const userMessage = {
       id: Date.now(),
       sender: 'user',
       text: text,
       file: file,
       replyTo: replyTo,
-      meta: { tokens: tokenCount, cost: `$${(tokenCount * 0.0001).toFixed(4)}` },
+      meta: { 
+        tokens: tokenCount, 
+        cost: `$${tokenCost.toFixed(4)}`,
+        inputCost: `$${tokenCost.toFixed(4)}` // Specifically track input cost
+      },
       name: 'User',
       animate: true
     };
@@ -151,12 +158,18 @@ export const useChatState = () => {
 
     setTimeout(() => {
       const responseText = `You said: "${text}". I am a simple bot and this is a canned response.`;
-      const tokenCount = estimateTokenCount(responseText);
+      const botTokenCount = estimateTokenCount(responseText);
+      const botTokenCost = botTokenCount * 0.0001;
+      
       const botResponse = {
         id: Date.now() + 1,
         sender: 'bot',
         text: responseText,
-        meta: { tokens: tokenCount, cost: `$${(tokenCount * 0.0001).toFixed(4)}` },
+        meta: { 
+          tokens: botTokenCount, 
+          cost: `$${botTokenCost.toFixed(4)}`,
+          outputCost: `$${botTokenCost.toFixed(4)}` // Specifically track output cost
+        },
         animate: true
       };
       const updatedMessagesWithResponse = [...updatedMessages, botResponse];
@@ -178,7 +191,27 @@ export const useChatState = () => {
         }
       } : msg
     );
-    updateMessagesInState(updatedMessages);
+    
+    // Find the edited message index and remove any bot responses that followed it
+    const editedMessageIndex = updatedMessages.findIndex(msg => msg.id === messageId);
+    const messagesBeforeResponse = updatedMessages.slice(0, editedMessageIndex + 1);
+    
+    updateMessagesInState(messagesBeforeResponse);
+    
+    // Generate new bot response based on the edited message
+    setTimeout(() => {
+      const responseText = `You edited your message to: "${newText}". This is a regenerated response.`;
+      const botTokenCount = estimateTokenCount(responseText);
+      const botResponse = {
+        id: Date.now(),
+        sender: 'bot',
+        text: responseText,
+        meta: { tokens: botTokenCount, cost: `$${(botTokenCount * 0.0001).toFixed(4)}` },
+        animate: true
+      };
+      const messagesWithNewResponse = [...messagesBeforeResponse, botResponse];
+      updateMessagesInState(messagesWithNewResponse);
+    }, 500);
   };
 
   const handleRegenerateResponse = (messageId) => {
@@ -400,6 +433,14 @@ export const useChatState = () => {
     return "New Chat";
   };
 
+  // Estimator for live token counting during message editing
+  const getLiveTokenCount = (text) => {
+    const tokenCount = estimateTokenCount(text);
+    return {
+      tokens: tokenCount,
+      cost: `$${(tokenCount * 0.0001).toFixed(4)}`
+    };
+  };
 
   return {
     conversations,
@@ -423,6 +464,7 @@ export const useChatState = () => {
     handleSwitchToProjectChat,
     handleProjectAction,
     getActiveChatTitle,
+    getLiveTokenCount, // Expose the live token counter
   };
 };
 
