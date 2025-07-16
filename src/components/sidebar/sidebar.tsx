@@ -12,7 +12,7 @@ export function Sidebar() {
   const [activeSection, setActiveSection] = useState<"chat" | "agents">("chat");
 
   return (
-    <div className="h-full flex flex-col border-r border-border bg-card">
+    <div className="h-full flex flex-col border-r border bg-card">
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h1 className="text-lg font-semibold">FereeLAB</h1>

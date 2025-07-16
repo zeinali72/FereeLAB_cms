@@ -8,7 +8,7 @@ import { PromptSuggestions } from "./prompt-suggestions";
 import { AIModel } from "@/data/models";
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, file?: File | null) => void;
   selectedModel?: AIModel;
   replyTo?: {
     id: string;
@@ -16,12 +16,24 @@ interface ChatInputProps {
     role: "user" | "assistant";
   };
   onCancelReply?: () => void;
+  onToggleCanvas?: () => void;
+  isCanvasOpen?: boolean;
 }
 
-export function ChatInput({ onSendMessage, selectedModel, replyTo, onCancelReply }: ChatInputProps) {
+export function ChatInput({ 
+  onSendMessage, 
+  selectedModel, 
+  replyTo, 
+  onCancelReply,
+  onToggleCanvas,
+  isCanvasOpen
+}: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [showPrompts, setShowPrompts] = useState(true);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [isPromptGeneratorOpen, setIsPromptGeneratorOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate token metrics
   const tokenCount = estimateTokenCount(message);
@@ -33,10 +45,12 @@ export function ChatInput({ onSendMessage, selectedModel, replyTo, onCancelReply
     : { tokenCount: 0, inputCost: 0, totalCost: 0 };
 
   const handleSendMessage = () => {
-    if (message.trim()) {
-      onSendMessage(message);
+    if (message.trim() || attachedFile) {
+      onSendMessage(message, attachedFile);
       setMessage("");
+      setAttachedFile(null);
       setShowPrompts(false);
+      onCancelReply?.();
     }
   };
 
@@ -44,6 +58,9 @@ export function ChatInput({ onSendMessage, selectedModel, replyTo, onCancelReply
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+    if (e.key === "Escape" && replyTo) {
+      onCancelReply?.();
     }
   };
 
@@ -55,17 +72,43 @@ export function ChatInput({ onSendMessage, selectedModel, replyTo, onCancelReply
     }
   };
 
+  const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAttachedFile(file);
+    }
+  };
+
+  const removeAttachedFile = () => {
+    setAttachedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePromptGeneratorToggle = () => {
+    setIsPromptGeneratorOpen(!isPromptGeneratorOpen);
+  };
+
+  useEffect(() => {
+    if (replyTo && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [replyTo]);
+
+  // Focus on mount
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
   }, []);
 
-  // Show prompts only when message is empty
+  // Show prompts only when message is empty and not replying
   const shouldShowPrompts = showPrompts && !message.trim() && !replyTo;
+  const canSendMessage = message.trim() || attachedFile;
 
   return (
-    <div className="border-t border-border p-4">
+    <div className="border-t border p-4">
       <div className="flex flex-col space-y-3 max-w-3xl mx-auto">
         {/* Reply Context */}
         {replyTo && (
@@ -75,7 +118,7 @@ export function ChatInput({ onSendMessage, selectedModel, replyTo, onCancelReply
                 Replying to {replyTo.role === "user" ? "your message" : "assistant"}
               </div>
               <div className="text-sm text-foreground truncate">
-                "{replyTo.content.length > 100 ? replyTo.content.substring(0, 100) + "..." : replyTo.content}"
+                &ldquo;{replyTo.content.length > 100 ? replyTo.content.substring(0, 100) + "..." : replyTo.content}&rdquo;
               </div>
             </div>
             <button
@@ -87,13 +130,48 @@ export function ChatInput({ onSendMessage, selectedModel, replyTo, onCancelReply
           </div>
         )}
 
+        {/* File Attachment Display */}
+        {attachedFile && (
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border">
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-muted-foreground mb-1">Attached file</div>
+              <div className="text-sm text-foreground font-medium truncate">
+                {attachedFile.name}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {(attachedFile.size / 1024 / 1024).toFixed(2)} MB
+              </div>
+            </div>
+            <button
+              onClick={removeAttachedFile}
+              className="p-1 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         {/* Prompt Suggestions */}
-        {shouldShowPrompts && (
+        {!replyTo && (
           <PromptSuggestions onSuggestionClick={handleSuggestionClick} />
         )}
 
         {/* Input Area */}
         <div className={`flex items-end rounded-lg border border-input bg-background p-2 shadow-sm focus-within:ring-1 focus-within:ring-ring ${isOverLimit ? 'border-destructive' : ''}`}>
+          <div className="flex items-center gap-1 px-1 mr-2">
+            <button 
+              onClick={handlePromptGeneratorToggle}
+              className={`p-1.5 rounded-full transition-colors ${
+                isPromptGeneratorOpen 
+                  ? 'text-primary bg-primary/10' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+              title="Prompt suggestions"
+            >
+              <Zap className="h-5 w-5" />
+            </button>
+          </div>
+
           <div className="flex-1">
             <TextareaAutosize
               ref={textareaRef}
@@ -107,15 +185,32 @@ export function ChatInput({ onSendMessage, selectedModel, replyTo, onCancelReply
           </div>
           
           <div className="flex items-center gap-1 px-1">
-            <button className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+            <label className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
               <Paperclip className="h-5 w-5" />
-            </button>
-            <button className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-              <Sparkles className="h-5 w-5" />
-            </button>
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                onChange={handleFileAttach} 
+                className="hidden" 
+                accept="image/*,text/*,.pdf,.doc,.docx"
+              />
+            </label>
+            {onToggleCanvas && (
+              <button 
+                onClick={onToggleCanvas}
+                className={`p-1.5 rounded-full transition-colors ${
+                  isCanvasOpen 
+                    ? 'text-primary bg-primary/10' 
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+                title="Toggle Canvas"
+              >
+                <Sparkles className="h-5 w-5" />
+              </button>
+            )}
             <button
               onClick={handleSendMessage}
-              disabled={!message.trim() || isOverLimit}
+              disabled={!canSendMessage || isOverLimit}
               className="p-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Send className="h-5 w-5" />

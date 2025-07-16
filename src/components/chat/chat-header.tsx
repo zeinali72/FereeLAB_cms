@@ -39,7 +39,7 @@ export function ChatHeader({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-border bg-background">
+    <div className="flex items-center justify-between p-4 border-b border bg-background">
       <div className="flex items-center gap-3">
         <button
           onClick={onToggleSidebar}
@@ -67,7 +67,7 @@ export function ChatHeader({
             <span className="text-sm">{currentModel.icon}</span>
             <Cpu className="h-3 w-3 text-primary" />
             <span className="text-xs font-medium">{currentModel.name}</span>
-            <span className="hidden md:inline text-xs text-muted-foreground border-l border-border pl-2 ml-1">
+            <span className="hidden md:inline text-xs text-muted-foreground border-l border pl-2 ml-1">
               {currentModel.provider.name}
             </span>
           </button>

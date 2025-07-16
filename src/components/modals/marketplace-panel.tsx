@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { X, Search, Filter, ChevronDown, CheckCircle, Zap, Clock } from "lucide-react";
+import { X, Search, Filter, CheckCircle } from "lucide-react";
 import { AIModel, availableModels } from "@/data/models";
+import { FilterSidebar } from "@/components/marketplace/filter-sidebar";
+import { ModelList } from "@/components/marketplace/model-list";
 
 interface MarketplacePanelProps {
   isOpen: boolean;
@@ -13,8 +15,10 @@ interface MarketplacePanelProps {
 
 interface FilterState {
   providers: string[];
-  maxPrice: number;
+  modalities: string[];
   contextLength: number;
+  maxPrice: number;
+  categories: string[];
 }
 
 export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModels }: MarketplacePanelProps) {
@@ -23,8 +27,10 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
   const [showFilters, setShowFilters] = useState(true);
   const [filters, setFilters] = useState<FilterState>({
     providers: [],
-    maxPrice: 0,
+    modalities: [],
     contextLength: 0,
+    maxPrice: 0,
+    categories: [],
   });
 
   // Get unique providers for filter
@@ -83,8 +89,10 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
   const resetFilters = () => {
     setFilters({
       providers: [],
-      maxPrice: 0,
+      modalities: [],
       contextLength: 0,
+      maxPrice: 0,
+      categories: [],
     });
   };
 
@@ -129,7 +137,7 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
         <div className="flex flex-1 min-h-0">
           {/* Filters Sidebar */}
           {showFilters && (
-            <div className="w-72 border-r border-border p-6 overflow-y-auto">
+            <div className="w-72 border-r border p-6 overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">Filters</h3>
                 <button
@@ -237,7 +245,7 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
                       className={`relative p-4 rounded-lg border cursor-pointer transition-all ${
                         isSelected 
                           ? 'border-primary bg-primary/5 shadow-md' 
-                          : 'border-border hover:border-primary/50 hover:shadow-sm'
+                          : 'border hover:border-primary/50 hover:shadow-sm'
                       }`}
                       onClick={() => handleModelToggle(model.id)}
                     >
@@ -285,7 +293,7 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-border flex items-center justify-between">
+            <div className="p-6 border-t border flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
                 {selectedModelIds.length} model(s) selected
                 {selectedModelIds.length > 0 && (

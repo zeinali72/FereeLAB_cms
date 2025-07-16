@@ -110,7 +110,7 @@ export function ModelPanel({
                   className={`p-4 rounded-lg flex items-start justify-between transition-colors border text-left ${
                     selectedModelId === model.id 
                       ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:bg-muted/50'
+                      : 'border hover:bg-muted/50'
                   }`}
                 >
                   <div className="flex items-start space-x-3 flex-1">
@@ -141,7 +141,7 @@ export function ModelPanel({
             {onOpenMarketplace && (
               <button
                 onClick={onOpenMarketplace}
-                className="w-full flex items-center justify-center px-4 py-3 border border-dashed border-border rounded-lg text-muted-foreground hover:bg-muted/50 transition-colors mt-4"
+                className="w-full flex items-center justify-center px-4 py-3 border border-dashed border rounded-lg text-muted-foreground hover:bg-muted/50 transition-colors mt-4"
               >
                 <Search className="h-4 w-4 mr-2" />
                 <span className="text-sm font-medium">Browse More Models</span>
@@ -150,7 +150,7 @@ export function ModelPanel({
           </div>
           
           {/* Advanced Settings Toggle */}
-          <div className="border-t border-border pt-6">
+          <div className="border-t border pt-6">
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex items-center w-full p-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
@@ -210,7 +210,7 @@ export function ModelPanel({
               </div>
               
               {/* Token usage info */}
-              <div className="text-xs text-muted-foreground pt-2 border-t border-border space-y-1">
+              <div className="text-xs text-muted-foreground pt-2 border-t border space-y-1">
                 {(() => {
                   const currentModel = allModels.find(m => m.id === selectedModelId);
                   return (
@@ -232,7 +232,7 @@ export function ModelPanel({
         </div>
         
         {/* Footer */}
-        <div className="p-6 border-t border-border flex justify-end gap-3">
+        <div className="p-6 border-t border flex justify-end gap-3">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"

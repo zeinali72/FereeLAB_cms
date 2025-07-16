@@ -2,50 +2,89 @@
 
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/sidebar/sidebar";
-import { ChatArea } from "@/components/chat/chat-area";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
 import { ChatLog } from "@/components/chat/chat-log";
 import { ModelPanel } from "@/components/modals/model-panel";
 import { MarketplacePanel } from "@/components/modals/marketplace-panel";
 import { CanvasPanel } from "@/components/shared/canvas-panel";
-import { Message } from "@/components/chat/chat-message";
-import { availableModels, AIModel } from "@/data/models";
+import { SettingsPanel } from "@/components/modals/settings-panel";
+import { UserMenuPanel } from "@/components/modals/user-menu-panel";
+import { ResizablePanel } from "@/components/shared/resizable-panel";
+import { usePanels, Message, AIModel } from "@/hooks/use-panels";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 export function ChatLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [canvasOpen, setCanvasOpen] = useState(false);
-  const [modelPanelOpen, setModelPanelOpen] = useState(false);
-  const [marketplacePanelOpen, setMarketplacePanelOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  
-  // Chat state
-  const [selectedModel, setSelectedModel] = useState<AIModel>(availableModels[0]);
-  const [marketplaceModels, setMarketplaceModels] = useState<AIModel[]>([]);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: 'Hello! How can I help you today?',
-      role: 'assistant',
-      timestamp: new Date(),
-    }
-  ]);
-  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  // Use the comprehensive panels hook instead of individual state
+  const {
+    // Panel state
+    panels,
+    dimensions,
+    
+    // Chat state
+    chat,
+    
+    // Project state
+    projects,
+    
+    // Panel actions
+    toggleSidebar,
+    toggleCanvas,
+    toggleModelPanel,
+    toggleMarketplace,
+    toggleUserMenu,
+    closeAllPanels,
+    handleSidebarResize,
+    handleCanvasResize,
+    
+    // Chat actions
+    sendMessage,
+    editMessage,
+    regenerateMessage,
+    replyToMessage,
+    handleApplyModels,
+    
+    // Project actions
+    projectActions,
+    switchToProjectChat,
+  } = usePanels();
 
-  // Handle responsive sidebar
+  const { theme, setTheme } = useTheme();
+  const [isMobile, setIsMobile] = useState(false);
+  const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
+  const [userMenuPosition, setUserMenuPosition] = useState({ top: 0, right: 0 });
+
+  // Handle responsive behavior
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
-        setSidebarOpen(false);
-      } else {
-        setSidebarOpen(true);
-      }
     };
 
     checkIsMobile();
     window.addEventListener("resize", checkIsMobile);
+    
+
+  const handleNewConversation = () => {
+    // Reset chat to initial state
+    console.log('Starting new conversation');
+  };
+
+  const handleUserMenuToggle = (event?: React.MouseEvent) => {
+    if (event) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setUserMenuPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    toggleUserMenu();
+  };
+
+  const handleSettingsOpen = () => {
+    setSettingsPanelOpen(true);
+    closeAllPanels();
+  };
     
     return () => {
       window.removeEventListener("resize", checkIsMobile);

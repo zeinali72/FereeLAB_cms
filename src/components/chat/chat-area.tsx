@@ -1,13 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import { 
-  MenuIcon, 
-  Paperclip,
-  Sparkles,
-  Send
-} from "lucide-react";
+import { useState } from "react";
+import { MenuIcon } from "lucide-react";
 import { ChatHeader } from "./chat-header";
 import { ChatLog } from "./chat-log";
 import { ChatInput } from "./chat-input";
@@ -68,7 +62,7 @@ export function ChatArea({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       {/* Custom header with hamburger menu for mobile */}
-      <div className="bg-background border-b border-border p-4 flex items-center md:hidden">
+      <div className="bg-background border-b border p-4 flex items-center md:hidden">
         <button
           onClick={toggleSidebar}
           className="p-2 rounded-md hover:bg-muted mr-3"
@@ -81,7 +75,13 @@ export function ChatArea({
       
       {/* Regular chat header (hidden on mobile) */}
       <div className="hidden md:block">
-        <ChatHeader title={chatTitle} />
+        <ChatHeader 
+          title={chatTitle} 
+          onToggleModelPanel={() => {}}
+          onNewConversation={() => {}}
+          onToggleSidebar={toggleSidebar}
+          isSidebarOpen={sidebarOpen}
+        />
       </div>
       
       {/* Chat messages */}

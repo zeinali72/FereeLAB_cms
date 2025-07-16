@@ -57,7 +57,7 @@ export function PromptSuggestions({ onSuggestionClick, isVisible = true }: Promp
             <button
               key={index}
               onClick={() => onSuggestionClick(suggestion.text)}
-              className="group flex items-start gap-3 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 text-left"
+              className="group flex items-start gap-3 p-3 rounded-lg border border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 text-left"
             >
               <div className="flex-shrink-0 p-1.5 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
                 <IconComponent className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
