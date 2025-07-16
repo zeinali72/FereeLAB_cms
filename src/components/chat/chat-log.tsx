@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { ArrowDown } from "lucide-react";
 import { ChatMessage, Message } from "./chat-message";
+import { PromptSuggestions } from "./prompt-suggestions";
 
 interface ChatLogProps {
   messages: Message[];
@@ -10,6 +11,7 @@ interface ChatLogProps {
   onRegenerate?: (messageId: string) => void;
   onReply?: (message: Message) => void;
   replyTo?: Message | null;
+  onSuggestionClick?: (suggestion: string) => void;
 }
 
 export function ChatLog({ 
@@ -17,7 +19,8 @@ export function ChatLog({
   onEditMessage, 
   onRegenerate, 
   onReply, 
-  replyTo 
+  replyTo,
+  onSuggestionClick
 }: ChatLogProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +31,8 @@ export function ChatLog({
   const [lastMessageCount, setLastMessageCount] = useState(0);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isReplyMode, setIsReplyMode] = useState(false);
+  const [showPromptSuggestions, setShowPromptSuggestions] = useState(true);
+  const [promptSuggestionAnimation, setPromptSuggestionAnimation] = useState('');
 
   // Track reply mode changes
   useEffect(() => {
@@ -46,6 +51,34 @@ export function ChatLog({
     
     setIsReplyMode(nowInReplyMode);
   }, [replyTo, isReplyMode]);
+
+  // Handle prompt suggestions visibility based on messages
+  useEffect(() => {
+    if (messages.length === 0) {
+      // Show prompt suggestions for new conversations
+      setShowPromptSuggestions(true);
+      setPromptSuggestionAnimation('animate-fade-in');
+    } else if (messages.length > 0 && showPromptSuggestions) {
+      // Hide with animation when first message appears
+      setPromptSuggestionAnimation('animate-fade-out');
+      setTimeout(() => {
+        setShowPromptSuggestions(false);
+      }, 300); // Match animation duration
+    }
+  }, [messages.length, showPromptSuggestions]);
+
+  // Handle suggestion click with animation
+  const handleSuggestionClick = (suggestion: string) => {
+    if (onSuggestionClick) {
+      // Start fade out animation immediately
+      setPromptSuggestionAnimation('animate-fade-out');
+      setTimeout(() => {
+        setShowPromptSuggestions(false);
+        // Call the suggestion handler after animation starts
+        onSuggestionClick(suggestion);
+      }, 150); // Start the action mid-animation for better UX
+    }
+  };
 
   // Maintain scroll position when in reply mode
   useEffect(() => {
@@ -195,13 +228,28 @@ export function ChatLog({
       >
         {processedMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <h3 className="text-lg font-medium mb-2">Welcome to FereeLab CMS</h3>
-              <p className="text-muted-foreground text-sm max-w-md">
-                Start a conversation by typing a message below. You can ask questions, 
-                get creative content, or discuss any topic.
-              </p>
-            </div>
+            {showPromptSuggestions ? (
+              <div className={`w-full max-w-4xl mx-auto ${promptSuggestionAnimation}`}>
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-semibold mb-3 text-foreground">Welcome to FereeLab Chat</h3>
+                  <p className="text-muted-foreground text-lg">
+                    Choose a prompt below to get started, or type your own message
+                  </p>
+                </div>
+                <PromptSuggestions 
+                  onSuggestionClick={handleSuggestionClick}
+                  isFloating={false}
+                />
+              </div>
+            ) : (
+              <div className="text-center">
+                <h3 className="text-lg font-medium mb-2">Welcome to FereeLab CMS</h3>
+                <p className="text-muted-foreground text-sm max-w-md">
+                  Start a conversation by typing a message below. You can ask questions, 
+                  get creative content, or discuss any topic.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           processedMessages.map((message, index) => (

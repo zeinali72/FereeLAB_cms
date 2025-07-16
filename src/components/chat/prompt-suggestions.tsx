@@ -5,6 +5,7 @@ import { Lightbulb, Code2, MessageSquare, FileText } from "lucide-react";
 interface PromptSuggestionsProps {
   onSuggestionClick: (suggestion: string) => void;
   isVisible?: boolean;
+  isFloating?: boolean;
 }
 
 const suggestions = [
@@ -40,11 +41,11 @@ const suggestions = [
   }
 ];
 
-export function PromptSuggestions({ onSuggestionClick, isVisible = true }: PromptSuggestionsProps) {
+export function PromptSuggestions({ onSuggestionClick, isVisible = true, isFloating = false }: PromptSuggestionsProps) {
   if (!isVisible) return null;
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 ${isFloating ? 'backdrop-blur-xl bg-background/90 border border-border/50 rounded-2xl p-4 shadow-2xl shadow-black/10 dark:shadow-black/25' : ''}`}>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Lightbulb className="h-4 w-4" />
         <span>Suggested prompts</span>
@@ -57,7 +58,7 @@ export function PromptSuggestions({ onSuggestionClick, isVisible = true }: Promp
             <button
               key={index}
               onClick={() => onSuggestionClick(suggestion.text)}
-              className="group flex items-start gap-3 p-3 rounded-lg border border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 text-left"
+              className="group flex items-start gap-3 p-3 rounded-lg border-border border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 text-left"
             >
               <div className="flex-shrink-0 p-1.5 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
                 <IconComponent className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
