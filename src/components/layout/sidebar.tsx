@@ -9,7 +9,7 @@ import {
   Search, 
   Code, 
   FileEdit, 
-  LayoutPresentation,
+  Presentation,
   Plus,
   ChevronRight,
   Settings,
@@ -67,7 +67,7 @@ export default function Sidebar({
       case "FileEdit":
         return <FileEdit size={20} />;
       case "LayoutPresentation":
-        return <LayoutPresentation size={20} />;
+        return <Presentation size={20} />;
       default:
         return <MessageCircle size={20} />;
     }
@@ -78,7 +78,7 @@ export default function Sidebar({
       <div className="hidden md:flex h-full fixed left-0 top-0 bottom-0 z-20">
         <button
           onClick={toggleSidebar}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-background border border shadow-sm absolute -right-5 top-5"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-background border shadow-sm absolute -right-5 top-5"
         >
           <ChevronRight size={16} />
         </button>
@@ -212,7 +212,7 @@ export default function Sidebar({
           </div>
           
           {userMenuOpen && (
-            <div className="absolute bottom-full mb-2 left-0 right-0 bg-popover border border rounded-md shadow-md">
+            <div className="absolute bottom-full mb-2 left-0 right-0 bg-popover border rounded-md shadow-md">
               <div className="p-1">
                 <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-muted text-left">
                   <Settings size={16} className="text-muted-foreground" />
