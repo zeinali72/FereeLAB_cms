@@ -15,7 +15,6 @@ import {
   Settings,
   LogOut
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface Conversation {
   id: string;
@@ -89,7 +88,7 @@ export default function Sidebar({
   return (
     <div 
       className={cn(
-        "flex flex-col h-full bg-background border-r border w-[260px] relative z-20",
+        "flex flex-col h-screen bg-background border-r border w-[260px] relative z-20",
         !isOpen && "hidden"
       )}
     >
@@ -208,7 +207,6 @@ export default function Sidebar({
               </div>
               <span className="text-sm font-medium">User</span>
             </div>
-            <ThemeToggle />
           </div>
           
           {userMenuOpen && (

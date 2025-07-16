@@ -28,16 +28,6 @@ const suggestions = [
     icon: Lightbulb,
     text: "Help me brainstorm creative solutions for reducing plastic waste",
     category: "Creative"
-  },
-  {
-    icon: Code2,
-    text: "Review this React component for improvements",
-    category: "Code Review"
-  },
-  {
-    icon: MessageSquare,
-    text: "Write a professional email to a client",
-    category: "Communication"
   }
 ];
 
@@ -51,17 +41,16 @@ export function PromptSuggestions({ onSuggestionClick, isVisible = true, isFloat
         <span>Suggested prompts</span>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {suggestions.map((suggestion, index) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{suggestions.map((suggestion, index) => {
           const IconComponent = suggestion.icon;
           return (
             <button
               key={index}
               onClick={() => onSuggestionClick(suggestion.text)}
-              className="group flex items-start gap-3 p-3 rounded-lg border-border border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 text-left"
+              className="group flex items-start gap-3 p-4 rounded-xl border-border border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 text-left h-20"
             >
-              <div className="flex-shrink-0 p-1.5 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
-                <IconComponent className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="flex-shrink-0 p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
+                <IconComponent className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">

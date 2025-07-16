@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { 
   Edit2, 
   MoreHorizontal, 
@@ -10,7 +11,8 @@ import {
   ChevronsLeft,
   Sun,
   Moon,
-  Cpu
+  Cpu,
+  Sparkles
 } from "lucide-react";
 import { AIModel } from "@/data/models";
 import { useTheme } from "next-themes";
@@ -35,6 +37,12 @@ export function ChatHeader({
   onUserMenuToggle
 }: ChatHeaderProps) {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -63,7 +71,7 @@ export function ChatHeader({
         {currentModel && (
           <button
             onClick={onToggleModelPanel}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-all duration-200 hover:scale-105"
             title="Change model"
           >
             <span className="text-sm">{currentModel.icon}</span>
@@ -75,42 +83,34 @@ export function ChatHeader({
           </button>
         )}
 
-        {/* Models Button */}
-        <button 
-          onClick={onToggleModelPanel}
-          className="flex items-center gap-2 px-3 py-2 bg-muted hover:bg-muted/80 rounded-lg text-sm font-medium transition-colors"
-        >
-          <span>Models</span>
-          <ChevronDown className="h-4 w-4" />
-        </button>
-
         {/* New Chat Button */}
         <button 
           onClick={onNewConversation}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 hover:shadow-lg shadow-primary/25"
+          title="Start new conversation"
         >
-          <Plus className="h-4 w-4" />
+          <Sparkles className="h-4 w-4" />
           <span className="text-sm font-medium">New Chat</span>
-        </button>
-
-        {/* Theme Toggle */}
-        <button 
-          onClick={toggleTheme}
-          className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
         
         <div className="flex items-center gap-1">
-          <button className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+          {/* Theme Toggle */}
+          {mounted ? (
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110"
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+          ) : (
+            <div className="p-2 rounded-full">
+              <div className="h-5 w-5" />
+            </div>
+          )}
+
+          <button className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110">
             <Share2 className="h-5 w-5" />
-          </button>
-          <button 
-            onClick={onUserMenuToggle}
-            className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <MoreHorizontal className="h-5 w-5" />
           </button>
         </div>
       </div>

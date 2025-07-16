@@ -44,7 +44,9 @@ export function ThreePanelLayout() {
     editMessage,
     regenerateMessage,
     replyToMessage,
+    cancelReply,
     handleApplyModels,
+    startNewConversation,
     
     // Project actions
     projectActions,
@@ -74,7 +76,7 @@ export function ThreePanelLayout() {
   }, []);
 
   const handleNewConversation = () => {
-    // Reset chat to initial state
+    startNewConversation();
     console.log('Starting new conversation');
   };
 
@@ -98,15 +100,17 @@ export function ThreePanelLayout() {
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Left Panel: Sidebar */}
       {!isMobile && panels.sidebar && (
-        <ResizablePanel
-          initialSize={dimensions.sidebarWidth}
-          minSize={240}
-          maxSize={400}
-          onResize={handleSidebarResize}
-          className="border-r border-border flex-shrink-0"
-        >
-          <Sidebar />
-        </ResizablePanel>
+        <div className="flex-shrink-0 transition-all duration-300 ease-in-out">
+          <ResizablePanel
+            initialSize={dimensions.sidebarWidth}
+            minSize={240}
+            maxSize={400}
+            onResize={handleSidebarResize}
+            className="border-r border-border bg-card/50"
+          >
+            <Sidebar />
+          </ResizablePanel>
+        </div>
       )}
 
       {/* Mobile Sidebar Overlay */}
@@ -122,15 +126,23 @@ export function ThreePanelLayout() {
         </div>
       )}
 
-      {/* Center Panel: Chat Area (1/3 width on desktop) */}
+      {/* Gap between sidebar and chat */}
+      {!isMobile && panels.sidebar && (
+        <div className="w-3 panel-gap flex items-center justify-center">
+          <div className="w-px h-16 bg-border/30"></div>
+        </div>
+      )}
+
+      {/* Center Panel: Chat Area */}
       <div className={cn(
-        "flex flex-col min-w-0 border-r border-border",
-        isMobile 
-          ? "flex-1" 
-          : panels.canvas 
-            ? "w-1/3 flex-shrink-0" 
-            : "flex-1"
-      )}>
+        "flex flex-col min-w-0 relative transition-all duration-500 ease-in-out flex-1",
+        panels.canvas && !isMobile && "mr-0", // Remove margin when canvas is open since it's fixed position
+        panels.canvas && !isMobile && `pr-[${dimensions.canvasWidth + 16}px]` // Add padding to make room for fixed canvas
+      )}
+      style={{
+        paddingRight: panels.canvas && !isMobile ? `${dimensions.canvasWidth + 16}px` : '0'
+      }}
+      >
         {/* Chat Header */}
         <ChatHeader
           title="FereeLAB Chat"
@@ -142,92 +154,96 @@ export function ThreePanelLayout() {
           onUserMenuToggle={handleUserMenuToggle}
         />
 
-        {/* Chat Messages - Dynamic padding based on input position */}
-        <div className={`flex-1 overflow-y-auto transition-all duration-700 ${
-          isNewConversation ? 'pb-0' : 'pb-40'
-        }`}>
-          <ChatLog
-            messages={chat.messages}
-            onEditMessage={editMessage}
-            onRegenerate={regenerateMessage}
-            onReply={replyToMessage}
-            replyTo={chat.replyTo}
-            onSuggestionClick={(suggestion) => {
-              // Use the sendMessage function to handle the suggestion
-              sendMessage(suggestion);
-            }}
-          />
-        </div>
-      </div>
+        {/* Chat Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto">
+            {isNewConversation ? (
+              <div className="h-full flex flex-col items-center justify-center px-6 relative">
+                {/* Welcome Section */}
+                <div className="text-center mb-16 max-w-lg animate-fade-in">
+                  <h3 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                    Welcome to FereeLab Chat
+                  </h3>
+                  <p className="text-muted-foreground text-lg">
+                    Choose a prompt below to get started, or type your own message
+                  </p>
+                </div>
 
-      {/* Dynamic Chat Input Bar - Center for new chat, bottom for existing */}
-      <div className={`fixed left-1/2 transform -translate-x-1/2 z-30 transition-all duration-700 ease-out ${
-        isNewConversation 
-          ? 'top-1/2 -translate-y-1/2' 
-          : 'bottom-8 translate-y-0'
-      }`}>
-        <div className={cn(
-          "transition-all duration-700 ease-out",
-          isMobile ? "w-[calc(100vw-2rem)] px-4" : 
-          isNewConversation ? "w-[800px] px-8" : "w-full max-w-3xl px-6",
-          !isMobile && isNewConversation ? "" :
-          panels.sidebar && panels.canvas ? "max-w-2xl" :
-          panels.sidebar || panels.canvas ? "max-w-3xl" : "max-w-4xl"
-        )}>
-          {/* Prompt Suggestions - Show above input for new conversations */}
-          {isNewConversation && (
-            <div className="mb-6 animate-fade-in">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-semibold mb-3 text-foreground">Welcome to FereeLab Chat</h3>
-                <p className="text-muted-foreground text-lg">
-                  Choose a prompt below to get started, or type your own message
-                </p>
+                {/* Prompt Suggestions - Centered on screen */}
+                <div className="w-full max-w-2xl mb-20 animate-fade-in animation-delay-200">
+                  <PromptSuggestions 
+                    onSuggestionClick={(suggestion) => {
+                      sendMessage(suggestion);
+                    }}
+                    isFloating={false}
+                  />
+                </div>
               </div>
-              <div className="max-w-2xl mx-auto">
-                <PromptSuggestions 
-                  onSuggestionClick={(suggestion) => {
-                    sendMessage(suggestion);
-                  }}
-                  isFloating={true}
-                />
-              </div>
+            ) : (
+              <ChatLog
+                messages={chat.messages}
+                onEditMessage={editMessage}
+                onRegenerate={regenerateMessage}
+                onReply={replyToMessage}
+                replyTo={chat.replyTo}
+                onSuggestionClick={(suggestion) => {
+                  sendMessage(suggestion);
+                }}
+              />
+            )}
+          </div>
+
+          {/* Chat Input - Positioned at bottom, simple and clean */}
+          <div className="flex-shrink-0 p-4 bg-background">
+            <div className="max-w-4xl mx-auto">
+              <ChatInput
+                onSendMessage={sendMessage}
+                selectedModel={chat.selectedModel}
+                replyTo={chat.replyTo ? {
+                  id: chat.replyTo.id,
+                  content: chat.replyTo.content,
+                  role: chat.replyTo.role
+                } : undefined}
+                onCancelReply={cancelReply}
+                onToggleCanvas={toggleCanvas}
+                isCanvasOpen={panels.canvas}
+                isFloating={false}
+                isNewConversation={isNewConversation}
+              />
             </div>
-          )}
-          
-          <ChatInput
-            onSendMessage={sendMessage}
-            selectedModel={chat.selectedModel}
-            replyTo={chat.replyTo ? {
-              id: chat.replyTo.id,
-              content: chat.replyTo.content,
-              role: chat.replyTo.role
-            } : undefined}
-            onCancelReply={() => {
-              // Clear the reply state
-              console.log('Cancelling reply');
-            }}
-            onToggleCanvas={toggleCanvas}
-            isCanvasOpen={panels.canvas}
-            isFloating={true}
-            isNewConversation={isNewConversation}
-          />
+          </div>
         </div>
       </div>
 
-      {/* Right Panel: Markdown Canvas */}
+      {/* Right Panel: Markdown Canvas - Fixed to right wall */}
       {!isMobile && panels.canvas && (
-        <div className="flex-1 min-w-0">
-          <MarkdownCanvas
-            isOpen={panels.canvas}
-            onClose={toggleCanvas}
-            messages={chat.messages}
-          />
+        <div className={cn(
+          "fixed right-0 top-0 h-full bg-card border-l border-border transition-all duration-500 ease-in-out z-20",
+          panels.canvas ? 'animate-slide-in-right' : 'animate-slide-out-right'
+        )}
+        style={{ width: `${dimensions.canvasWidth}px` }}
+        >
+          <ResizablePanel
+            initialSize={dimensions.canvasWidth}
+            minSize={300}
+            maxSize={600}
+            onResize={handleCanvasResize}
+            className="h-full"
+            handlePosition="left"
+          >
+            <MarkdownCanvas
+              isOpen={panels.canvas}
+              onClose={toggleCanvas}
+              messages={chat.messages}
+            />
+          </ResizablePanel>
         </div>
       )}
 
       {/* Mobile Canvas as Overlay */}
       {isMobile && panels.canvas && (
-        <div className="fixed inset-0 z-40 bg-background">
+        <div className={`fixed inset-0 z-40 bg-background ${panels.canvas ? 'animate-slide-in-right' : 'animate-slide-out-right'}`}>
           <MarkdownCanvas
             isOpen={panels.canvas}
             onClose={toggleCanvas}

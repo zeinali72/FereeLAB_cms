@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { MoreVertical, Plus, Search } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
 import ConversationList from "./conversation-list";
 import AgentsList from "./agents-list";
 import { cn } from "@/lib/utils";
@@ -12,13 +11,10 @@ export function Sidebar() {
   const [activeSection, setActiveSection] = useState<"chat" | "agents">("chat");
 
   return (
-    <div className="h-full flex flex-col border-r border bg-card">
+    <div className="h-screen flex flex-col bg-card">
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h1 className="text-lg font-semibold">FereeLAB</h1>
-        <div className="flex items-center space-x-2">
-          <ThemeToggle />
-        </div>
       </div>
 
       {/* New Chat Button */}

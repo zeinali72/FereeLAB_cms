@@ -49,7 +49,7 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['var(--font-plus-jakarta-sans)'],
+        sans: ['"Plus Jakarta Sans"', 'var(--font-plus-jakarta-sans)', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {

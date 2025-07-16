@@ -114,15 +114,7 @@ export function usePanels() {
   const [chat, setChat] = useState<ChatState>({
     selectedModel: defaultModel,
     marketplaceModels: [],
-    messages: [
-      {
-        id: '1',
-        content: 'Hello! How can I help you today?',
-        role: 'assistant',
-        timestamp: new Date(),
-        animate: true,
-      }
-    ],
+    messages: [],
     replyTo: null,
   });
 
@@ -286,7 +278,14 @@ export function usePanels() {
     }));
   };
 
-  const handleApplyModels = (models: AIModel[]) => {
+  const cancelReply = () => {
+    setChat(prev => ({
+      ...prev,
+      replyTo: null,
+    }));
+  };
+
+    const handleApplyModels = (models: AIModel[]) => {
     // Trigger new conversation when model changes
     if (chat.marketplaceModels.length === 0 || 
         (models.length > 0 && chat.marketplaceModels.length > 0 && models[0].id !== chat.marketplaceModels[0].id)) {
@@ -300,6 +299,14 @@ export function usePanels() {
     }));
     
     setPanels(prev => ({ ...prev, marketplace: false }));
+  };
+
+  const startNewConversation = () => {
+    setChat(prev => ({
+      ...prev,
+      messages: [],
+      replyTo: null,
+    }));
   };
 
   // Project actions
@@ -422,7 +429,9 @@ export function usePanels() {
     editMessage,
     regenerateMessage,
     replyToMessage,
+    cancelReply,
     handleApplyModels,
+    startNewConversation,
     
     // Project actions
     projectActions: {

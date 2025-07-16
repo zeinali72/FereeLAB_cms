@@ -187,8 +187,10 @@ export function ChatMessage({
 
       {/* Message Content */}
       <div className={cn(
-        "flex flex-col max-w-[85%] md:max-w-[75%]",
-        isUser ? "items-end" : "items-start"
+        "flex flex-col transition-all duration-300",
+        isUser ? "items-end" : "items-start",
+        // Expand max width when editing to accommodate larger editing area
+        isEditing ? "max-w-[95%] md:max-w-[90%]" : "max-w-[85%] md:max-w-[75%]"
       )}>
         {renderReplyInfo()}
         
@@ -200,31 +202,46 @@ export function ChatMessage({
             : "bg-muted text-foreground rounded-bl-md"
         )}>
           {isEditing ? (
-            <div className="flex flex-col gap-3">
-              <textarea
-                ref={textareaRef}
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="min-h-[60px] resize-none bg-transparent border-none p-0 focus:outline-none text-inherit w-full"
-              />
+            <div className="flex flex-col gap-3 w-full">
+              <div className="w-full max-w-none">
+                <textarea
+                  ref={textareaRef}
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className={cn(
+                    "w-full min-h-[80px] max-h-[300px] resize-none bg-transparent border-none p-0 focus:outline-none text-inherit transition-all duration-300",
+                    "overflow-y-auto leading-relaxed",
+                    // Dynamic width expansion based on content length
+                    editContent.length > 100 ? "min-w-[400px] md:min-w-[500px]" : "min-w-[300px]",
+                    editContent.length > 200 ? "min-w-[500px] md:min-w-[600px]" : "",
+                    // Height expansion after width reaches max
+                    editContent.length > 300 ? "min-h-[120px]" : "",
+                    editContent.length > 500 ? "min-h-[160px]" : "",
+                    editContent.length > 800 ? "min-h-[200px] overflow-y-scroll" : ""
+                  )}
+                  placeholder="Edit your message..."
+                />
+              </div>
               <div className="flex justify-between items-center">
-                <div className="text-xs opacity-70">
+                <div className="text-xs opacity-70 flex items-center gap-2">
                   <span>{estimateTokenCount(editContent)} tokens</span>
+                  <span>•</span>
+                  <span>{editContent.length} chars</span>
                 </div>
                 <div className="flex gap-2">
                   <button 
                     onClick={handleEdit}
-                    className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                    title="Save"
+                    className="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 hover:scale-105"
+                    title="Save changes"
                   >
-                    <Check size={12} />
+                    <Check size={14} className="text-green-500" />
                   </button>
                   <button 
                     onClick={handleCancelEdit}
-                    className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                    title="Cancel"
+                    className="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 hover:scale-105"
+                    title="Cancel editing"
                   >
-                    <X size={12} />
+                    <X size={14} className="text-red-500" />
                   </button>
                 </div>
               </div>
