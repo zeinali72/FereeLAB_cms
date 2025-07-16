@@ -137,33 +137,37 @@ export function ThreePanelLayout() {
           isSidebarOpen={panels.sidebar}
         />
 
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-hidden">
-          <ChatLog
-            messages={chat.messages}
-            onEditMessage={editMessage}
-            onRegenerate={regenerateMessage}
-            onReply={replyToMessage}
-            replyTo={chat.replyTo}
-          />
+        {/* Chat Messages and Input Combined */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
+            <ChatLog
+              messages={chat.messages}
+              onEditMessage={editMessage}
+              onRegenerate={regenerateMessage}
+              onReply={replyToMessage}
+              replyTo={chat.replyTo}
+            />
+          </div>
+          
+          {/* Chat Input - Part of the message panel */}
+          <div className="flex-shrink-0 border-t border-border">
+            <ChatInput
+              onSendMessage={sendMessage}
+              selectedModel={chat.selectedModel}
+              replyTo={chat.replyTo ? {
+                id: chat.replyTo.id,
+                content: chat.replyTo.content,
+                role: chat.replyTo.role
+              } : undefined}
+              onCancelReply={() => {
+                // Clear the reply state
+                console.log('Cancelling reply');
+              }}
+              onToggleCanvas={toggleCanvas}
+              isCanvasOpen={panels.canvas}
+            />
+          </div>
         </div>
-        
-        {/* Chat Input */}
-        <ChatInput
-          onSendMessage={sendMessage}
-          selectedModel={chat.selectedModel}
-          replyTo={chat.replyTo ? {
-            id: chat.replyTo.id,
-            content: chat.replyTo.content,
-            role: chat.replyTo.role
-          } : undefined}
-          onCancelReply={() => {
-            // Clear the reply state
-            console.log('Cancelling reply');
-          }}
-          onToggleCanvas={toggleCanvas}
-          isCanvasOpen={panels.canvas}
-        />
       </div>
 
       {/* Right Panel: Markdown Canvas */}
