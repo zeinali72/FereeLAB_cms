@@ -64,6 +64,10 @@ export function ChatLayout() {
     checkIsMobile();
     window.addEventListener("resize", checkIsMobile);
     
+    return () => {
+      window.removeEventListener("resize", checkIsMobile);
+    };
+  }, []);
 
   const handleNewConversation = () => {
     // Reset chat to initial state
@@ -85,90 +89,9 @@ export function ChatLayout() {
     setSettingsPanelOpen(true);
     closeAllPanels();
   };
-    
-    return () => {
-      window.removeEventListener("resize", checkIsMobile);
-    };
-  }, []);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const toggleCanvas = () => {
-    setCanvasOpen(!canvasOpen);
-  };
-
-  const toggleModelPanel = () => {
-    setModelPanelOpen(!modelPanelOpen);
-  };
-
-  const toggleMarketplacePanel = () => {
-    setMarketplacePanelOpen(!marketplacePanelOpen);
-  };
-
-  const handleSendMessage = (content: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content,
-      role: 'user',
-      timestamp: new Date(),
-    };
-
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      content: `I received your message: "${content}". This is a simulated response using ${selectedModel.name}.`,
-      role: 'assistant',
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage, assistantMessage]);
-    setReplyTo(null);
-  };
-
-  const handleEditMessage = (messageId: string, newContent: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, content: newContent } : msg
-    ));
-  };
-
-  const handleRegenerate = (messageId: string) => {
-    // Regenerate the message (in a real app, this would call the AI API)
-    const regeneratedContent = `This is a regenerated response using ${selectedModel.name}. Original message ID: ${messageId}`;
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? { ...msg, content: regeneratedContent } : msg
-    ));
-  };
-
-  const handleReply = (message: Message) => {
-    setReplyTo(message);
-  };
-
-  const handleCancelReply = () => {
-    setReplyTo(null);
-  };
 
   const handleModelSelect = (model: AIModel) => {
-    setSelectedModel(model);
-  };
-
-  const handleMarketplaceModels = (models: AIModel[]) => {
-    setMarketplaceModels(models);
-    if (models.length > 0) {
-      setSelectedModel(models[0]);
-    }
-  };
-
-  const handleNewConversation = () => {
-    setMessages([
-      {
-        id: Date.now().toString(),
-        content: 'Hello! How can I help you today?',
-        role: 'assistant',
-        timestamp: new Date(),
-      }
-    ]);
-    setReplyTo(null);
+    handleApplyModels([model]);
   };
 
   return (
@@ -177,23 +100,23 @@ export function ChatLayout() {
       <div 
         className={cn(
           "relative transition-all duration-300 ease-in-out bg-card",
-          sidebarOpen 
+          panels.sidebar 
             ? "w-[280px] flex-shrink-0" 
             : "w-0 flex-shrink-0",
-          isMobile && sidebarOpen && "fixed inset-0 z-40"
+          isMobile && panels.sidebar && "fixed inset-0 z-40"
         )}
       >
         <div className={cn(
           "h-full w-[280px] border-r border-border",
-          !sidebarOpen && "translate-x-[-100%]",
-          isMobile && sidebarOpen && "absolute inset-0 z-50 translate-x-0"
+          !panels.sidebar && "translate-x-[-100%]",
+          isMobile && panels.sidebar && "absolute inset-0 z-50 translate-x-0"
         )}>
           <Sidebar />
         </div>
       </div>
 
       {/* Overlay for mobile */}
-      {isMobile && sidebarOpen && (
+      {isMobile && panels.sidebar && (
         <div 
           className="fixed inset-0 z-30 bg-black/50"
           onClick={toggleSidebar}
@@ -208,11 +131,11 @@ export function ChatLayout() {
         {/* Chat Header */}
         <ChatHeader
           title="New Conversation"
-          currentModel={selectedModel}
+          currentModel={chat.selectedModel}
           onToggleModelPanel={toggleModelPanel}
           onNewConversation={handleNewConversation}
           onToggleSidebar={toggleSidebar}
-          isSidebarOpen={sidebarOpen}
+          isSidebarOpen={panels.sidebar}
         />
 
         {/* Chat Area */}
@@ -221,31 +144,31 @@ export function ChatLayout() {
           <div className="flex-1 flex flex-col overflow-hidden min-w-0">
             <div className="flex-1 overflow-y-auto">
               <ChatLog 
-                messages={messages}
-                onEditMessage={handleEditMessage}
-                onRegenerate={handleRegenerate}
-                onReply={handleReply}
+                messages={chat.messages}
+                onEditMessage={editMessage}
+                onRegenerate={regenerateMessage}
+                onReply={replyToMessage}
               />
             </div>
             
             {/* Chat Input */}
             <ChatInput
-              onSendMessage={handleSendMessage}
-              selectedModel={selectedModel}
-              replyTo={replyTo ? {
-                id: replyTo.id,
-                content: replyTo.content,
-                role: replyTo.role
+              onSendMessage={sendMessage}
+              selectedModel={chat.selectedModel}
+              replyTo={chat.replyTo ? {
+                id: chat.replyTo.id,
+                content: chat.replyTo.content,
+                role: chat.replyTo.role
               } : undefined}
-              onCancelReply={handleCancelReply}
+              onCancelReply={() => replyToMessage(chat.replyTo!)}
             />
           </div>
 
           {/* Canvas Panel */}
-          {canvasOpen && (
+          {panels.canvas && (
             <div className="flex-shrink-0">
               <CanvasPanel
-                isOpen={canvasOpen}
+                isOpen={panels.canvas}
                 onClose={toggleCanvas}
                 width={400}
               />
@@ -256,19 +179,19 @@ export function ChatLayout() {
 
       {/* Modals */}
       <ModelPanel
-        isOpen={modelPanelOpen}
-        onClose={() => setModelPanelOpen(false)}
-        selectedModel={selectedModel}
+        isOpen={panels.modelPanel}
+        onClose={() => toggleModelPanel()}
+        selectedModel={chat.selectedModel}
         onModelSelect={handleModelSelect}
-        onOpenMarketplace={toggleMarketplacePanel}
-        selectedMarketplaceModels={marketplaceModels}
+        onOpenMarketplace={toggleMarketplace}
+        selectedMarketplaceModels={chat.marketplaceModels}
       />
 
       <MarketplacePanel
-        isOpen={marketplacePanelOpen}
-        onClose={() => setMarketplacePanelOpen(false)}
-        selectedModels={marketplaceModels.map(m => m.id)}
-        onApplyModels={handleMarketplaceModels}
+        isOpen={panels.marketplace}
+        onClose={() => toggleMarketplace()}
+        selectedModels={chat.marketplaceModels.map((m: AIModel) => m.id)}
+        onApplyModels={handleApplyModels}
       />
     </div>
   );
