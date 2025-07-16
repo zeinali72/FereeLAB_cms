@@ -65,17 +65,17 @@ export function ModelPanel({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+        className="absolute inset-0 glass-overlay-strong" 
         onClick={onClose}
       />
       
       {/* Modal Panel */}
-      <div className="panel-modal w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div className="glass-panel-modal w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border/30">
+        <div className="flex items-center justify-between p-6 border-b border-border/20 glass-overlay-light rounded-t-2xl">
           <div>
-            <h2 className="text-xl font-semibold text-heading">Select AI Model</h2>
-            <p className="text-sm text-caption mt-1">Choose the best model for your task</p>
+            <h2 className="text-xl font-semibold text-heading glass-text-medium">Select AI Model</h2>
+            <p className="text-sm text-caption mt-1 glass-text-light">Choose the best model for your task</p>
           </div>
           <button
             onClick={onClose}
@@ -86,16 +86,16 @@ export function ModelPanel({
         </div>
         
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-lg scrollbar-enhanced">
+        <div className="flex-1 overflow-y-auto p-6 space-lg scrollbar-enhanced progressive-blur-top progressive-blur-bottom">
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative glass-input-bar p-0">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
             <input
               type="text"
               placeholder="Search models..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-raised w-full pl-10 pr-4 py-2 focus-ring"
+              className="w-full pl-10 pr-4 py-2 bg-transparent border-none focus:outline-none glass-text-light"
             />
           </div>
 
@@ -234,7 +234,7 @@ export function ModelPanel({
         </div>
         
         {/* Footer */}
-        <div className="p-6 border-t border-border/30 flex justify-end gap-3 bg-gradient-to-r from-background via-surface-subtle to-background">
+        <div className="p-6 border-t border-border/20 flex justify-end gap-3 glass-overlay-medium rounded-b-2xl">
           <button
             onClick={onClose}
             className="btn-ghost"

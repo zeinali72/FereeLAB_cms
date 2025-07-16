@@ -112,23 +112,23 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+        className="absolute inset-0 glass-overlay-strong" 
         onClick={onClose}
       />
       
       {/* Modal Panel */}
-      <div className="relative bg-background rounded-xl shadow-2xl w-full max-w-7xl h-[90vh] flex flex-col border border-border">
+      <div className="relative glass-panel-modal w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
+        <div className="flex items-center justify-between p-6 border-b border-border/20 glass-overlay-light rounded-t-2xl">
           <div>
-            <h2 className="text-xl font-semibold">AI Models Marketplace</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h2 className="text-xl font-semibold glass-text-medium">AI Models Marketplace</h2>
+            <p className="text-sm text-muted-foreground mt-1 glass-text-light">
               Browse and select AI models for your conversations
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-all duration-200"
           >
             <X className="h-5 w-5" />
           </button>
@@ -137,12 +137,12 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
         <div className="flex flex-1 min-h-0">
           {/* Filters Sidebar */}
           {showFilters && (
-            <div className="w-72 border-r border p-6 overflow-y-auto">
+            <div className="w-72 border-r border-border/20 p-6 overflow-y-auto glass-overlay-medium progressive-blur-top progressive-blur-bottom">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Filters</h3>
+                <h3 className="font-semibold glass-text-medium">Filters</h3>
                 <button
                   onClick={resetFilters}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-all duration-200"
                 >
                   Reset
                 </button>
@@ -207,35 +207,35 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
           {/* Main Content */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Search and Controls */}
-            <div className="p-6 border-b border-border">
+            <div className="p-6 border-b border-border/20 glass-overlay-light">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  className="p-2 rounded-lg hover:bg-muted/30 transition-all duration-200"
                   title={showFilters ? "Hide filters" : "Show filters"}
                 >
                   <Filter className="h-4 w-4" />
                 </button>
                 
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="flex-1 relative glass-input-bar p-0">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                   <input
                     type="text"
                     placeholder="Search models, providers, or descriptions..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full pl-10 pr-4 py-2 bg-transparent border-none focus:outline-none glass-text-light"
                   />
                 </div>
                 
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground glass-text-light">
                   {filteredModels.length} models found
                 </div>
               </div>
             </div>
 
             {/* Models Grid */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6 progressive-blur-top progressive-blur-bottom">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredModels.map(model => {
                   const isSelected = selectedModelIds.includes(model.id);
@@ -293,13 +293,13 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
+            <div className="p-6 border-t border-border/20 flex items-center justify-between glass-overlay-medium rounded-b-2xl">
+              <div className="text-sm text-muted-foreground glass-text-light">
                 {selectedModelIds.length} model(s) selected
                 {selectedModelIds.length > 0 && (
                   <button
                     onClick={() => setSelectedModelIds([])}
-                    className="ml-2 text-primary hover:underline"
+                    className="ml-2 text-primary hover:underline transition-all duration-200"
                   >
                     Clear selection
                   </button>
@@ -309,14 +309,14 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
               <div className="flex items-center gap-3">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 border border-input rounded-lg hover:bg-muted transition-colors"
+                  className="px-4 py-2 border border-input/50 rounded-lg hover:bg-muted/30 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleApply}
                   disabled={selectedModelIds.length === 0}
-                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   Apply Selection
                 </button>

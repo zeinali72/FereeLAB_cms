@@ -138,7 +138,7 @@ export function ChatInput({
         {/* Reply Context */}
         {replyTo && (
           <div className={`
-            card-raised transition-all duration-300 gradient-overlay-subtle
+            glass-overlay-medium gradient-overlay-subtle transition-all duration-300 rounded-xl p-4
             ${replyPanelVisible ? 'animate-reply-panel-show' : 'animate-reply-panel-hide'}
             ${showReplyGlow ? 'animate-reply-panel-glow' : ''}
           `}>
@@ -163,7 +163,7 @@ export function ChatInput({
 
         {/* File Attachment Display */}
         {attachedFile && (
-          <div className="card-raised gradient-overlay-subtle">
+          <div className="glass-overlay-light rounded-xl p-4 gradient-overlay-subtle">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-caption mb-1">Attached file</div>
@@ -194,10 +194,10 @@ export function ChatInput({
 
         {/* Main Input Container */}
         <div className={`
-          depth-transition
+          depth-transition glass-border-gradient
           ${isFloating 
-            ? 'glass-strong surface-floating rounded-2xl p-6 depth-4' 
-            : 'surface-raised rounded-xl p-3 depth-1'
+            ? 'glass-panel-floating p-6 depth-4' 
+            : 'glass-input-bar p-3 depth-1'
           }
         `}>
           {/* Input Area */}

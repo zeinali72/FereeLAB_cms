@@ -60,17 +60,17 @@ export function ChatArea({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden">
+    <div className="flex-1 flex flex-col h-full overflow-hidden glass-panel-chat">
       {/* Custom header with hamburger menu for mobile */}
-      <div className="bg-background border-b border p-4 flex items-center md:hidden">
+      <div className="glass-overlay-light border-b border-border/20 p-4 flex items-center md:hidden progressive-blur-bottom">
         <button
           onClick={toggleSidebar}
-          className="p-2 rounded-md hover:bg-muted mr-3"
+          className="p-2 rounded-md hover:bg-muted/50 mr-3 transition-all duration-200"
           aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
         >
           <MenuIcon size={20} />
         </button>
-        <h2 className="font-semibold text-lg">FereeLAB</h2>
+        <h2 className="font-semibold text-lg glass-text-medium">FereeLAB</h2>
       </div>
       
       {/* Regular chat header (hidden on mobile) */}
@@ -85,10 +85,14 @@ export function ChatArea({
       </div>
       
       {/* Chat messages */}
-      <ChatLog messages={messages} />
+      <div className="flex-1 overflow-hidden progressive-blur-top progressive-blur-bottom">
+        <ChatLog messages={messages} />
+      </div>
       
       {/* Chat input */}
-      <ChatInput onSendMessage={handleSendMessage} />
+      <div className="glass-overlay-medium border-t border-border/20">
+        <ChatInput onSendMessage={handleSendMessage} />
+      </div>
     </div>
   );
 }

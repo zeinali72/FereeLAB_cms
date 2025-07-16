@@ -15,14 +15,14 @@ const FilterSection: React.FC<FilterSectionProps> = ({ title, icon, children, de
   const [isOpen, setIsOpen] = useState(defaultOpen);
   
   return (
-    <div className="py-3 border-b border-border last:border-b-0">
+    <div className="py-3 border-b border-border/20 last:border-b-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between text-left px-4 py-2 rounded-lg hover:bg-muted transition-colors duration-200"
+        className="w-full flex items-center justify-between text-left px-4 py-2 rounded-lg hover:bg-muted/30 transition-all duration-200"
       >
         <div className="flex items-center space-x-3 text-muted-foreground">
           {icon}
-          <h3 className="font-medium text-sm text-foreground">{title}</h3>
+          <h3 className="font-medium text-sm text-foreground glass-text-light">{title}</h3>
         </div>
         {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
       </button>
