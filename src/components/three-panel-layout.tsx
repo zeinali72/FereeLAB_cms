@@ -14,7 +14,7 @@ import { ResizablePanel } from "@/components/shared/resizable-panel";
 import { usePanels } from "@/hooks/use-panels";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { MarkdownCanvas } from "./shared/markdown-canvas";
+import { CanvasPanel } from "./shared/canvas-panel";
 import { PromptSuggestions } from "./chat/prompt-suggestions";
 
 export function ThreePanelLayout() {
@@ -220,7 +220,7 @@ export function ThreePanelLayout() {
         </div>
       </div>
 
-      {/* Right Panel: Markdown Canvas - Fixed to right wall */}
+      {/* Right Panel: Text Canvas - Fixed to right wall */}
       {!isMobile && panels.canvas && (
         <div className={cn(
           "fixed right-0 top-0 h-full panel-floating border-l border-border/50 transition-all duration-500 ease-in-out z-20 glass-strong",
@@ -236,10 +236,10 @@ export function ThreePanelLayout() {
             className="h-full depth-transition"
             handlePosition="left"
           >
-            <MarkdownCanvas
+            <CanvasPanel
               isOpen={panels.canvas}
               onClose={toggleCanvas}
-              messages={chat.messages}
+              width={dimensions.canvasWidth}
             />
           </ResizablePanel>
         </div>
@@ -248,10 +248,9 @@ export function ThreePanelLayout() {
       {/* Mobile Canvas as Overlay */}
       {isMobile && panels.canvas && (
         <div className={`fixed inset-0 z-40 panel-modal ${panels.canvas ? 'animate-slide-in-right' : 'animate-slide-out-right'}`}>
-          <MarkdownCanvas
+          <CanvasPanel
             isOpen={panels.canvas}
             onClose={toggleCanvas}
-            messages={chat.messages}
           />
         </div>
       )}
