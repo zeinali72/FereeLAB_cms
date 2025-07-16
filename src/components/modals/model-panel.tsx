@@ -65,52 +65,52 @@ export function ModelPanel({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 glass-overlay-strong" 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
         onClick={onClose}
       />
       
       {/* Modal Panel */}
-      <div className="glass-panel-modal w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
+      <div className="surface-modal panel-modal w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border/20 glass-overlay-light rounded-t-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-border/20 surface-raised rounded-t-2xl">
           <div>
-            <h2 className="text-xl font-semibold text-heading glass-text-medium">Select AI Model</h2>
-            <p className="text-sm text-caption mt-1 glass-text-light">Choose the best model for your task</p>
+            <h2 className="text-xl font-semibold text-heading">Select AI Model</h2>
+            <p className="text-sm text-caption mt-1">Choose the best model for your task</p>
           </div>
           <button
             onClick={onClose}
-            className="btn-minimal hover-lift focus-ring"
+            className="btn-minimal hover-lift-gentle focus-visible-only"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
         
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-lg scrollbar-enhanced progressive-blur-top progressive-blur-bottom">
+        <div className="flex-1 overflow-y-auto p-6 space-lg scrollbar-modern">
           {/* Search */}
-          <div className="relative glass-input-bar p-0">
+          <div className="relative input-flat p-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
             <input
               type="text"
               placeholder="Search models..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-transparent border-none focus:outline-none glass-text-light"
+              className="w-full pl-10 pr-4 py-2 bg-transparent border-none focus:outline-none"
             />
           </div>
 
           {/* Model Selection */}
           <div className="space-lg">
             <h3 className="text-sm font-medium text-caption">Available Models</h3>
-            <div className="grid gap-3 max-h-96 overflow-y-auto scrollbar-enhanced">
+            <div className="grid gap-3 max-h-96 overflow-y-auto scrollbar-modern">
               {filteredModels.map(model => (
                 <button
                   key={model.id}
                   onClick={() => setSelectedModelId(model.id)}
                   className={`card-interactive text-left transition-all duration-200 ${
                     selectedModelId === model.id 
-                      ? 'border-primary bg-primary/5 depth-2' 
-                      : 'hover-lift'
+                      ? 'border-primary bg-primary/5 surface-elevated' 
+                      : 'hover-lift-gentle'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -130,7 +130,7 @@ export function ModelPanel({
                       </div>
                     </div>
                     {selectedModelId === model.id && (
-                      <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center ml-2 mt-1 depth-1">
+                      <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center ml-2 mt-1 surface-elevated">
                         <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                       </div>
                     )}
@@ -143,7 +143,7 @@ export function ModelPanel({
             {onOpenMarketplace && (
               <button
                 onClick={onOpenMarketplace}
-                className="w-full card-flat border-dashed hover-lift flex items-center justify-center px-4 py-3"
+                className="w-full card-flat border-dashed hover-lift-gentle flex items-center justify-center px-4 py-3"
               >
                 <Search className="h-4 w-4 mr-2" />
                 <span className="text-sm font-medium">Browse More Models</span>
@@ -234,7 +234,7 @@ export function ModelPanel({
         </div>
         
         {/* Footer */}
-        <div className="p-6 border-t border-border/20 flex justify-end gap-3 glass-overlay-medium rounded-b-2xl">
+        <div className="p-6 border-t border-border/20 flex justify-end gap-3 surface-raised rounded-b-2xl">
           <button
             onClick={onClose}
             className="btn-ghost"
@@ -243,7 +243,7 @@ export function ModelPanel({
           </button>
           <button
             onClick={handleApply}
-            className="btn-raised btn-ripple hover-glow"
+            className="btn-raised btn-ripple animate-glow-pulse"
           >
             Apply Model
           </button>
