@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Activity } from "lucide-react";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
@@ -106,7 +107,7 @@ export function ThreePanelLayout() {
             minSize={240}
             maxSize={400}
             onResize={handleSidebarResize}
-            className="border-r border-border bg-card/50"
+            className="panel-sidebar border-r-0"
           >
             <Sidebar />
           </ResizablePanel>
@@ -120,7 +121,7 @@ export function ThreePanelLayout() {
             className="flex-1 bg-black/20 backdrop-blur-sm"
             onClick={toggleSidebar}
           />
-          <div className="w-[280px] h-full bg-background border-r border-border">
+          <div className="w-[280px] h-full panel-sidebar border-r-0">
             <Sidebar />
           </div>
         </div>
@@ -129,13 +130,13 @@ export function ThreePanelLayout() {
       {/* Gap between sidebar and chat */}
       {!isMobile && panels.sidebar && (
         <div className="w-3 panel-gap flex items-center justify-center">
-          <div className="w-px h-16 bg-border/30"></div>
+          <div className="w-px h-16 bg-gradient-to-b from-transparent via-border/30 to-transparent"></div>
         </div>
       )}
 
       {/* Center Panel: Chat Area */}
       <div className={cn(
-        "flex flex-col min-w-0 relative transition-all duration-500 ease-in-out flex-1",
+        "flex flex-col min-w-0 relative transition-all duration-500 ease-in-out flex-1 panel-chat",
         panels.canvas && !isMobile && "mr-0", // Remove margin when canvas is open since it's fixed position
         panels.canvas && !isMobile && `pr-[${dimensions.canvasWidth + 16}px]` // Add padding to make room for fixed canvas
       )}
@@ -161,11 +162,14 @@ export function ThreePanelLayout() {
             {isNewConversation ? (
               <div className="h-full flex flex-col items-center justify-center px-6 relative">
                 {/* Welcome Section */}
-                <div className="text-center mb-16 max-w-lg animate-fade-in">
-                  <h3 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                <div className="text-center mb-16 max-w-lg animate-fade-in surface-elevated rounded-2xl p-8 gradient-overlay-subtle">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-6 depth-2">
+                    <Activity className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent text-display">
                     Welcome to FereeLab Chat
                   </h3>
-                  <p className="text-muted-foreground text-lg">
+                  <p className="text-muted-foreground text-lg text-body">
                     Choose a prompt below to get started, or type your own message
                   </p>
                 </div>
@@ -194,8 +198,8 @@ export function ThreePanelLayout() {
             )}
           </div>
 
-          {/* Chat Input - Positioned at bottom, simple and clean */}
-          <div className="flex-shrink-0 p-4 bg-background">
+          {/* Chat Input - Positioned at bottom, enhanced with depth */}
+          <div className="flex-shrink-0 p-4 bg-gradient-to-t from-background via-background to-transparent border-t border-border/50">
             <div className="max-w-4xl mx-auto">
               <ChatInput
                 onSendMessage={sendMessage}
@@ -219,8 +223,8 @@ export function ThreePanelLayout() {
       {/* Right Panel: Markdown Canvas - Fixed to right wall */}
       {!isMobile && panels.canvas && (
         <div className={cn(
-          "fixed right-0 top-0 h-full bg-card border-l border-border transition-all duration-500 ease-in-out z-20",
-          panels.canvas ? 'animate-slide-in-right' : 'animate-slide-out-right'
+          "fixed right-0 top-0 h-full panel-floating border-l border-border/50 transition-all duration-500 ease-in-out z-20 glass-strong",
+          panels.canvas ? 'animate-canvas-in' : 'animate-canvas-out'
         )}
         style={{ width: `${dimensions.canvasWidth}px` }}
         >
@@ -229,7 +233,7 @@ export function ThreePanelLayout() {
             minSize={300}
             maxSize={600}
             onResize={handleCanvasResize}
-            className="h-full"
+            className="h-full depth-transition"
             handlePosition="left"
           >
             <MarkdownCanvas
@@ -243,7 +247,7 @@ export function ThreePanelLayout() {
 
       {/* Mobile Canvas as Overlay */}
       {isMobile && panels.canvas && (
-        <div className={`fixed inset-0 z-40 bg-background ${panels.canvas ? 'animate-slide-in-right' : 'animate-slide-out-right'}`}>
+        <div className={`fixed inset-0 z-40 panel-modal ${panels.canvas ? 'animate-slide-in-right' : 'animate-slide-out-right'}`}>
           <MarkdownCanvas
             isOpen={panels.canvas}
             onClose={toggleCanvas}

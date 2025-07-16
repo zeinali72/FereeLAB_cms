@@ -27,6 +27,26 @@
     --input: 240 5.9% 90%;
     --ring: 252 100% 65%;
     --radius: 0.5rem;
+    
+    /* Enhanced Shadow System for Flat + 3D Design */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    
+    /* Elevation System */
+    --elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    --elevation-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    --elevation-3: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    --elevation-4: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+    --elevation-5: 0 19px 38px rgba(0, 0, 0, 0.30), 0 15px 12px rgba(0, 0, 0, 0.22);
+    
+    /* Surface Colors for Layering */
+    --surface-raised: 0 0% 98%;
+    --surface-overlay: 0 0% 100%;
+    --surface-subtle: 240 4.8% 97%;
   }
  
   .dark {
@@ -49,6 +69,26 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 252 100% 65%;
+    
+    /* Enhanced Shadow System for Dark Mode */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+    
+    /* Elevation System for Dark Mode */
+    --elevation-1: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.6);
+    --elevation-2: 0 3px 6px rgba(0, 0, 0, 0.6), 0 3px 6px rgba(0, 0, 0, 0.7);
+    --elevation-3: 0 10px 20px rgba(0, 0, 0, 0.7), 0 6px 6px rgba(0, 0, 0, 0.8);
+    --elevation-4: 0 14px 28px rgba(0, 0, 0, 0.8), 0 10px 10px rgba(0, 0, 0, 0.8);
+    --elevation-5: 0 19px 38px rgba(0, 0, 0, 0.9), 0 15px 12px rgba(0, 0, 0, 0.8);
+    
+    /* Surface Colors for Dark Mode */
+    --surface-raised: 0 0% 10%;
+    --surface-overlay: 0 0% 12%;
+    --surface-subtle: 0 0% 8%;
   }
 }
 
@@ -76,26 +116,426 @@
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: hsl(var(--border));
   border-radius: 3px;
+  transition: background-color 0.2s ease;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: hsl(var(--muted-foreground));
 }
 
-/* Animation Utilities */
+/* Flat + 3D + Minimal Design System */
 
-/* Fade In */
-.animate-fade-in {
-  animation: fadeIn 0.3s ease forwards;
+/* Surface Elevation Classes */
+.surface-flat {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
 }
 
-@keyframes fadeIn {
+.surface-raised {
+  background: hsl(var(--surface-raised));
+  box-shadow: var(--elevation-1);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+.surface-elevated {
+  background: hsl(var(--surface-overlay));
+  box-shadow: var(--elevation-2);
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+.surface-floating {
+  background: hsl(var(--surface-overlay));
+  box-shadow: var(--elevation-3);
+  border: 1px solid hsl(var(--border) / 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.surface-modal {
+  background: hsl(var(--surface-overlay) / 0.95);
+  box-shadow: var(--elevation-5);
+  border: 1px solid hsl(var(--border) / 0.1);
+  backdrop-filter: blur(16px);
+}
+
+/* Enhanced Button System */
+.btn-flat {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  background: hsl(var(--surface-subtle));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.btn-flat:hover {
+  background: hsl(var(--muted));
+  box-shadow: var(--elevation-1);
+  transform: translateY(-1px);
+}
+
+.btn-raised {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: var(--elevation-2);
+  border: none;
+}
+
+.btn-raised:hover {
+  box-shadow: var(--elevation-3);
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.btn-raised:active {
+  transform: translateY(0);
+  box-shadow: var(--elevation-1);
+}
+
+.btn-ghost {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+.btn-minimal {
+  @apply p-2 rounded-lg transition-all duration-200;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
+.btn-minimal:hover {
+  background: hsl(var(--muted) / 0.7);
+  color: hsl(var(--foreground));
+  transform: scale(1.05);
+}
+
+/* Panel System with Depth */
+.panel-base {
+  border-radius: calc(var(--radius) + 4px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.panel-sidebar {
+  @apply panel-base surface-raised;
+  border-right: 1px solid hsl(var(--border) / 0.5);
+  position: relative;
+}
+
+.panel-sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -1px;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    hsl(var(--border) / 0.3) 50%,
+    transparent 100%
+  );
+}
+
+.panel-chat {
+  @apply panel-base surface-flat;
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-modal {
+  @apply panel-base surface-modal;
+  animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.panel-floating {
+  @apply panel-base surface-floating;
+  animation: floatIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Card System */
+.card-flat {
+  @apply surface-flat panel-base p-4;
+}
+
+.card-raised {
+  @apply surface-raised panel-base p-4;
+  transition: all 0.2s ease;
+}
+
+.card-raised:hover {
+  box-shadow: var(--elevation-2);
+  transform: translateY(-1px);
+}
+
+.card-interactive {
+  @apply card-raised cursor-pointer;
+}
+
+.card-interactive:hover {
+  box-shadow: var(--elevation-3);
+  transform: translateY(-2px);
+}
+
+.card-interactive:active {
+  transform: translateY(0);
+  box-shadow: var(--elevation-1);
+}
+
+/* Input System with Depth */
+.input-flat {
+  @apply px-3 py-2 rounded-lg transition-all duration-200;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.input-flat:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+.input-raised {
+  @apply px-3 py-2 rounded-lg transition-all duration-200;
+  background: hsl(var(--surface-raised));
+  border: 1px solid hsl(var(--border) / 0.5);
+  box-shadow: var(--shadow-inner);
+  color: hsl(var(--foreground));
+}
+
+.input-raised:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: var(--shadow-inner), 0 0 0 3px hsl(var(--primary) / 0.1);
+  background: hsl(var(--background));
+}
+
+/* Typography Enhancements */
+.text-display {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.text-heading {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.text-body {
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.text-caption {
+  font-weight: 500;
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Spacing System */
+.space-xs { @apply space-y-2; }
+.space-sm { @apply space-y-3; }
+.space-md { @apply space-y-4; }
+.space-lg { @apply space-y-6; }
+.space-xl { @apply space-y-8; }
+
+/* Enhanced Animation System */
+
+/* Modal and Panel Animations */
+@keyframes modalEnter {
   from {
     opacity: 0;
+    transform: translateY(-20px) scale(0.95);
   }
   to {
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInWithDepth {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+    box-shadow: none;
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    box-shadow: var(--elevation-2);
+  }
+}
+
+@keyframes elevate {
+  from {
+    box-shadow: var(--elevation-1);
+    transform: translateY(0);
+  }
+  to {
+    box-shadow: var(--elevation-3);
+    transform: translateY(-2px);
+  }
+}
+
+/* Button Interaction Animations */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.btn-ripple:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Micro-interaction Classes */
+.hover-lift {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-2);
+}
+
+.hover-glow {
+  transition: all 0.2s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+}
+
+.focus-ring {
+  transition: all 0.2s ease;
+}
+
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+}
+
+/* Depth-based Transitions */
+.depth-transition {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.depth-1 { box-shadow: var(--elevation-1); }
+.depth-2 { box-shadow: var(--elevation-2); }
+.depth-3 { box-shadow: var(--elevation-3); }
+.depth-4 { box-shadow: var(--elevation-4); }
+.depth-5 { box-shadow: var(--elevation-5); }
+
+/* Glass Morphism Effects */
+.glass-light {
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(8px) saturate(1.2);
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+.glass-strong {
+  background: hsl(var(--background) / 0.6);
+  backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid hsl(var(--border) / 0.2);
+}
+
+/* Gradient Overlays for Depth */
+.gradient-overlay-subtle {
+  position: relative;
+}
+
+.gradient-overlay-subtle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background) / 0.1) 0%,
+    transparent 50%,
+    hsl(var(--foreground) / 0.02) 100%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Loading States with Depth */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted) / 0.7) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Enhanced Scrollbar with Depth */
+.scrollbar-enhanced::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-enhanced::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 4px;
+}
+
+.scrollbar-enhanced::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--border)),
+    hsl(var(--muted-foreground) / 0.7)
+  );
+  border-radius: 4px;
+  border: 1px solid hsl(var(--background));
+  transition: all 0.2s ease;
+}
+
+.scrollbar-enhanced::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--muted-foreground)),
+    hsl(var(--foreground) / 0.5)
+  );
+  box-shadow: var(--elevation-1);
 }
 
 /* Fade Out */

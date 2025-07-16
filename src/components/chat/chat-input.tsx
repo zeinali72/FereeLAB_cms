@@ -138,45 +138,49 @@ export function ChatInput({
         {/* Reply Context */}
         {replyTo && (
           <div className={`
-            flex items-center justify-between p-4 bg-muted/50 rounded-xl border transition-all duration-300
+            card-raised transition-all duration-300 gradient-overlay-subtle
             ${replyPanelVisible ? 'animate-reply-panel-show' : 'animate-reply-panel-hide'}
             ${showReplyGlow ? 'animate-reply-panel-glow' : ''}
           `}>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs text-muted-foreground mb-1">
-                Replying to {replyTo.role === "user" ? "your message" : "assistant"}
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-caption mb-1">
+                  Replying to {replyTo.role === "user" ? "your message" : "assistant"}
+                </div>
+                <div className="text-sm text-body italic opacity-80">
+                  &ldquo;{replyTo.content.length > 100 ? replyTo.content.substring(0, 100) + "..." : replyTo.content}&rdquo;
+                </div>
               </div>
-              <div className="text-sm text-foreground italic opacity-80">
-                &ldquo;{replyTo.content.length > 100 ? replyTo.content.substring(0, 100) + "..." : replyTo.content}&rdquo;
-              </div>
+              <button
+                onClick={handleCancelReply}
+                className="btn-minimal hover-lift"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              onClick={handleCancelReply}
-              className="p-2 hover:bg-muted rounded-full transition-all duration-200 text-muted-foreground hover:text-foreground hover:scale-110"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
         )}
 
         {/* File Attachment Display */}
         {attachedFile && (
-          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border/30">
-            <div className="flex-1 min-w-0">
-              <div className="text-xs text-muted-foreground mb-1">Attached file</div>
-              <div className="text-sm text-foreground font-medium truncate">
-                {attachedFile.name}
+          <div className="card-raised gradient-overlay-subtle">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-caption mb-1">Attached file</div>
+                <div className="text-sm text-foreground font-medium truncate text-heading">
+                  {attachedFile.name}
+                </div>
+                <div className="text-xs text-caption">
+                  {(attachedFile.size / 1024 / 1024).toFixed(2)} MB
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
-                {(attachedFile.size / 1024 / 1024).toFixed(2)} MB
-              </div>
+              <button
+                onClick={removeAttachedFile}
+                className="btn-minimal hover-lift"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              onClick={removeAttachedFile}
-              className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
         )}
 
@@ -190,10 +194,10 @@ export function ChatInput({
 
         {/* Main Input Container */}
         <div className={`
-          transition-all duration-700 ease-out
+          depth-transition
           ${isFloating 
-            ? 'backdrop-blur-xl bg-background/95 border border-border/50 rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/25 p-6' 
-            : 'rounded-xl border border-border/30 bg-background/50 p-3 shadow-sm'
+            ? 'glass-strong surface-floating rounded-2xl p-6 depth-4' 
+            : 'surface-raised rounded-xl p-3 depth-1'
           }
         `}>
           {/* Input Area */}
@@ -202,10 +206,10 @@ export function ChatInput({
             <div className="flex items-center gap-1">
               <button 
                 onClick={handlePromptGeneratorToggle}
-                className={`p-2 rounded-lg transition-all duration-200 ${
+                className={`btn-minimal transition-all duration-200 ${
                   isPromptGeneratorOpen 
-                    ? 'text-primary bg-primary/10' 
-                    : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                    ? 'text-primary bg-primary/10 depth-1' 
+                    : 'hover-lift hover-glow'
                 }`}
                 title="Prompt suggestions"
               >
@@ -221,7 +225,7 @@ export function ChatInput({
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask anything..."
-                className={`w-full resize-none bg-transparent focus:outline-none placeholder:text-muted-foreground transition-all duration-300 text-base py-2 ${
+                className={`w-full resize-none bg-transparent focus:outline-none placeholder:text-muted-foreground transition-all duration-300 text-base py-2 text-body ${
                   isOverLimit ? 'text-destructive' : 'text-foreground'
                 }`}
                 minRows={1}
@@ -231,7 +235,7 @@ export function ChatInput({
             
             {/* Right side buttons */}
             <div className="flex items-center gap-1">
-              <label className="p-2 rounded-lg transition-all duration-200 cursor-pointer text-muted-foreground hover:text-primary hover:bg-primary/5">
+              <label className="btn-minimal hover-lift cursor-pointer">
                 <Paperclip className="h-4 w-4" />
                 <input 
                   ref={fileInputRef}
@@ -245,10 +249,10 @@ export function ChatInput({
               {onToggleCanvas && (
                 <button 
                   onClick={onToggleCanvas}
-                  className={`p-2 rounded-lg transition-all duration-200 ${
+                  className={`btn-minimal transition-all duration-200 ${
                     isCanvasOpen 
-                      ? 'text-primary bg-primary/10' 
-                      : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                      ? 'text-primary bg-primary/10 depth-1' 
+                      : 'hover-lift hover-glow'
                   }`}
                   title="Toggle Canvas"
                 >
@@ -259,9 +263,9 @@ export function ChatInput({
               <button
                 onClick={handleSendMessage}
                 disabled={!canSendMessage || isOverLimit}
-                className={`p-2 rounded-lg transition-all duration-200 ${
+                className={`btn-minimal transition-all duration-200 ${
                   canSendMessage && !isOverLimit
-                    ? 'text-primary hover:text-primary-foreground hover:bg-primary hover:scale-105'
+                    ? 'text-primary hover:text-primary-foreground hover:bg-primary hover-lift hover-glow btn-ripple'
                     : 'text-muted-foreground cursor-not-allowed opacity-50'
                 }`}
                 title="Send message"
@@ -273,7 +277,7 @@ export function ChatInput({
           
           {/* Token Count and Cost Display - Compact version */}
           {(!isFloating || message.trim() || isOverLimit) && (
-            <div className="flex items-center justify-between text-xs text-muted-foreground mt-2 pt-2 border-t border-border/20">
+            <div className="flex items-center justify-between text-xs text-caption mt-2 pt-2 border-t border-border/20">
               <div className="flex items-center gap-3">
                 <span className={`flex items-center ${isOverLimit ? 'text-destructive' : ''}`}>
                   <Activity className="h-3 w-3 mr-1" />

@@ -49,19 +49,19 @@ export function ChatHeader({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border bg-background">
+    <div className="flex items-center justify-between p-4 border-b border-border/50 bg-gradient-to-r from-background via-surface-subtle to-background surface-raised">
       <div className="flex items-center gap-3">
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          className="btn-minimal hover-lift"
           title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
         >
           {isSidebarOpen ? <ChevronsLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
         
-        <h2 className="text-lg font-semibold truncate">{title}</h2>
+        <h2 className="text-lg font-semibold truncate text-heading">{title}</h2>
         
-        <button className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted transition-colors">
+        <button className="btn-minimal hover-lift">
           <Edit2 className="h-4 w-4" />
         </button>
       </div>
@@ -71,7 +71,7 @@ export function ChatHeader({
         {currentModel && (
           <button
             onClick={onToggleModelPanel}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-all duration-200 hover:scale-105"
+            className="card-interactive px-3 py-1.5 rounded-full flex items-center gap-2"
             title="Change model"
           >
             <span className="text-sm">{currentModel.icon}</span>
@@ -86,7 +86,7 @@ export function ChatHeader({
         {/* New Chat Button */}
         <button 
           onClick={onNewConversation}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 hover:scale-105 hover:shadow-lg shadow-primary/25"
+          className="btn-raised btn-ripple flex items-center gap-2 hover-glow"
           title="Start new conversation"
         >
           <Sparkles className="h-4 w-4" />
@@ -98,18 +98,18 @@ export function ChatHeader({
           {mounted ? (
             <button 
               onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110"
+              className="btn-minimal hover-lift focus-ring"
               title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
           ) : (
-            <div className="p-2 rounded-full">
+            <div className="btn-minimal">
               <div className="h-5 w-5" />
             </div>
           )}
 
-          <button className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110">
+          <button className="btn-minimal hover-lift">
             <Share2 className="h-5 w-5" />
           </button>
         </div>

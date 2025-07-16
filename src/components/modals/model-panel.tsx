@@ -70,23 +70,23 @@ export function ModelPanel({
       />
       
       {/* Modal Panel */}
-      <div className="relative bg-background rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-border">
+      <div className="panel-modal w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
+        <div className="flex items-center justify-between p-6 border-b border-border/30">
           <div>
-            <h2 className="text-xl font-semibold">Select AI Model</h2>
-            <p className="text-sm text-muted-foreground mt-1">Choose the best model for your task</p>
+            <h2 className="text-xl font-semibold text-heading">Select AI Model</h2>
+            <p className="text-sm text-caption mt-1">Choose the best model for your task</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            className="btn-minimal hover-lift focus-ring"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
         
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-lg scrollbar-enhanced">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -95,44 +95,46 @@ export function ModelPanel({
               placeholder="Search models..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              className="input-raised w-full pl-10 pr-4 py-2 focus-ring"
             />
           </div>
 
           {/* Model Selection */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-muted-foreground">Available Models</h3>
-            <div className="grid gap-3 max-h-96 overflow-y-auto">
+          <div className="space-lg">
+            <h3 className="text-sm font-medium text-caption">Available Models</h3>
+            <div className="grid gap-3 max-h-96 overflow-y-auto scrollbar-enhanced">
               {filteredModels.map(model => (
                 <button
                   key={model.id}
                   onClick={() => setSelectedModelId(model.id)}
-                  className={`p-4 rounded-lg flex items-start justify-between transition-colors border text-left ${
+                  className={`card-interactive text-left transition-all duration-200 ${
                     selectedModelId === model.id 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border hover:bg-muted/50'
+                      ? 'border-primary bg-primary/5 depth-2' 
+                      : 'hover-lift'
                   }`}
                 >
-                  <div className="flex items-start space-x-3 flex-1">
-                    <span className="text-xl mt-0.5">{model.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-foreground">{model.name}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{model.provider.name}</div>
-                      <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {model.description}
-                      </div>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                        <span>Context: {model.context_length.toLocaleString()}</span>
-                        <span>•</span>
-                        <span>${model.inputPrice?.toFixed(4)}/1K tokens</span>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1">
+                      <span className="text-xl mt-0.5">{model.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-foreground text-heading">{model.name}</div>
+                        <div className="text-xs text-caption mt-0.5">{model.provider.name}</div>
+                        <div className="text-xs text-caption mt-1 line-clamp-2 text-body">
+                          {model.description}
+                        </div>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-caption">
+                          <span>Context: {model.context_length.toLocaleString()}</span>
+                          <span>•</span>
+                          <span>${model.inputPrice?.toFixed(4)}/1K tokens</span>
+                        </div>
                       </div>
                     </div>
+                    {selectedModelId === model.id && (
+                      <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center ml-2 mt-1 depth-1">
+                        <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                      </div>
+                    )}
                   </div>
-                  {selectedModelId === model.id && (
-                    <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center ml-2 mt-1">
-                      <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                    </div>
-                  )}
                 </button>
               ))}
             </div>
@@ -141,7 +143,7 @@ export function ModelPanel({
             {onOpenMarketplace && (
               <button
                 onClick={onOpenMarketplace}
-                className="w-full flex items-center justify-center px-4 py-3 border border-dashed border rounded-lg text-muted-foreground hover:bg-muted/50 transition-colors mt-4"
+                className="w-full card-flat border-dashed hover-lift flex items-center justify-center px-4 py-3"
               >
                 <Search className="h-4 w-4 mr-2" />
                 <span className="text-sm font-medium">Browse More Models</span>
@@ -232,16 +234,16 @@ export function ModelPanel({
         </div>
         
         {/* Footer */}
-        <div className="p-6 border-t border flex justify-end gap-3">
+        <div className="p-6 border-t border-border/30 flex justify-end gap-3 bg-gradient-to-r from-background via-surface-subtle to-background">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="btn-ghost"
           >
             Cancel
           </button>
           <button
             onClick={handleApply}
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+            className="btn-raised btn-ripple hover-glow"
           >
             Apply Model
           </button>
