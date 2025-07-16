@@ -3,7 +3,11 @@
 import { Lightbulb, Code2, MessageSquare, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
-import { AnimatedButton } from "@/components/ui/animated-button";
+import { 
+  UI_ANIMATION,
+  CHAT_LOG_ANIMATION,
+  getReducedMotionVariant
+} from "@/lib/animations";
 
 interface PromptSuggestionsProps {
   onSuggestionClick: (suggestion: string) => void;
@@ -41,10 +45,7 @@ export function PromptSuggestions({ onSuggestionClick, isVisible = true, isFloat
     <AnimatePresence>
       <motion.div 
         className={`space-y-3 ${isFloating ? 'backdrop-blur-xl bg-background/90 border border-border/50 rounded-2xl p-4 shadow-2xl shadow-black/10 dark:shadow-black/25' : ''}`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
+        {...getReducedMotionVariant(UI_ANIMATION.slideUp)}
       >
         <motion.div 
           className="flex items-center gap-2 text-sm text-muted-foreground"
@@ -58,37 +59,14 @@ export function PromptSuggestions({ onSuggestionClick, isVisible = true, isFloat
         
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-2 gap-3"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2
-              }
-            }
-          }}
+          {...getReducedMotionVariant(CHAT_LOG_ANIMATION.container)}
         >
           {suggestions.map((suggestion, index) => {
             const IconComponent = suggestion.icon;
             return (
               <motion.div
                 key={index}
-                variants={{
-                  hidden: { opacity: 0, y: 20, scale: 0.9 },
-                  visible: { 
-                    opacity: 1, 
-                    y: 0, 
-                    scale: 1,
-                    transition: {
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 20
-                    }
-                  }
-                }}
+                {...getReducedMotionVariant(CHAT_LOG_ANIMATION.item)}
               >
                 <motion.button
                   onClick={() => onSuggestionClick(suggestion.text)}
