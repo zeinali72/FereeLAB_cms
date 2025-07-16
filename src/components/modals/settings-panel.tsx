@@ -118,7 +118,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
   const { theme, setTheme } = useTheme();
 
-  const handleSettingChange = (section: string, key: string, value: any) => {
+  const handleSettingChange = (section: string, key: string, value: unknown) => {
     setSettings(prev => ({
       ...prev,
       [section]: {
