@@ -4,8 +4,12 @@ import { useRef, useEffect, useState } from "react";
 import { ArrowDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage, Message } from "./chat-message";
-import { PromptSuggestions } from "./prompt-suggestions";
 import { AnimatedButton } from "@/components/ui/animated-button";
+import { 
+  CHAT_LOG_ANIMATION,
+  UI_ANIMATION,
+  getReducedMotionVariant
+} from "@/lib/animations";
 
 interface ChatLogProps {
   messages: Message[];
@@ -34,7 +38,6 @@ export function ChatLog({
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isReplyMode, setIsReplyMode] = useState(false);
   const [showPromptSuggestions, setShowPromptSuggestions] = useState(true);
-  const [promptSuggestionAnimation, setPromptSuggestionAnimation] = useState('');
 
   // Track reply mode changes
   useEffect(() => {
@@ -59,10 +62,8 @@ export function ChatLog({
     if (messages.length === 0) {
       // Show prompt suggestions for new conversations
       setShowPromptSuggestions(true);
-      setPromptSuggestionAnimation('animate-fade-in');
     } else if (messages.length > 0 && showPromptSuggestions) {
       // Hide with animation when first message appears
-      setPromptSuggestionAnimation('animate-fade-out');
       setTimeout(() => {
         setShowPromptSuggestions(false);
       }, 300); // Match animation duration
@@ -73,7 +74,6 @@ export function ChatLog({
   const handleSuggestionClick = (suggestion: string) => {
     if (onSuggestionClick) {
       // Start fade out animation immediately
-      setPromptSuggestionAnimation('animate-fade-out');
       setTimeout(() => {
         setShowPromptSuggestions(false);
         // Call the suggestion handler after animation starts
@@ -239,34 +239,12 @@ export function ChatLog({
           </div>
         ) : (
           <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.1
-                }
-              }
-            }}
+            {...getReducedMotionVariant(CHAT_LOG_ANIMATION.container)}
           >
             {processedMessages.map((message, index) => (
               <motion.div
                 key={message.id}
-                variants={{
-                  hidden: { opacity: 0, y: 20, scale: 0.9 },
-                  visible: { 
-                    opacity: 1, 
-                    y: 0, 
-                    scale: 1,
-                    transition: {
-                      type: "spring",
-                      stiffness: 200,
-                      damping: 20
-                    }
-                  }
-                }}
+                {...getReducedMotionVariant(CHAT_LOG_ANIMATION.item)}
               >
                 <ChatMessage 
                   message={message}
@@ -287,10 +265,7 @@ export function ChatLog({
         {showScrollToBottom && !isReplyMode && (
           <motion.div
             className="absolute bottom-4 right-4 z-10"
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            {...getReducedMotionVariant(UI_ANIMATION.scaleIn)}
           >
             <AnimatedButton
               icon={ArrowDown}

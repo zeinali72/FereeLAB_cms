@@ -7,7 +7,14 @@ import { cn } from "@/lib/utils";
 import { estimateTokenCount } from "@/utils/token-calculator";
 import { Message } from "@/hooks/use-panels";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
-import { AnimatedButton } from "@/components/ui/animated-button";
+import { 
+  CHAT_MESSAGE_ANIMATION,
+  AVATAR_ANIMATION,
+  MESSAGE_BUBBLE_ANIMATION,
+  TYPING_ANIMATION,
+  CONTROL_PANEL_ANIMATION,
+  getReducedMotionVariant
+} from "@/lib/animations";
 
 interface ChatMessageProps {
   message: Message;
@@ -36,7 +43,6 @@ export function ChatMessage({
   const [isCopied, setIsCopied] = useState(false);
   const [displayText, setDisplayText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [animationClass, setAnimationClass] = useState('');
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messageRef = useRef<HTMLDivElement>(null);
@@ -44,21 +50,15 @@ export function ChatMessage({
   const isUser = message.role === "user";
   const tokenCount = message.tokens || estimateTokenCount(message.content);
 
-  // Typing animation effect
+  // Simplified typing animation effect - consistent speed for all messages
   useEffect(() => {
     const shouldAnimate = message.animate || isFirst;
     
-    if (shouldAnimate) {
-      // Set animation class based on sender
-      setAnimationClass(isUser ? 'message-slide-in-user' : 'message-slide-in-bot');
-      setTimeout(() => setAnimationClass(''), 500);
-
-      // Start with empty text for typing animation
+    if (shouldAnimate && !isUser) {
+      // Only animate bot messages with typing effect
       setDisplayText('');
       setIsTyping(true);
       
-      // Simulate typing animation
-      const typingSpeed = isUser ? 15 : 8; // User messages type faster
       let visibleLength = 0;
       const typingInterval = setInterval(() => {
         if (visibleLength < message.content.length) {
@@ -68,13 +68,12 @@ export function ChatMessage({
           clearInterval(typingInterval);
           setIsTyping(false);
         }
-      }, typingSpeed);
+      }, TYPING_ANIMATION.typingSpeed);
       
       return () => clearInterval(typingInterval);
     } else {
-      // No animation, just show the full text
+      // No animation or user message, show full text immediately
       setDisplayText(message.content);
-      setAnimationClass('');
       setIsTyping(false);
     }
   }, [message.content, message.animate, isFirst, isUser]);
@@ -167,16 +166,9 @@ export function ChatMessage({
       ref={messageRef}
       className={cn(
         "flex items-start gap-3 my-6 group relative",
-        isUser ? "flex-row-reverse" : "",
-        animationClass
+        isUser ? "flex-row-reverse" : ""
       )}
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ 
-        duration: 0.4, 
-        delay: 0.1,
-        ease: "easeOut"
-      }}
+      {...getReducedMotionVariant(CHAT_MESSAGE_ANIMATION)}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
@@ -186,22 +178,15 @@ export function ChatMessage({
           "w-8 h-8 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 relative",
           isUser ? "bg-primary" : "bg-muted-foreground"
         )}
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ 
-          type: "spring",
-          stiffness: 200,
-          damping: 10,
-          delay: 0.2
-        }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        {...getReducedMotionVariant(AVATAR_ANIMATION)}
+        whileHover={AVATAR_ANIMATION.hover}
+        whileTap={AVATAR_ANIMATION.tap}
       >
         {isUser ? (
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
           >
             U
           </motion.span>
@@ -210,13 +195,13 @@ export function ChatMessage({
             className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.3, type: "spring" }}
+            transition={{ delay: 0.2, type: "spring" }}
           >
             <motion.span 
               className="text-white text-xs font-bold"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.4 }}
             >
               S
             </motion.span>
@@ -250,15 +235,8 @@ export function ChatMessage({
               ? "bg-primary text-primary-foreground rounded-br-md" 
               : "bg-muted text-foreground rounded-bl-md"
           )}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ 
-            type: "spring",
-            stiffness: 300,
-            damping: 20,
-            delay: 0.3
-          }}
-          whileHover={{ scale: 1.02 }}
+          {...getReducedMotionVariant(MESSAGE_BUBBLE_ANIMATION)}
+          whileHover={MESSAGE_BUBBLE_ANIMATION.hover}
         >
           {isEditing ? (
             <div className="flex flex-col gap-3 w-full">
@@ -313,8 +291,7 @@ export function ChatMessage({
               {isTyping && (
                 <motion.span 
                   className="ml-1 inline-block"
-                  animate={{ opacity: [1, 0.3, 1] }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
+                  {...TYPING_ANIMATION.cursor}
                 >
                   <motion.span
                     className="inline-block w-2 h-4 bg-current"
@@ -349,8 +326,11 @@ export function ChatMessage({
           {/* Action Buttons */}
           <motion.div 
             className="flex items-center gap-1"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: showControls ? 1 : 0, scale: showControls ? 1 : 0.8 }}
+            {...getReducedMotionVariant(CONTROL_PANEL_ANIMATION)}
+            animate={{ 
+              opacity: showControls ? 1 : 0, 
+              scale: showControls ? 1 : 0.8 
+            }}
             transition={{ duration: 0.2 }}
           >
             {isUser ? (

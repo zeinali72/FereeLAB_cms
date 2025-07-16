@@ -347,6 +347,40 @@
 .space-lg { @apply space-y-6; }
 .space-xl { @apply space-y-8; }
 
+/* Enhanced Message Animation System */
+
+/* Standard message entrance animation - replaces inconsistent slide-in classes */
+.message-enter {
+  animation: standardMessageEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes standardMessageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Smooth fade transitions for text-based components */
+.text-fade-in {
+  animation: textFadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Enhanced Animation System */
 
 /* Modal and Panel Animations */
