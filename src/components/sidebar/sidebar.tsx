@@ -1,12 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Plus, Search } from "lucide-react";
+import { MoreVertical, Plus, Search, Ghost } from "lucide-react";
 import ConversationList from "./conversation-list";
 import AgentsList from "./agents-list";
 import { cn } from "@/lib/utils";
 
-export function Sidebar() {
+interface SidebarProps {
+  onNewChat?: () => void;
+  onTemporaryChat?: () => void;
+}
+
+export function Sidebar({ onNewChat, onTemporaryChat }: SidebarProps = {}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState<"chat" | "agents">("chat");
 
@@ -17,14 +22,23 @@ export function Sidebar() {
         <h1 className="text-lg font-semibold">FereeLAB</h1>
       </div>
 
-      {/* New Chat Button */}
-      <div className="p-3">
+      {/* Chat Buttons */}
+      <div className="p-3 space-y-2">
         <button
           className="w-full flex items-center justify-between rounded-lg bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 transition-colors"
-          onClick={() => {/* Add new chat logic */}}
+          onClick={onNewChat}
         >
           <span className="font-medium">New Chat</span>
           <Plus className="w-4 h-4" />
+        </button>
+        
+        <button
+          className="w-full flex items-center justify-between rounded-lg bg-muted/60 border border-border px-4 py-2 text-foreground hover:bg-muted/80 transition-colors"
+          onClick={onTemporaryChat}
+          title="Start a temporary chat that won't be saved to history"
+        >
+          <span className="font-medium">Temporary Chat</span>
+          <Ghost className="w-4 h-4" />
         </button>
       </div>
 

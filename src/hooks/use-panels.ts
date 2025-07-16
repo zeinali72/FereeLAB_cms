@@ -69,6 +69,7 @@ export interface ChatState {
   marketplaceModels: AIModel[];
   messages: Message[];
   replyTo: Message | null;
+  isTemporary: boolean;
 }
 
 export interface ProjectState {
@@ -116,6 +117,7 @@ export function usePanels() {
     marketplaceModels: [],
     messages: [],
     replyTo: null,
+    isTemporary: false,
   });
 
   const [projects, setProjects] = useState<ProjectState>({
@@ -171,6 +173,37 @@ export function usePanels() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Restore temporary chat on page refresh
+  useEffect(() => {
+    const tempMessages = sessionStorage.getItem('tempChatMessages');
+    const isTemporaryFlag = sessionStorage.getItem('isTempChat');
+    
+    if (tempMessages && isTemporaryFlag === 'true') {
+      try {
+        const parsedMessages = JSON.parse(tempMessages);
+        setChat(prev => ({
+          ...prev,
+          messages: parsedMessages,
+          isTemporary: true,
+        }));
+      } catch (error) {
+        console.error('Error parsing temporary chat messages:', error);
+        sessionStorage.removeItem('tempChatMessages');
+        sessionStorage.removeItem('isTempChat');
+      }
+    }
+  }, []);
+
+  // Save temporary chat flag to sessionStorage
+  useEffect(() => {
+    if (chat.isTemporary) {
+      sessionStorage.setItem('isTempChat', 'true');
+    } else {
+      sessionStorage.removeItem('isTempChat');
+      sessionStorage.removeItem('tempChatMessages');
+    }
+  }, [chat.isTemporary]);
 
   // Panel toggles
   const toggleSidebar = () => 
@@ -233,11 +266,23 @@ export function usePanels() {
       animate: true,
     };
 
+    const newMessages = [...chat.messages, userMessage, assistantMessage];
+
     setChat(prev => ({
       ...prev,
-      messages: [...prev.messages, userMessage, assistantMessage],
+      messages: newMessages,
       replyTo: null,
     }));
+
+    // For temporary chats, store in sessionStorage (clears on browser close)
+    // For regular chats, would store in localStorage or database
+    if (chat.isTemporary) {
+      sessionStorage.setItem('tempChatMessages', JSON.stringify(newMessages));
+    } else {
+      // TODO: Implement persistent storage for regular chats
+      // This would typically save to a database or localStorage
+      console.log('Regular chat - would save to persistent storage');
+    }
   };
 
   const editMessage = (messageId: string, newContent: string) => {
@@ -306,6 +351,16 @@ export function usePanels() {
       ...prev,
       messages: [],
       replyTo: null,
+      isTemporary: false,
+    }));
+  };
+
+  const startTemporaryChat = () => {
+    setChat(prev => ({
+      ...prev,
+      messages: [],
+      replyTo: null,
+      isTemporary: true,
     }));
   };
 
@@ -432,6 +487,7 @@ export function usePanels() {
     cancelReply,
     handleApplyModels,
     startNewConversation,
+    startTemporaryChat,
     
     // Project actions
     projectActions: {

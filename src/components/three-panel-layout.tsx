@@ -48,6 +48,7 @@ export function ThreePanelLayout() {
     cancelReply,
     handleApplyModels,
     startNewConversation,
+    startTemporaryChat,
     
     // Project actions
     projectActions,
@@ -109,7 +110,10 @@ export function ThreePanelLayout() {
             onResize={handleSidebarResize}
             className="panel-sidebar border-r-0"
           >
-            <Sidebar />
+            <Sidebar 
+              onNewChat={handleNewConversation}
+              onTemporaryChat={startTemporaryChat}
+            />
           </ResizablePanel>
         </div>
       )}
@@ -122,7 +126,10 @@ export function ThreePanelLayout() {
             onClick={toggleSidebar}
           />
           <div className="w-[280px] h-full panel-sidebar border-r-0">
-            <Sidebar />
+            <Sidebar 
+              onNewChat={handleNewConversation}
+              onTemporaryChat={startTemporaryChat}
+            />
           </div>
         </div>
       )}
@@ -153,6 +160,7 @@ export function ThreePanelLayout() {
           onToggleSidebar={toggleSidebar}
           isSidebarOpen={panels.sidebar}
           onUserMenuToggle={handleUserMenuToggle}
+          isTemporary={chat.isTemporary}
         />
 
         {/* Chat Content Area */}

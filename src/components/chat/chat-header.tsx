@@ -12,7 +12,8 @@ import {
   Sun,
   Moon,
   Cpu,
-  Sparkles
+  Sparkles,
+  Ghost
 } from "lucide-react";
 import { AIModel } from "@/data/models";
 import { useTheme } from "next-themes";
@@ -28,6 +29,7 @@ interface ChatHeaderProps {
   onToggleSidebar: () => void;
   isSidebarOpen: boolean;
   onUserMenuToggle?: (event: React.MouseEvent) => void;
+  isTemporary?: boolean;
 }
 
 export function ChatHeader({ 
@@ -37,7 +39,8 @@ export function ChatHeader({
   onNewConversation,
   onToggleSidebar,
   isSidebarOpen,
-  onUserMenuToggle
+  onUserMenuToggle,
+  isTemporary = false
 }: ChatHeaderProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -74,6 +77,21 @@ export function ChatHeader({
         >
           {title}
         </motion.h2>
+        
+        {isTemporary && (
+          <motion.div
+            className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            title="Temporary Chat - This conversation will not be saved to your history"
+          >
+            <Ghost className="w-3 h-3 text-orange-600 dark:text-orange-400" />
+            <span className="text-xs font-medium text-orange-700 dark:text-orange-300">
+              Temporary
+            </span>
+          </motion.div>
+        )}
         
         <MinimalButton
           icon={Edit2}
