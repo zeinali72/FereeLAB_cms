@@ -19,6 +19,7 @@ interface ChatInputProps {
   onToggleCanvas?: () => void;
   isCanvasOpen?: boolean;
   isFloating?: boolean;
+  isNewConversation?: boolean;
 }
 
 export function ChatInput({ 
@@ -28,7 +29,8 @@ export function ChatInput({
   onCancelReply,
   onToggleCanvas,
   isCanvasOpen,
-  isFloating = false
+  isFloating = false,
+  isNewConversation = false
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [showPrompts, setShowPrompts] = useState(true);
@@ -163,25 +165,27 @@ export function ChatInput({
 
         {/* Main Input Container */}
         <div className={`
+          transition-all duration-700 ease-out
           ${isFloating 
-            ? 'backdrop-blur-xl bg-background/95 border border-border/50 rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/25 p-4' 
-            : 'rounded-xl border border-border bg-background p-4'
+            ? 'backdrop-blur-xl bg-background/95 border border-border/50 rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/25' 
+            : 'rounded-xl border border-border bg-background'
           }
+          ${isNewConversation && isFloating ? 'p-6' : 'p-4'}
         `}>
           {/* Input Area */}
           <div className="flex items-end gap-3">
             {/* Left side buttons */}
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
               <button 
                 onClick={handlePromptGeneratorToggle}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`p-3 rounded-xl transition-all duration-200 ${
                   isPromptGeneratorOpen 
                     ? 'text-primary bg-primary/10 shadow-lg shadow-primary/25' 
                     : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
                 }`}
                 title="Prompt suggestions"
               >
-                <Zap className="h-5 w-5" />
+                <Zap className={`${isNewConversation && isFloating ? 'h-6 w-6' : 'h-5 w-5'}`} />
               </button>
             </div>
 
@@ -193,9 +197,9 @@ export function ChatInput({
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask anything..."
-                className={`w-full resize-none bg-transparent text-base focus:outline-none placeholder:text-muted-foreground ${
+                className={`w-full resize-none bg-transparent focus:outline-none placeholder:text-muted-foreground transition-all duration-300 ${
                   isOverLimit ? 'text-destructive' : 'text-foreground'
-                }`}
+                } ${isNewConversation && isFloating ? 'text-lg py-3' : 'text-base py-2'}`}
                 minRows={1}
                 maxRows={8}
               />
@@ -203,8 +207,8 @@ export function ChatInput({
             
             {/* Right side buttons */}
             <div className="flex items-center gap-1">
-              <label className={`p-2 rounded-xl transition-all duration-200 cursor-pointer text-muted-foreground hover:text-primary hover:bg-primary/5`}>
-                <Paperclip className="h-5 w-5" />
+              <label className={`p-3 rounded-xl transition-all duration-200 cursor-pointer text-muted-foreground hover:text-primary hover:bg-primary/5`}>
+                <Paperclip className={`${isNewConversation && isFloating ? 'h-6 w-6' : 'h-5 w-5'}`} />
                 <input 
                   ref={fileInputRef}
                   type="file" 
@@ -217,28 +221,28 @@ export function ChatInput({
               {onToggleCanvas && (
                 <button 
                   onClick={onToggleCanvas}
-                  className={`p-2 rounded-xl transition-all duration-200 ${
+                  className={`p-3 rounded-xl transition-all duration-200 ${
                     isCanvasOpen 
                       ? 'text-primary bg-primary/10 shadow-lg shadow-primary/25' 
                       : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
                   }`}
                   title="Toggle Canvas"
                 >
-                  <Layers className="h-5 w-5" />
+                  <Layers className={`${isNewConversation && isFloating ? 'h-6 w-6' : 'h-5 w-5'}`} />
                 </button>
               )}
               
               <button
                 onClick={handleSendMessage}
                 disabled={!canSendMessage || isOverLimit}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`p-3 rounded-xl transition-all duration-200 ${
                   canSendMessage && !isOverLimit
                     ? 'text-primary hover:text-primary-foreground hover:bg-primary hover:shadow-lg hover:shadow-primary/25 hover:scale-105'
                     : 'text-muted-foreground cursor-not-allowed opacity-50'
                 }`}
                 title="Send message"
               >
-                <Send className="h-5 w-5" />
+                <Send className={`${isNewConversation && isFloating ? 'h-6 w-6' : 'h-5 w-5'}`} />
               </button>
             </div>
           </div>

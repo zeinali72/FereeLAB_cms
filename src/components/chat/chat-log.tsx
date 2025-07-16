@@ -228,28 +228,12 @@ export function ChatLog({
       >
         {processedMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            {showPromptSuggestions ? (
-              <div className={`w-full max-w-4xl mx-auto ${promptSuggestionAnimation}`}>
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-semibold mb-3 text-foreground">Welcome to FereeLab Chat</h3>
-                  <p className="text-muted-foreground text-lg">
-                    Choose a prompt below to get started, or type your own message
-                  </p>
-                </div>
-                <PromptSuggestions 
-                  onSuggestionClick={handleSuggestionClick}
-                  isFloating={false}
-                />
-              </div>
-            ) : (
-              <div className="text-center">
-                <h3 className="text-lg font-medium mb-2">Welcome to FereeLab CMS</h3>
-                <p className="text-muted-foreground text-sm max-w-md">
-                  Start a conversation by typing a message below. You can ask questions, 
-                  get creative content, or discuss any topic.
-                </p>
-              </div>
-            )}
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2 text-muted-foreground">Ready to chat</h3>
+              <p className="text-muted-foreground text-sm max-w-md">
+                Your conversation will appear here once you send your first message.
+              </p>
+            </div>
           </div>
         ) : (
           processedMessages.map((message, index) => (

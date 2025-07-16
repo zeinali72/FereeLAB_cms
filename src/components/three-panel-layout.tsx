@@ -14,6 +14,7 @@ import { usePanels } from "@/hooks/use-panels";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { MarkdownCanvas } from "./shared/markdown-canvas";
+import { PromptSuggestions } from "./chat/prompt-suggestions";
 
 export function ThreePanelLayout() {
   // Use the comprehensive panels hook
@@ -54,6 +55,9 @@ export function ThreePanelLayout() {
   const [isMobile, setIsMobile] = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [userMenuPosition, setUserMenuPosition] = useState({ top: 0, right: 0 });
+  
+  // Determine if this is a new conversation (no messages)
+  const isNewConversation = chat.messages.length === 0;
 
   // Handle responsive behavior
   useEffect(() => {
@@ -135,10 +139,13 @@ export function ThreePanelLayout() {
           onNewConversation={handleNewConversation}
           onToggleSidebar={toggleSidebar}
           isSidebarOpen={panels.sidebar}
+          onUserMenuToggle={handleUserMenuToggle}
         />
 
-        {/* Chat Messages - Full height without input */}
-        <div className="flex-1 overflow-y-auto pb-40">
+        {/* Chat Messages - Dynamic padding based on input position */}
+        <div className={`flex-1 overflow-y-auto transition-all duration-700 ${
+          isNewConversation ? 'pb-0' : 'pb-40'
+        }`}>
           <ChatLog
             messages={chat.messages}
             onEditMessage={editMessage}
@@ -153,14 +160,40 @@ export function ThreePanelLayout() {
         </div>
       </div>
 
-      {/* Floating Chat Input Bar */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-30">
+      {/* Dynamic Chat Input Bar - Center for new chat, bottom for existing */}
+      <div className={`fixed left-1/2 transform -translate-x-1/2 z-30 transition-all duration-700 ease-out ${
+        isNewConversation 
+          ? 'top-1/2 -translate-y-1/2' 
+          : 'bottom-8 translate-y-0'
+      }`}>
         <div className={cn(
-          "w-full max-w-3xl mx-auto px-6",
-          isMobile ? "max-w-[calc(100vw-2rem)]" : 
+          "transition-all duration-700 ease-out",
+          isMobile ? "w-[calc(100vw-2rem)] px-4" : 
+          isNewConversation ? "w-[800px] px-8" : "w-full max-w-3xl px-6",
+          !isMobile && isNewConversation ? "" :
           panels.sidebar && panels.canvas ? "max-w-2xl" :
           panels.sidebar || panels.canvas ? "max-w-3xl" : "max-w-4xl"
         )}>
+          {/* Prompt Suggestions - Show above input for new conversations */}
+          {isNewConversation && (
+            <div className="mb-6 animate-fade-in">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-semibold mb-3 text-foreground">Welcome to FereeLab Chat</h3>
+                <p className="text-muted-foreground text-lg">
+                  Choose a prompt below to get started, or type your own message
+                </p>
+              </div>
+              <div className="max-w-2xl mx-auto">
+                <PromptSuggestions 
+                  onSuggestionClick={(suggestion) => {
+                    sendMessage(suggestion);
+                  }}
+                  isFloating={true}
+                />
+              </div>
+            </div>
+          )}
+          
           <ChatInput
             onSendMessage={sendMessage}
             selectedModel={chat.selectedModel}
@@ -176,6 +209,7 @@ export function ThreePanelLayout() {
             onToggleCanvas={toggleCanvas}
             isCanvasOpen={panels.canvas}
             isFloating={true}
+            isNewConversation={isNewConversation}
           />
         </div>
       </div>

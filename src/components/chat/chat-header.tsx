@@ -22,6 +22,7 @@ interface ChatHeaderProps {
   onNewConversation: () => void;
   onToggleSidebar: () => void;
   isSidebarOpen: boolean;
+  onUserMenuToggle?: (event: React.MouseEvent) => void;
 }
 
 export function ChatHeader({ 
@@ -30,7 +31,8 @@ export function ChatHeader({
   onToggleModelPanel,
   onNewConversation,
   onToggleSidebar,
-  isSidebarOpen
+  isSidebarOpen,
+  onUserMenuToggle
 }: ChatHeaderProps) {
   const { theme, setTheme } = useTheme();
 
@@ -104,7 +106,10 @@ export function ChatHeader({
           <button className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             <Share2 className="h-5 w-5" />
           </button>
-          <button className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+          <button 
+            onClick={onUserMenuToggle}
+            className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          >
             <MoreHorizontal className="h-5 w-5" />
           </button>
         </div>

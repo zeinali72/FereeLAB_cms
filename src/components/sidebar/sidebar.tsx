@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Plus, Search, Settings } from "lucide-react";
+import { MoreVertical, Plus, Search } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import ConversationList from "./conversation-list";
 import AgentsList from "./agents-list";
@@ -17,7 +17,6 @@ export function Sidebar() {
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h1 className="text-lg font-semibold">FereeLAB</h1>
         <div className="flex items-center space-x-2">
-          <Settings className="w-5 h-5 text-muted-foreground hover:text-foreground cursor-pointer" />
           <ThemeToggle />
         </div>
       </div>
