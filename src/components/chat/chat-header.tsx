@@ -3,10 +3,7 @@
 import { useState, useEffect } from "react";
 import { 
   Edit2, 
-  MoreHorizontal, 
   Share2, 
-  ChevronDown, 
-  Plus, 
   Menu, 
   ChevronsLeft,
   Sun,
@@ -17,7 +14,7 @@ import {
 import { AIModel } from "@/data/models";
 import { useTheme } from "next-themes";
 import { AnimatedIcon } from "../ui/animated-icon";
-import { AnimatedButton, PrimaryButton, MinimalButton } from "../ui/animated-button";
+import { PrimaryButton, MinimalButton } from "../ui/animated-button";
 import { motion } from "framer-motion";
 
 interface ChatHeaderProps {
@@ -27,7 +24,6 @@ interface ChatHeaderProps {
   onNewConversation: () => void;
   onToggleSidebar: () => void;
   isSidebarOpen: boolean;
-  onUserMenuToggle?: (event: React.MouseEvent) => void;
 }
 
 export function ChatHeader({ 
@@ -36,8 +32,7 @@ export function ChatHeader({
   onToggleModelPanel,
   onNewConversation,
   onToggleSidebar,
-  isSidebarOpen,
-  onUserMenuToggle
+  isSidebarOpen
 }: ChatHeaderProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);

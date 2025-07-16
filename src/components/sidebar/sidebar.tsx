@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { MoreVertical, Plus, Search } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { MoreVertical, Plus, Search, LogOut, Settings, User } from "lucide-react";
 import ConversationList from "./conversation-list";
 import AgentsList from "./agents-list";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,37 @@ import { cn } from "@/lib/utils";
 export function Sidebar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState<"chat" | "agents">("chat");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [userMenuOpen]);
+
+  const handleLogout = () => {
+    console.log("Logging out...");
+    // Add logout logic here
+    setUserMenuOpen(false);
+  };
+
+  const handleSettings = () => {
+    console.log("Opening settings...");
+    // Add settings logic here
+    setUserMenuOpen(false);
+  };
 
   return (
     <div className="h-screen flex flex-col bg-card">
@@ -75,19 +106,55 @@ export function Sidebar() {
 
       {/* User Profile Section */}
       <div className="p-3 border-t border-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
-              U
+        <div className="relative" ref={menuRef}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
+                U
+              </div>
+              <div>
+                <p className="text-sm font-medium">User</p>
+                <p className="text-xs text-muted-foreground">Free Plan</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">User</p>
-              <p className="text-xs text-muted-foreground">Free Plan</p>
-            </div>
+            <button 
+              className="p-1 rounded-full hover:bg-muted transition-colors"
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+            >
+              <MoreVertical className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
-          <button className="p-1 rounded-full hover:bg-muted transition-colors">
-            <MoreVertical className="w-5 h-5 text-muted-foreground" />
-          </button>
+          
+          {/* User Menu Dropdown */}
+          {userMenuOpen && (
+            <div className="absolute bottom-full mb-2 right-0 w-48 bg-card border border-border rounded-md shadow-lg py-1 z-50">
+              <button
+                onClick={handleSettings}
+                className="w-full flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                <Settings className="w-4 h-4 mr-3" />
+                Settings
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Account clicked");
+                  setUserMenuOpen(false);
+                }}
+                className="w-full flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                <User className="w-4 h-4 mr-3" />
+                Account
+              </button>
+              <hr className="my-1 border-border" />
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+              >
+                <LogOut className="w-4 h-4 mr-3" />
+                Log out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
