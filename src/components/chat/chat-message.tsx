@@ -2,9 +2,12 @@
 
 import { Copy, ThumbsDown, ThumbsUp, Edit2, RefreshCw, MessageSquare, Check, X, Cpu } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { estimateTokenCount } from "@/utils/token-calculator";
 import { Message } from "@/hooks/use-panels";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
+import { AnimatedButton } from "@/components/ui/animated-button";
 
 interface ChatMessageProps {
   message: Message;
@@ -160,30 +163,75 @@ export function ChatMessage({
   };
 
   return (
-    <div 
+    <motion.div 
       ref={messageRef}
       className={cn(
         "flex items-start gap-3 my-6 group relative",
         isUser ? "flex-row-reverse" : "",
         animationClass
       )}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        duration: 0.4, 
+        delay: 0.1,
+        ease: "easeOut"
+      }}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
       {/* Avatar */}
-      <div className={cn(
-        "w-8 h-8 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0",
-        isUser ? "bg-primary" : "bg-muted-foreground",
-        message.animate ? "animate-fade-in" : ""
-      )}>
-        {isUser ? (
-          "U"
-        ) : (
-          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-white text-xs font-bold">S</span>
-          </div>
+      <motion.div 
+        className={cn(
+          "w-8 h-8 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 relative",
+          isUser ? "bg-primary" : "bg-muted-foreground"
         )}
-      </div>
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 200,
+          damping: 10,
+          delay: 0.2
+        }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {isUser ? (
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            U
+          </motion.span>
+        ) : (
+          <motion.div 
+            className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3, type: "spring" }}
+          >
+            <motion.span 
+              className="text-white text-xs font-bold"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              S
+            </motion.span>
+          </motion.div>
+        )}
+        
+        {/* Typing indicator for assistant */}
+        {!isUser && isTyping && (
+          <motion.div
+            className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          />
+        )}
+      </motion.div>
 
       {/* Message Content */}
       <div className={cn(
@@ -195,12 +243,23 @@ export function ChatMessage({
         {renderReplyInfo()}
         
         {/* Message Bubble */}
-        <div className={cn(
-          "px-4 py-3 rounded-2xl shadow-sm break-words",
-          isUser 
-            ? "bg-primary text-primary-foreground rounded-br-md" 
-            : "bg-muted text-foreground rounded-bl-md"
-        )}>
+        <motion.div 
+          className={cn(
+            "px-4 py-3 rounded-2xl shadow-sm break-words",
+            isUser 
+              ? "bg-primary text-primary-foreground rounded-br-md" 
+              : "bg-muted text-foreground rounded-bl-md"
+          )}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 300,
+            damping: 20,
+            delay: 0.3
+          }}
+          whileHover={{ scale: 1.02 }}
+        >
           {isEditing ? (
             <div className="flex flex-col gap-3 w-full">
               <div className="w-full max-w-none">
@@ -229,30 +288,44 @@ export function ChatMessage({
                   <span>{editContent.length} chars</span>
                 </div>
                 <div className="flex gap-2">
-                  <button 
+                  <AnimatedIcon
+                    icon={Check}
+                    size={14}
+                    animate="bounce"
                     onClick={handleEdit}
-                    className="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 hover:scale-105"
+                    className="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 hover:scale-105 cursor-pointer text-green-500"
                     title="Save changes"
-                  >
-                    <Check size={14} className="text-green-500" />
-                  </button>
-                  <button 
+                  />
+                  <AnimatedIcon
+                    icon={X}
+                    size={14}
+                    animate="shake"
                     onClick={handleCancelEdit}
-                    className="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 hover:scale-105"
+                    className="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 hover:scale-105 cursor-pointer text-red-500"
                     title="Cancel editing"
-                  >
-                    <X size={14} className="text-red-500" />
-                  </button>
+                  />
                 </div>
               </div>
             </div>
           ) : (
             <div className="whitespace-pre-wrap leading-relaxed">
               {displayText}
-              {isTyping && <span className="animate-pulse ml-1">▍</span>}
+              {isTyping && (
+                <motion.span 
+                  className="ml-1 inline-block"
+                  animate={{ opacity: [1, 0.3, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                >
+                  <motion.span
+                    className="inline-block w-2 h-4 bg-current"
+                    animate={{ scaleY: [1, 0.3, 1] }}
+                    transition={{ duration: 0.6, repeat: Infinity }}
+                  />
+                </motion.span>
+              )}
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Message Controls */}
         <div className={cn(
@@ -274,67 +347,81 @@ export function ChatMessage({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1">
+          <motion.div 
+            className="flex items-center gap-1"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: showControls ? 1 : 0, scale: showControls ? 1 : 0.8 }}
+            transition={{ duration: 0.2 }}
+          >
             {isUser ? (
-              <button
+              <AnimatedIcon
+                icon={Edit2}
+                size={12}
+                animate="pulse"
                 onClick={() => setIsEditing(true)}
-                className="p-1 rounded hover:bg-muted transition-colors"
+                className="p-1 rounded hover:bg-muted cursor-pointer"
                 title="Edit message"
-              >
-                <Edit2 size={12} />
-              </button>
+              />
             ) : (
               <>
-                <button
+                <AnimatedIcon
+                  icon={isCopied ? Check : Copy}
+                  size={12}
+                  animate={isCopied ? "bounce" : "none"}
                   onClick={handleCopyToClipboard}
-                  className="p-1 rounded hover:bg-muted transition-colors"
+                  className={cn(
+                    "p-1 rounded hover:bg-muted cursor-pointer",
+                    isCopied && "text-green-500"
+                  )}
                   title={isCopied ? "Copied!" : "Copy"}
-                >
-                  {isCopied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
-                </button>
-                <button
+                />
+                <AnimatedIcon
+                  icon={ThumbsUp}
+                  size={12}
+                  animate={feedback === "like" ? "bounce" : "none"}
                   onClick={() => handleFeedbackClick("like")}
                   className={cn(
-                    "p-1 rounded hover:bg-muted transition-colors",
+                    "p-1 rounded hover:bg-muted cursor-pointer",
                     feedback === "like" && "text-green-500"
                   )}
                   title="Good response"
-                >
-                  <ThumbsUp size={12} />
-                </button>
-                <button
+                />
+                <AnimatedIcon
+                  icon={ThumbsDown}
+                  size={12}
+                  animate={feedback === "dislike" ? "shake" : "none"}
                   onClick={() => handleFeedbackClick("dislike")}
                   className={cn(
-                    "p-1 rounded hover:bg-muted transition-colors",
+                    "p-1 rounded hover:bg-muted cursor-pointer",
                     feedback === "dislike" && "text-red-500"
                   )}
                   title="Bad response"
-                >
-                  <ThumbsDown size={12} />
-                </button>
-                <button
+                />
+                <AnimatedIcon
+                  icon={RefreshCw}
+                  size={12}
+                  animate="spin"
                   onClick={handleRegenerate}
-                  className="p-1 rounded hover:bg-muted transition-colors"
+                  className="p-1 rounded hover:bg-muted cursor-pointer"
                   title="Regenerate"
-                >
-                  <RefreshCw size={12} />
-                </button>
-                <button
+                />
+                <AnimatedIcon
+                  icon={MessageSquare}
+                  size={12}
+                  animate={replyActive ? "pulse" : "none"}
                   onClick={handleReply}
                   className={cn(
-                    "p-1 rounded hover:bg-muted transition-colors",
+                    "p-1 rounded hover:bg-muted cursor-pointer",
                     replyActive && "text-primary"
                   )}
                   title={replyActive ? "Cancel Reply" : "Reply"}
-                >
-                  <MessageSquare size={12} />
-                </button>
+                />
               </>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

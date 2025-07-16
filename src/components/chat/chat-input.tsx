@@ -6,6 +6,9 @@ import TextareaAutosize from "react-textarea-autosize";
 import { estimateTokenCount, calculateTokenCost } from "@/utils/token-calculator";
 import { PromptSuggestions } from "./prompt-suggestions";
 import { AIModel } from "@/data/models";
+import { AnimatedIcon, LoadingIcon, TypingIcon } from "../ui/animated-icon";
+import { AnimatedButton, PrimaryButton, MinimalButton } from "../ui/animated-button";
+import { motion } from "framer-motion";
 
 interface ChatInputProps {
   onSendMessage: (message: string, file?: File | null) => void;
@@ -38,6 +41,8 @@ export function ChatInput({
   const [isPromptGeneratorOpen, setIsPromptGeneratorOpen] = useState(false);
   const [replyPanelVisible, setReplyPanelVisible] = useState(false);
   const [showReplyGlow, setShowReplyGlow] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,13 +55,20 @@ export function ChatInput({
     ? calculateTokenCost(message, selectedModel.inputPrice || 0)
     : { tokenCount: 0, inputCost: 0, totalCost: 0 };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim() || attachedFile) {
+      setIsSending(true);
+      setIsTyping(false);
+      
+      // Simulate sending delay for animation
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       onSendMessage(message, attachedFile);
       setMessage("");
       setAttachedFile(null);
       setShowPrompts(false);
       handleCancelReply();
+      setIsSending(false);
     }
   };
 
@@ -67,6 +79,11 @@ export function ChatInput({
     }
     if (e.key === "Escape" && replyTo) {
       handleCancelReply();
+    }
+    
+    // Show typing indicator
+    if (!isTyping && message.length > 0) {
+      setIsTyping(true);
     }
   };
 
@@ -151,19 +168,26 @@ export function ChatInput({
                   &ldquo;{replyTo.content.length > 100 ? replyTo.content.substring(0, 100) + "..." : replyTo.content}&rdquo;
                 </div>
               </div>
-              <button
+              <MinimalButton
+                icon={X}
                 onClick={handleCancelReply}
-                className="btn-minimal hover-lift"
-              >
-                <X className="h-4 w-4" />
-              </button>
+                className="flex-shrink-0"
+                iconAnimation="scale"
+                title="Cancel reply"
+              />
             </div>
           </div>
         )}
 
         {/* File Attachment Display */}
         {attachedFile && (
-          <div className="glass-overlay-light rounded-xl p-4 gradient-overlay-subtle">
+          <motion.div 
+            className="glass-overlay-light rounded-xl p-4 gradient-overlay-subtle"
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-caption mb-1">Attached file</div>
@@ -174,14 +198,15 @@ export function ChatInput({
                   {(attachedFile.size / 1024 / 1024).toFixed(2)} MB
                 </div>
               </div>
-              <button
+              <MinimalButton
+                icon={X}
                 onClick={removeAttachedFile}
-                className="btn-minimal hover-lift"
-              >
-                <X className="h-4 w-4" />
-              </button>
+                className="flex-shrink-0"
+                iconAnimation="scale"
+                title="Remove file"
+              />
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Prompt Suggestions - Only show in floating mode and when not new conversation */}
@@ -204,26 +229,28 @@ export function ChatInput({
           <div className="flex items-end gap-2">
             {/* Left side buttons */}
             <div className="flex items-center gap-1">
-              <button 
+              <MinimalButton
+                icon={Zap}
                 onClick={handlePromptGeneratorToggle}
-                className={`btn-minimal transition-all duration-200 ${
-                  isPromptGeneratorOpen 
-                    ? 'text-primary bg-primary/10 depth-1' 
-                    : 'hover-lift hover-glow'
-                }`}
+                iconAnimation={isPromptGeneratorOpen ? "glow" : "pulse"}
                 title="Prompt suggestions"
-              >
-                <Zap className="h-4 w-4" />
-              </button>
+                className={`transition-all duration-200 ${
+                  isPromptGeneratorOpen ? 'text-primary bg-primary/10' : ''
+                }`}
+              />
             </div>
 
             {/* Text Input */}
-            <div className="flex-1">
+            <div className="flex-1 relative">
               <TextareaAutosize
                 ref={textareaRef}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  setIsTyping(e.target.value.length > 0);
+                }}
                 onKeyDown={handleKeyDown}
+                onBlur={() => setIsTyping(false)}
                 placeholder="Ask anything..."
                 className={`w-full resize-none bg-transparent focus:outline-none placeholder:text-muted-foreground transition-all duration-300 text-base py-2 text-body ${
                   isOverLimit ? 'text-destructive' : 'text-foreground'
@@ -231,47 +258,58 @@ export function ChatInput({
                 minRows={1}
                 maxRows={6}
               />
+              
+              {/* Typing indicator */}
+              {isTyping && message.trim() && (
+                <motion.div
+                  className="absolute right-2 top-2"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                >
+                  <TypingIcon className="text-primary" />
+                </motion.div>
+              )}
             </div>
             
             {/* Right side buttons */}
             <div className="flex items-center gap-1">
-              <label className="btn-minimal hover-lift cursor-pointer">
-                <Paperclip className="h-4 w-4" />
-                <input 
-                  ref={fileInputRef}
-                  type="file" 
-                  onChange={handleFileAttach} 
-                  className="hidden" 
-                  accept="image/*,text/*,.pdf,.doc,.docx"
-                />
-              </label>
+              <MinimalButton
+                icon={Paperclip}
+                onClick={() => fileInputRef.current?.click()}
+                iconAnimation="bounce"
+                title="Attach file"
+                className="hover-lift"
+              />
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                onChange={handleFileAttach} 
+                className="hidden" 
+                accept="image/*,text/*,.pdf,.doc,.docx"
+              />
               
               {onToggleCanvas && (
-                <button 
+                <MinimalButton
+                  icon={Layers}
                   onClick={onToggleCanvas}
-                  className={`btn-minimal transition-all duration-200 ${
-                    isCanvasOpen 
-                      ? 'text-primary bg-primary/10 depth-1' 
-                      : 'hover-lift hover-glow'
-                  }`}
+                  iconAnimation={isCanvasOpen ? "float" : "scale"}
                   title="Toggle Canvas"
-                >
-                  <Layers className="h-4 w-4" />
-                </button>
+                  className={isCanvasOpen ? 'text-primary bg-primary/10' : ''}
+                />
               )}
               
-              <button
+              <PrimaryButton
+                icon={isSending ? undefined : Send}
                 onClick={handleSendMessage}
-                disabled={!canSendMessage || isOverLimit}
-                className={`btn-minimal transition-all duration-200 ${
-                  canSendMessage && !isOverLimit
-                    ? 'text-primary hover:text-primary-foreground hover:bg-primary hover-lift hover-glow btn-ripple'
-                    : 'text-muted-foreground cursor-not-allowed opacity-50'
-                }`}
-                title="Send message"
+                disabled={(!canSendMessage || isOverLimit) && !isSending}
+                loading={isSending}
+                title={isSending ? "Sending..." : "Send message"}
+                size="md"
+                className="min-w-[40px]"
               >
-                <Send className="h-4 w-4" />
-              </button>
+                {isSending && <LoadingIcon size={16} />}
+              </PrimaryButton>
             </div>
           </div>
           

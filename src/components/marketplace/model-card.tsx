@@ -2,8 +2,10 @@
 
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AIModel } from '@/data/models';
 import { cn } from '@/lib/utils';
+import { AnimatedIcon } from '@/components/ui/animated-icon';
 
 interface ModelCardProps {
   model: AIModel;
@@ -30,7 +32,7 @@ export const ModelCard: React.FC<ModelCardProps> = ({
   };
 
   return (
-    <div 
+    <motion.div 
       className={cn(
         "relative p-4 rounded-xl border cursor-pointer transition-all duration-200",
         isSelected 
@@ -39,12 +41,26 @@ export const ModelCard: React.FC<ModelCardProps> = ({
         className
       )}
       onClick={onToggleSelect}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      layout
     >
-      {isSelected && (
-        <div className="absolute bottom-3 right-3 text-primary bg-background rounded-full">
-          <CheckCircle size={22} strokeWidth={1.5} />
-        </div>
-      )}
+      <AnimatePresence>
+        {isSelected && (
+          <motion.div 
+            className="absolute bottom-3 right-3 text-primary bg-background rounded-full"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            exit={{ scale: 0, rotate: 180 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          >
+            <AnimatedIcon icon={CheckCircle} size={22} animate="bounce" className="text-primary" />
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
@@ -76,6 +92,6 @@ export const ModelCard: React.FC<ModelCardProps> = ({
           Context: <span className="ml-1 font-mono text-foreground">{formatContext(model.context_length)}</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

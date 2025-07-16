@@ -2,8 +2,10 @@
 
 import { useRef, useEffect, useState } from "react";
 import { ArrowDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage, Message } from "./chat-message";
 import { PromptSuggestions } from "./prompt-suggestions";
+import { AnimatedButton } from "@/components/ui/animated-button";
 
 interface ChatLogProps {
   messages: Message[];
@@ -236,33 +238,76 @@ export function ChatLog({
             </div>
           </div>
         ) : (
-          processedMessages.map((message, index) => (
-            <ChatMessage 
-              key={message.id} 
-              message={message}
-              isLast={index === processedMessages.length - 1}
-              onEdit={onEditMessage}
-              onRegenerate={onRegenerate}
-              onReply={onReply}
-              replyActive={replyTo?.id === message.id}
-            />
-          ))
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+          >
+            {processedMessages.map((message, index) => (
+              <motion.div
+                key={message.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.9 },
+                  visible: { 
+                    opacity: 1, 
+                    y: 0, 
+                    scale: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 200,
+                      damping: 20
+                    }
+                  }
+                }}
+              >
+                <ChatMessage 
+                  message={message}
+                  isLast={index === processedMessages.length - 1}
+                  onEdit={onEditMessage}
+                  onRegenerate={onRegenerate}
+                  onReply={onReply}
+                  replyActive={replyTo?.id === message.id}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
         )}
         <div ref={messagesEndRef} className="h-1" />
       </div>
       
-      {showScrollToBottom && !isReplyMode && (
-        <button
-          onClick={() => {
-            scrollToBottom();
-            setUserHasScrolled(false); // Re-enable auto-scrolling when clicking this button
-          }}
-          className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-background shadow-lg border flex items-center justify-center text-foreground hover:bg-muted transition-all animate-fade-in z-10"
-          aria-label="Scroll to bottom"
-        >
-          <ArrowDown size={20} />
-        </button>
-      )}
+      <AnimatePresence>
+        {showScrollToBottom && !isReplyMode && (
+          <motion.div
+            className="absolute bottom-4 right-4 z-10"
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          >
+            <AnimatedButton
+              icon={ArrowDown}
+              iconAnimation="bounce"
+              variant="glass"
+              size="md"
+              onClick={() => {
+                scrollToBottom();
+                setUserHasScrolled(false); // Re-enable auto-scrolling when clicking this button
+              }}
+              className="w-10 h-10 rounded-full shadow-lg hover-lift"
+              title="Scroll to bottom"
+              glow
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

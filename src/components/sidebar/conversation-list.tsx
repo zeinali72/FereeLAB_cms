@@ -2,6 +2,9 @@
 
 import { MessageSquare, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedIcon } from "../ui/animated-icon";
+import { MinimalButton } from "../ui/animated-button";
 
 type Conversation = {
   id: string;
@@ -49,41 +52,73 @@ export default function ConversationList() {
 
   return (
     <div className="py-2">
-      {conversations.map((conversation) => (
-        <div
-          key={conversation.id}
-          className={`flex items-start justify-between px-3 py-2 cursor-pointer hover:bg-accent/10 ${
-            conversation.isActive ? "bg-accent/10" : ""
-          }`}
-        >
-          <div className="flex items-start space-x-3 flex-1 min-w-0">
-            <div className="flex-shrink-0 pt-1">
-              <MessageSquare className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{conversation.title}</p>
-              <p className="text-xs text-muted-foreground truncate mt-0.5">{conversation.lastMessage}</p>
-            </div>
-            <div className="flex-shrink-0 flex flex-col items-end">
-              <p className="text-xs text-muted-foreground">{conversation.date}</p>
-              <div className="flex mt-1">
-                <button 
-                  className="p-1 hover:bg-muted rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(conversation.id);
-                  }}
-                >
-                  <Trash className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
-                </button>
-                <button className="p-1 hover:bg-muted rounded-full">
-                  <MoreVertical className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
+      <AnimatePresence>
+        {conversations.map((conversation, index) => (
+          <motion.div
+            key={conversation.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20, height: 0 }}
+            transition={{ 
+              duration: 0.3, 
+              delay: index * 0.05,
+              ease: "easeOut" 
+            }}
+            layout
+            className={`flex items-start justify-between px-3 py-2 cursor-pointer hover:bg-accent/10 rounded-lg transition-colors ${
+              conversation.isActive ? "bg-accent/10" : ""
+            }`}
+            whileHover={{ scale: 1.01, x: 2 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <div className="flex items-start space-x-3 flex-1 min-w-0">
+              <div className="flex-shrink-0 pt-1">
+                <AnimatedIcon
+                  icon={MessageSquare}
+                  size={20}
+                  className="text-primary"
+                  animate={conversation.isActive ? "pulse" : "none"}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{conversation.title}</p>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{conversation.lastMessage}</p>
+              </div>
+              <div className="flex-shrink-0 flex flex-col items-end">
+                <p className="text-xs text-muted-foreground">{conversation.date}</p>
+                <div className="flex mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    className="p-1 hover:bg-muted rounded-full transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(conversation.id);
+                    }}
+                    title="Delete conversation"
+                  >
+                    <AnimatedIcon
+                      icon={Trash}
+                      size={14}
+                      className="text-muted-foreground hover:text-destructive"
+                      animate="shake"
+                    />
+                  </button>
+                  <button 
+                    className="p-1 hover:bg-muted rounded-full transition-colors"
+                    title="More options"
+                  >
+                    <AnimatedIcon
+                      icon={MoreVertical}
+                      size={14}
+                      className="text-muted-foreground"
+                      animate="bounce"
+                    />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      ))}
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import { AIModel } from "@/data/models";
 import { useTheme } from "next-themes";
+import { AnimatedIcon } from "../ui/animated-icon";
+import { AnimatedButton, PrimaryButton, MinimalButton } from "../ui/animated-button";
+import { motion } from "framer-motion";
 
 interface ChatHeaderProps {
   title: string;
@@ -49,71 +52,97 @@ export function ChatHeader({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-border/50 bg-gradient-to-r from-background via-surface-subtle to-background surface-raised">
+    <motion.div 
+      className="flex items-center justify-between p-4 border-b border-border/50 bg-gradient-to-r from-background via-surface-subtle to-background surface-raised"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
       <div className="flex items-center gap-3">
-        <button
+        <MinimalButton
+          icon={isSidebarOpen ? ChevronsLeft : Menu}
           onClick={onToggleSidebar}
-          className="btn-minimal hover-lift"
           title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+          iconAnimation="scale"
+        />
+        
+        <motion.h2 
+          className="text-lg font-semibold truncate text-heading"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
-          {isSidebarOpen ? <ChevronsLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          {title}
+        </motion.h2>
         
-        <h2 className="text-lg font-semibold truncate text-heading">{title}</h2>
-        
-        <button className="btn-minimal hover-lift">
-          <Edit2 className="h-4 w-4" />
-        </button>
+        <MinimalButton
+          icon={Edit2}
+          iconAnimation="bounce"
+          title="Edit conversation title"
+        />
       </div>
       
       <div className="flex items-center gap-2">
         {/* Model Indicator */}
         {currentModel && (
-          <button
+          <motion.button
             onClick={onToggleModelPanel}
             className="card-interactive px-3 py-1.5 rounded-full flex items-center gap-2"
             title="Change model"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
           >
             <span className="text-sm">{currentModel.icon}</span>
-            <Cpu className="h-3 w-3 text-primary" />
+            <AnimatedIcon 
+              icon={Cpu} 
+              size={12} 
+              className="text-primary"
+              animate="pulse"
+            />
             <span className="text-xs font-medium">{currentModel.name}</span>
             <span className="hidden md:inline text-xs text-muted-foreground border-l border pl-2 ml-1">
               {currentModel.provider.name}
             </span>
-          </button>
+          </motion.button>
         )}
 
         {/* New Chat Button */}
-        <button 
+        <PrimaryButton
+          icon={Sparkles}
           onClick={onNewConversation}
-          className="btn-raised btn-ripple flex items-center gap-2 hover-glow"
           title="Start new conversation"
+          iconAnimation="glow"
+          size="md"
+          className="flex items-center gap-2"
         >
-          <Sparkles className="h-4 w-4" />
           <span className="text-sm font-medium">New Chat</span>
-        </button>
+        </PrimaryButton>
         
         <div className="flex items-center gap-1">
           {/* Theme Toggle */}
           {mounted ? (
-            <button 
+            <MinimalButton
+              icon={theme === "dark" ? Sun : Moon}
               onClick={toggleTheme}
-              className="btn-minimal hover-lift focus-ring"
               title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
+              iconAnimation="float"
+            />
           ) : (
             <div className="btn-minimal">
               <div className="h-5 w-5" />
             </div>
           )}
 
-          <button className="btn-minimal hover-lift">
-            <Share2 className="h-5 w-5" />
-          </button>
+          <MinimalButton
+            icon={Share2}
+            iconAnimation="bounce"
+            title="Share conversation"
+          />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
