@@ -851,3 +851,31 @@
 .resize-transition {
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Message regeneration animations */
+.message-regenerate-bounce {
+  animation: message-regenerate-bounce 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes message-regenerate-bounce {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.98) translateY(5px);
+  }
+  25% {
+    opacity: 0.8;
+    transform: scale(1.02) translateY(-2px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.01) translateY(-1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

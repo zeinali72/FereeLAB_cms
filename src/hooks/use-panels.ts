@@ -32,6 +32,8 @@ export interface Message {
   outputCost?: number;
   model?: string;
   animate?: boolean;
+  regenerated?: boolean;
+  regeneratedDueToEdit?: boolean;
   replyTo?: {
     id: string;
     content: string;
@@ -241,12 +243,46 @@ export function usePanels() {
   };
 
   const editMessage = (messageId: string, newContent: string) => {
-    setChat(prev => ({
-      ...prev,
-      messages: prev.messages.map(msg => 
+    setChat(prev => {
+      // Find the message being edited
+      const messageIndex = prev.messages.findIndex(msg => msg.id === messageId);
+      if (messageIndex === -1) return prev;
+      
+      const editedMessage = prev.messages[messageIndex];
+      
+      // Update the edited message
+      const updatedMessages = prev.messages.map(msg => 
         msg.id === messageId ? { ...msg, content: newContent } : msg
-      ),
-    }));
+      );
+      
+      // If this is a user message, find the next assistant message and regenerate it
+      if (editedMessage.role === 'user') {
+        const nextAssistantIndex = updatedMessages.findIndex((msg, index) => 
+          index > messageIndex && msg.role === 'assistant'
+        );
+        
+        if (nextAssistantIndex !== -1) {
+          // Create a regenerated response based on the edited message
+          const newAssistantMessage: Message = {
+            ...updatedMessages[nextAssistantIndex],
+            id: Date.now().toString(),
+            content: `I understand you've updated your message to: "${newContent}". Let me provide a new response based on this updated content using ${chat.selectedModel.name}.`,
+            timestamp: new Date(),
+            animate: true,
+            regenerated: true,
+            regeneratedDueToEdit: true,
+          };
+          
+          // Replace the old assistant message with the regenerated one
+          updatedMessages[nextAssistantIndex] = newAssistantMessage;
+        }
+      }
+      
+      return {
+        ...prev,
+        messages: updatedMessages,
+      };
+    });
   };
 
   const regenerateMessage = (messageId: string) => {
@@ -258,6 +294,8 @@ export function usePanels() {
         content: `This is a regenerated response using ${chat.selectedModel.name}.`,
         timestamp: new Date(),
         animate: true,
+        regenerated: true,
+        regeneratedDueToEdit: false,
       };
       
       setChat(prev => ({

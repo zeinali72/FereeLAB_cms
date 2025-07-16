@@ -65,7 +65,7 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
   }, [direction, size]);
   
   // Handle mouse move for resizing (throttled to improve performance)
-  const handleMouseMove = useCallback(throttle((e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     
     const currentPos = direction === 'horizontal' ? e.clientX : e.clientY;
@@ -83,7 +83,7 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
     
     setSize(newSize);
     onResize(newSize);
-  }, 16), [isDragging, direction, minSize, maxSize, handlePosition, onResize]);
+  }, [isDragging, direction, minSize, maxSize, handlePosition, onResize]);
 
   // Handle mouse up to stop resizing
   const handleMouseUp = useCallback(() => {

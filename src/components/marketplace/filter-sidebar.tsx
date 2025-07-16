@@ -105,7 +105,7 @@ interface FilterSidebarProps {
     maxPrice: number;
     categories: string[];
   };
-  onFilterChange: (filters: { minPrice: number; maxPrice: number; categories: string[]; }) => void;
+  onFilterChange: (filters: { providers: string[]; modalities: string[]; contextLength: number; maxPrice: number; categories: string[]; }) => void;
   onResetFilters: () => void;
   providers?: { id: string; name: string }[];
   categories?: { id: string; name: string }[];

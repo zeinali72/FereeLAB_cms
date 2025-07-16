@@ -49,16 +49,20 @@ export function ChatMessage({
     const shouldAnimate = message.animate || isFirst;
     
     if (shouldAnimate) {
-      // Set animation class based on sender
-      setAnimationClass(isUser ? 'message-slide-in-user' : 'message-slide-in-bot');
-      setTimeout(() => setAnimationClass(''), 500);
+      // Set animation class based on sender and regeneration status
+      if (message.regeneratedDueToEdit) {
+        setAnimationClass('message-regenerate-bounce');
+      } else {
+        setAnimationClass(isUser ? 'message-slide-in-user' : 'message-slide-in-bot');
+      }
+      setTimeout(() => setAnimationClass(''), 1000); // Longer duration for regeneration
 
       // Start with empty text for typing animation
       setDisplayText('');
       setIsTyping(true);
       
       // Simulate typing animation
-      const typingSpeed = isUser ? 15 : 8; // User messages type faster
+      const typingSpeed = isUser ? 15 : (message.regeneratedDueToEdit ? 12 : 8); // Slightly faster for regenerated messages
       let visibleLength = 0;
       const typingInterval = setInterval(() => {
         if (visibleLength < message.content.length) {
@@ -77,7 +81,7 @@ export function ChatMessage({
       setAnimationClass('');
       setIsTyping(false);
     }
-  }, [message.content, message.animate, isFirst, isUser]);
+  }, [message.content, message.animate, message.regeneratedDueToEdit, isFirst, isUser]);
 
   // Focus textarea when editing starts
   useEffect(() => {
@@ -158,6 +162,18 @@ export function ChatMessage({
       <div className="flex items-center text-xs text-muted-foreground ml-2 bg-muted px-2 py-0.5 rounded-full">
         <Cpu size={10} className="mr-1 text-primary" />
         {message.model}
+      </div>
+    );
+  };
+
+  // Display regeneration indicator for messages regenerated due to edits
+  const renderRegenerationIndicator = () => {
+    if (isUser || !message.regeneratedDueToEdit) return null;
+    
+    return (
+      <div className="flex items-center text-xs text-muted-foreground ml-2 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
+        <RefreshCw size={10} className="mr-1 text-blue-500" />
+        <span className="text-blue-600 dark:text-blue-400">Updated response</span>
       </div>
     );
   };
@@ -344,6 +360,7 @@ export function ChatMessage({
             {message.inputCost && <span>• Input: {message.inputCost}</span>}
             {message.outputCost && <span>• Output: {message.outputCost}</span>}
             {renderModelInfo()}
+            {renderRegenerationIndicator()}
           </div>
 
           {/* Action Buttons */}
