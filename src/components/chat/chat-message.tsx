@@ -3,6 +3,7 @@
 import { Copy, ThumbsDown, ThumbsUp, Edit2, RefreshCw, MessageSquare, Check, X, Cpu } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import TextareaAutosize from "react-textarea-autosize";
 import { cn } from "@/lib/utils";
 import { estimateTokenCount } from "@/utils/token-calculator";
 import { Message } from "@/hooks/use-panels";
@@ -44,6 +45,34 @@ export function ChatMessage({
   const isUser = message.role === "user";
   const tokenCount = message.tokens || estimateTokenCount(message.content);
 
+  // Calculate initial textarea dimensions based on content
+  const calculateInitialDimensions = (content: string) => {
+    const avgCharsPerLine = 60; // Approximate characters per line
+    const minRows = 2;
+    const maxRows = 12;
+    
+    // Calculate rows needed based on content length and line breaks
+    const newlineCount = (content.match(/\n/g) || []).length;
+    const estimatedLines = Math.ceil(content.length / avgCharsPerLine) + newlineCount;
+    const rows = Math.max(minRows, Math.min(maxRows, estimatedLines));
+    
+    // Calculate width classes based on content length
+    let widthClass = "w-full min-w-[300px]";
+    if (content.length > 100) {
+      widthClass = "w-full min-w-[400px] md:min-w-[500px]";
+    }
+    if (content.length > 200) {
+      widthClass = "w-full min-w-[500px] md:min-w-[600px] lg:min-w-[700px]";
+    }
+    if (content.length > 400) {
+      widthClass = "w-full min-w-[600px] md:min-w-[700px] lg:min-w-[800px]";
+    }
+    
+    return { rows, widthClass };
+  };
+
+  const { rows: initialRows, widthClass } = calculateInitialDimensions(message.content);
+
   // Typing animation effect
   useEffect(() => {
     const shouldAnimate = message.animate || isFirst;
@@ -82,8 +111,15 @@ export function ChatMessage({
   // Focus textarea when editing starts
   useEffect(() => {
     if (isEditing && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
+      // Small delay to ensure the textarea is fully rendered
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        // Position cursor at the end of the text
+        const textarea = textareaRef.current;
+        if (textarea) {
+          textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }
+      }, 100);
     }
   }, [isEditing]);
 
@@ -235,10 +271,10 @@ export function ChatMessage({
 
       {/* Message Content */}
       <div className={cn(
-        "flex flex-col transition-all duration-300",
+        "flex flex-col transition-all duration-500 ease-out",
         isUser ? "items-end" : "items-start",
-        // Expand max width when editing to accommodate larger editing area
-        isEditing ? "max-w-[95%] md:max-w-[90%]" : "max-w-[85%] md:max-w-[75%]"
+        // Enhanced max width when editing to accommodate larger editing area
+        isEditing ? "max-w-[98%] md:max-w-[95%] lg:max-w-[90%]" : "max-w-[85%] md:max-w-[75%]"
       )}>
         {renderReplyInfo()}
         
@@ -262,30 +298,45 @@ export function ChatMessage({
         >
           {isEditing ? (
             <div className="flex flex-col gap-3 w-full">
-              <div className="w-full max-w-none">
-                <textarea
+              <div className={cn(
+                "w-full transition-all duration-500 ease-out",
+                // Enhanced responsive width expansion
+                widthClass,
+                // Ensure proper max width to prevent overflow
+                "max-w-[95vw] md:max-w-[85vw] lg:max-w-[80vw] xl:max-w-[75vw]"
+              )}>
+                <TextareaAutosize
                   ref={textareaRef}
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   className={cn(
-                    "w-full min-h-[80px] max-h-[300px] resize-none bg-transparent border-none p-0 focus:outline-none text-inherit transition-all duration-300",
-                    "overflow-y-auto leading-relaxed",
-                    // Dynamic width expansion based on content length
-                    editContent.length > 100 ? "min-w-[400px] md:min-w-[500px]" : "min-w-[300px]",
-                    editContent.length > 200 ? "min-w-[500px] md:min-w-[600px]" : "",
-                    // Height expansion after width reaches max
-                    editContent.length > 300 ? "min-h-[120px]" : "",
-                    editContent.length > 500 ? "min-h-[160px]" : "",
-                    editContent.length > 800 ? "min-h-[200px] overflow-y-scroll" : ""
+                    "w-full resize-none bg-transparent border-none p-0 focus:outline-none text-inherit",
+                    "transition-all duration-300 leading-relaxed",
+                    "placeholder:text-muted-foreground/50",
+                    // Enhanced styling for better UX
+                    "scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                   )}
                   placeholder="Edit your message..."
+                  minRows={initialRows}
+                  maxRows={15}
+                  // Auto-focus and handle resize smoothly
+                  style={{
+                    resize: 'none',
+                    fieldSizing: 'content' // Modern CSS for content-based sizing where supported
+                  }}
                 />
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/20">
                 <div className="text-xs opacity-70 flex items-center gap-2">
                   <span>{estimateTokenCount(editContent)} tokens</span>
                   <span>•</span>
                   <span>{editContent.length} chars</span>
+                  {editContent !== message.content && (
+                    <>
+                      <span>•</span>
+                      <span className="text-amber-500">Modified</span>
+                    </>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <AnimatedIcon
