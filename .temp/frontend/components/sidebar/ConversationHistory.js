@@ -1,0 +1,271 @@
+// frontend/components/sidebar/ConversationHistory.js
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageSquare, ChevronDown, ChevronRight, Check, X, Edit, Trash2, FolderPlus } from 'react-feather';
+import { PlusIcon } from '@heroicons/react/24/outline';
+
+const formatDateGroup = (date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return date.toLocaleDateString();
+};
+
+// Utility to highlight search term in text
+const highlightText = (text, searchTerm) => {
+    if (!searchTerm || typeof text !== 'string') return text;
+    
+    const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+    return parts.map((part, i) => 
+        part.toLowerCase() === searchTerm.toLowerCase() ? 
+        <span key={i} className="bg-yellow-300 text-black dark:bg-yellow-600 dark:text-white rounded-sm px-0.5">{part}</span> : part
+    );
+};
+
+const ConversationHistory = ({ 
+    conversations = [], 
+    activeConversationId, 
+    onNewConversation, 
+    onSwitchConversation,
+    onRenameConversation,
+    onDeleteConversation,
+    onAddToProject,
+    onContextMenu,
+    isSearchResult = false,
+    searchTerm = ''
+}) => {
+    const [isSectionOpen, setIsSectionOpen] = useState(true);
+    const [editingId, setEditingId] = useState(null);
+    const [editTitle, setEditTitle] = useState('');
+    const [selectedId, setSelectedId] = useState(null);
+    const inputRef = useRef(null);
+
+    // Start renaming a conversation
+    const handleStartRename = (conv, e) => {
+        if(e) e.stopPropagation();
+        setEditingId(conv.id);
+        setEditTitle(conv.title);
+    };
+
+    // Save the new conversation title
+    const handleSaveTitle = (e) => {
+        e.preventDefault();
+        if (editTitle.trim() && onRenameConversation) {
+            onRenameConversation(editingId, editTitle.trim());
+        }
+        setEditingId(null);
+    };
+
+    // Cancel renaming
+    const handleCancelRename = () => {
+        setEditingId(null);
+        setEditTitle('');
+    };
+
+    // Handle keyboard events for renaming
+    const handleKeyDown = (e, conv) => {
+        if (e.key === 'F2') {
+            handleStartRename(conv, e);
+        } else if (e.key === 'Escape') {
+            handleCancelRename();
+        } else if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSaveTitle(e);
+        } else if (e.key === 'Delete') {
+            if(selectedId && onDeleteConversation) {
+                onDeleteConversation(selectedId);
+            }
+        }
+    };
+
+    // Focus input when editing starts
+    useEffect(() => {
+        if (editingId && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [editingId]);
+    
+    // Handle Escape key and double-click outside
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && editingId) {
+                handleCancelRename();
+            }
+        };
+
+        const handleDoubleClickOutside = (e) => {
+            if (
+                editingId && 
+                inputRef.current && 
+                !inputRef.current.contains(e.target)
+            ) {
+                // Check if this is a double click
+                const timeDiff = e.timeStamp - (window.lastClickTime || 0);
+                if (timeDiff < 300) {  // Typical double-click threshold
+                    handleCancelRename();
+                }
+                window.lastClickTime = e.timeStamp;
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('click', handleDoubleClickOutside);
+        
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('click', handleDoubleClickOutside);
+        };
+    }, [editingId]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Delete') {
+                if(selectedId && onDeleteConversation) {
+                    onDeleteConversation(selectedId);
+                    setSelectedId(null);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [selectedId, onDeleteConversation]);
+
+    const handleContextMenu = (e, conv) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const items = [
+            { label: 'Add to Project', icon: <FolderPlus size={14} />, action: () => onAddToProject && onAddToProject(conv.id) },
+            { separator: true },
+            { label: 'Rename', icon: <Edit size={14} />, action: () => handleStartRename(conv) },
+            { label: 'Delete', icon: <Trash2 size={14} />, action: () => onDeleteConversation && onDeleteConversation(conv.id) },
+        ];
+        onContextMenu(e, items);
+    };
+
+    // Group conversations by date
+    const groupedConversations = conversations.reduce((groups, conv) => {
+        const date = new Date(conv.timestamp);
+        const dateKey = formatDateGroup(date);
+        
+        if (!groups[dateKey]) {
+            groups[dateKey] = [];
+        }
+        groups[dateKey].push(conv);
+        return groups;
+    }, {});
+
+    return (
+        <div className="mt-2">
+            <div className="px-4 py-2">
+                <button
+                    onClick={() => setIsSectionOpen(!isSectionOpen)}
+                    className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors"
+                >
+                    <span className="text-[var(--text-secondary)]">Conversations</span>
+                    {isSectionOpen ? <ChevronDown size={16} className="text-[var(--text-secondary)]" /> : <ChevronRight size={16} className="text-[var(--text-secondary)]" />}
+                </button>
+            </div>
+
+            {isSectionOpen && (
+                <div className="mt-1">
+                    {!isSearchResult && (
+                        <button
+                            onClick={onNewConversation}
+                            className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-[var(--bg-tertiary)] transition-colors"
+                        >
+                            <div className="flex items-center text-[var(--text-primary)]">
+                                <PlusIcon className="h-4 w-4 mr-2" />
+                                <span>New conversation</span>
+                            </div>
+                        </button>
+                    )}
+                    
+                    {isSearchResult && conversations.length === 0 && (
+                        <div className="px-4 py-6 text-center text-[var(--text-secondary)]">
+                            <p className="text-sm mb-1">No conversations found</p>
+                            <p className="text-xs">Try a different search term</p>
+                        </div>
+                    )}
+
+                    {Object.entries(groupedConversations).map(([dateGroup, convs]) => (
+                        <div key={dateGroup} className="mt-2">
+                            <div className="px-4 py-1">
+                                <p className="text-xs font-medium text-[var(--text-secondary)]">{dateGroup}</p>
+                            </div>
+
+                            <ul>
+                                {convs.map((conv) => (
+                                    <li 
+                                        key={conv.id} 
+                                        tabIndex={0} 
+                                        onKeyDown={(e) => handleKeyDown(e, conv)}
+                                        onContextMenu={(e) => handleContextMenu(e, conv)}
+                                        onClick={() => setSelectedId(conv.id)}
+                                        className={`${selectedId === conv.id ? 'bg-[var(--bg-tertiary)]' : ''}`}
+                                    >
+                                        {editingId === conv.id ? (
+                                            // Editing state
+                                            <form onSubmit={handleSaveTitle} className="px-4 py-1 flex items-center">
+                                                <MessageSquare size={16} className="mr-2 flex-shrink-0 text-[var(--text-secondary)]" />
+                                                <input
+                                                    ref={inputRef}
+                                                    type="text"
+                                                    value={editTitle}
+                                                    onChange={(e) => setEditTitle(e.target.value)}
+                                                    className="flex-grow text-sm bg-[var(--bg-tertiary)] p-1 rounded focus:ring-1 focus:ring-primary-500 focus:outline-none"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Escape') {
+                                                            handleCancelRename();
+                                                        }
+                                                    }}
+                                                />
+                                                <button 
+                                                    type="submit"
+                                                    className="ml-1 p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors"
+                                                    title="Save"
+                                                >
+                                                    <Check size={14} className="text-primary-500" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCancelRename}
+                                                    className="p-1 hover:bg-[var(--bg-tertiary)] rounded-md transition-colors"
+                                                    title="Cancel"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </form>
+                                        ) : (
+                                            // Normal state
+                                            <button
+                                                onClick={() => onSwitchConversation(conv.id)}
+                                                onDoubleClick={(e) => handleStartRename(conv, e)}
+                                                className={`flex items-center w-full px-4 py-2 text-sm rounded-md ${
+                                                    activeConversationId === conv.id ? 'list-item-active' : 'hover:bg-[var(--bg-tertiary)]'
+                                                }`}
+                                            >
+                                                <MessageSquare size={16} className="mr-2 flex-shrink-0" />
+                                                <span className="truncate">{isSearchResult ? highlightText(conv.title, searchTerm) : conv.title}</span>
+                                                {isSearchResult && (
+                                                    <span className="ml-auto text-xs text-[var(--text-secondary)] bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded-full">
+                                                        Match
+                                                    </span>
+                                                )}
+                                            </button>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ConversationHistory;

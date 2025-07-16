@@ -1,0 +1,40 @@
+.context-menu {
+  position: fixed;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  z-index: 50;
+  width: 224px; /* w-56 */
+  padding: 0.5rem;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px; /* py-2 px-3 */
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+}
+
+.context-menu-item:hover {
+  background-color: var(--bg-secondary);
+}
+
+.context-menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.context-menu-icon {
+  margin-right: 12px;
+  color: var(--text-secondary);
+}
+
+.context-menu-separator {
+  border-top: 1px solid var(--border-primary);
+  margin: 4px 0;
+}

@@ -1,0 +1,9 @@
+/* Menu Dropdown Styles */
+.theme-dropdown {
+  z-index: 9999 !important;
+}
+
+.user-menu-panel {
+  z-index: 1000 !important;
+  position: absolute;
+}
