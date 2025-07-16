@@ -11,7 +11,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Fereelab AI Chat",
+  title: "FereeLAB AI Chat",
   description: "AI Chatbot powered by OpenRouter APIs",
 };
 

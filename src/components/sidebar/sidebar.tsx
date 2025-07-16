@@ -15,7 +15,7 @@ export function Sidebar() {
     <div className="h-full flex flex-col border-r border-border bg-card">
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
-        <h1 className="text-lg font-semibold">Sider</h1>
+        <h1 className="text-lg font-semibold">FereeLAB</h1>
         <div className="flex items-center space-x-2">
           <Settings className="w-5 h-5 text-muted-foreground hover:text-foreground cursor-pointer" />
           <ThemeToggle />

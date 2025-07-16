@@ -94,7 +94,7 @@ export default function Sidebar({
       )}
     >
       <div className="flex items-center justify-between p-4 border-b border-border">
-        <h1 className="text-lg font-semibold">Sider</h1>
+        <h1 className="text-lg font-semibold">FereeLAB</h1>
         <button
           onClick={toggleSidebar}
           className="p-2 rounded-md hover:bg-muted"

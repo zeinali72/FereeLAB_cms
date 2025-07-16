@@ -5,9 +5,12 @@ import { ChatMessage, Message } from "./chat-message";
 
 interface ChatLogProps {
   messages: Message[];
+  onEditMessage?: (messageId: string, newContent: string) => void;
+  onRegenerate?: (messageId: string) => void;
+  onReply?: (message: Message) => void;
 }
 
-export function ChatLog({ messages }: ChatLogProps) {
+export function ChatLog({ messages, onEditMessage, onRegenerate, onReply }: ChatLogProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new messages
@@ -35,7 +38,10 @@ export function ChatLog({ messages }: ChatLogProps) {
             <ChatMessage 
               key={message.id} 
               message={message}
-              isLast={index === messages.length - 1} 
+              isLast={index === messages.length - 1}
+              onEdit={onEditMessage}
+              onRegenerate={onRegenerate}
+              onReply={onReply}
             />
           ))}
           <div ref={messagesEndRef} />

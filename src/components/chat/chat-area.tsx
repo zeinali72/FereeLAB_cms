@@ -76,7 +76,7 @@ export function ChatArea({
         >
           <MenuIcon size={20} />
         </button>
-        <h2 className="font-semibold text-lg">Sider Fusion</h2>
+        <h2 className="font-semibold text-lg">FereeLAB</h2>
       </div>
       
       {/* Regular chat header (hidden on mobile) */}
