@@ -41,3 +41,57 @@ yarn-error.log*
 next-env.d.ts
 node_modules/
 frontend/node_modules/
+
+# django
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/*.so
+backend/.Python
+backend/build/
+backend/develop-eggs/
+backend/dist/
+backend/downloads/
+backend/eggs/
+backend/.eggs/
+backend/lib/
+backend/lib64/
+backend/parts/
+backend/sdist/
+backend/var/
+backend/wheels/
+backend/*.egg-info/
+backend/.installed.cfg
+backend/*.egg
+backend/MANIFEST
+backend/venv/
+backend/.venv/
+
+# LFS and large files
+*.bin
+*.exe
+*.dll
+*.so
+*.dylib
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.model
+*.weights
+*.ckpt
+*.pth
+*.safetensors
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+
+# Media files
+media/
+static_root/
