@@ -48,6 +48,21 @@ export default function ConversationList() {
   
   const handleDelete = (id: string) => {
     setConversations(conversations.filter((conv) => conv.id !== id));
+    console.log('Deleted conversation:', id);
+  };
+
+  const handleSelectConversation = (conversation: Conversation) => {
+    // Update active state
+    setConversations(conversations.map(conv => ({
+      ...conv,
+      isActive: conv.id === conversation.id
+    })));
+    console.log('Selected conversation:', conversation.title);
+  };
+
+  const handleMoreOptions = (conversation: Conversation) => {
+    console.log('More options for:', conversation.title);
+    // Could open a context menu or modal here
   };
 
   return (
@@ -65,11 +80,12 @@ export default function ConversationList() {
               ease: "easeOut" 
             }}
             layout
-            className={`flex items-start justify-between px-3 py-2 cursor-pointer hover:bg-accent/10 rounded-lg transition-colors ${
+            className={`flex items-start justify-between px-3 py-2 cursor-pointer hover:bg-accent/10 rounded-lg transition-colors group ${
               conversation.isActive ? "bg-accent/10" : ""
             }`}
             whileHover={{ scale: 1.01, x: 2 }}
             whileTap={{ scale: 0.99 }}
+            onClick={() => handleSelectConversation(conversation)}
           >
             <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div className="flex-shrink-0 pt-1">
@@ -104,6 +120,10 @@ export default function ConversationList() {
                   </button>
                   <button 
                     className="p-1 hover:bg-muted rounded-full transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMoreOptions(conversation);
+                    }}
                     title="More options"
                   >
                     <AnimatedIcon

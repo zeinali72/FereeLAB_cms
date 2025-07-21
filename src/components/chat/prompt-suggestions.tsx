@@ -91,7 +91,10 @@ export function PromptSuggestions({ onSuggestionClick, isVisible = true, isFloat
                 }}
               >
                 <motion.button
-                  onClick={() => onSuggestionClick(suggestion.text)}
+                  onClick={() => {
+                    onSuggestionClick(suggestion.text);
+                    console.log('Clicked prompt suggestion:', suggestion.text);
+                  }}
                   className="group flex items-start gap-3 p-4 rounded-xl border-border border hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 text-left h-20 w-full"
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}

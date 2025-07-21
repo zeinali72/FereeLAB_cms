@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpen, FileText, Database, Monitor, User, Search, Zap } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 type Agent = {
   id: string;
@@ -47,14 +47,25 @@ const mockAgents: Agent[] = [
 ];
 
 export default function AgentsList() {
+  const [agents, setAgents] = useState<Agent[]>(mockAgents);
+
+  const handleSelectAgent = (agentId: string) => {
+    setAgents(agents.map(agent => ({
+      ...agent,
+      isActive: agent.id === agentId
+    })));
+    console.log('Selected agent:', agents.find(a => a.id === agentId)?.name);
+  };
+
   return (
     <div className="py-2">
-      {mockAgents.map((agent) => (
+      {agents.map((agent) => (
         <div
           key={agent.id}
-          className={`flex items-start px-3 py-2 cursor-pointer hover:bg-accent/10 ${
+          className={`flex items-start px-3 py-2 cursor-pointer hover:bg-accent/10 rounded-lg transition-colors ${
             agent.isActive ? "bg-accent/10" : ""
           }`}
+          onClick={() => handleSelectAgent(agent.id)}
         >
           <div className="flex-shrink-0 pt-1 mr-3">{agent.icon}</div>
           <div className="flex-1 min-w-0">

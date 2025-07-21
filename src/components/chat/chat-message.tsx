@@ -91,31 +91,37 @@ export function ChatMessage({
     navigator.clipboard.writeText(message.content);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
+    console.log('Copied message to clipboard');
   };
 
   const handleEdit = () => {
     if (isEditing && onEdit) {
       onEdit(message.id, editContent);
       setIsEditing(false);
+      console.log('Saved edited message');
     } else {
       setIsEditing(true);
+      console.log('Started editing message');
     }
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditContent(message.content);
+    console.log('Cancelled editing message');
   };
 
   const handleRegenerate = () => {
     if (onRegenerate) {
       onRegenerate(message.id);
+      console.log('Regenerating message');
     }
   };
 
   const handleReply = () => {
     if (onReply) {
       onReply(message);
+      console.log('Replying to message');
     }
   };
 
@@ -125,6 +131,7 @@ export function ChatMessage({
     if (onFeedback) {
       onFeedback(message.id, finalFeedback);
     }
+    console.log('Feedback given:', finalFeedback || 'removed');
   };
 
   const formattedTime = new Intl.DateTimeFormat("en-US", {

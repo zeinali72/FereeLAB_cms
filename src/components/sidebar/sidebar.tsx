@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   onOpenSettings?: () => void;
+  onNewConversation?: () => void;
 }
 
-export function Sidebar({ onOpenSettings }: SidebarProps) {
+export function Sidebar({ onOpenSettings, onNewConversation }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState<"chat" | "agents">("chat");
@@ -45,7 +46,10 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
         
         {/* Toggle Button */}
         <button
-          onClick={() => setIsToggled(!isToggled)}
+          onClick={() => {
+            setIsToggled(!isToggled);
+            console.log('Toggle button clicked:', !isToggled ? 'ON' : 'OFF');
+          }}
           className={cn(
             "p-2 rounded-full transition-all duration-200",
             isToggled 
@@ -65,7 +69,10 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
       <div className="p-3">
         <button
           className="w-full flex items-center justify-between rounded-lg bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 transition-colors"
-          onClick={() => {/* Add new chat logic */}}
+          onClick={() => {
+            onNewConversation?.();
+            console.log('New Chat button clicked');
+          }}
         >
           <span className="font-medium">New Chat</span>
           <Plus className="w-4 h-4" />
@@ -81,7 +88,10 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
             placeholder="Search chats..."
             className="w-full rounded-md border border-input bg-background pl-10 pr-4 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              console.log('Searching for:', e.target.value);
+            }}
           />
         </div>
       </div>
@@ -95,7 +105,10 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
           )}
-          onClick={() => setActiveSection("chat")}
+          onClick={() => {
+            setActiveSection("chat");
+            console.log('Switched to Chat section');
+          }}
         >
           Chat
         </button>
@@ -106,7 +119,10 @@ export function Sidebar({ onOpenSettings }: SidebarProps) {
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
           )}
-          onClick={() => setActiveSection("agents")}
+          onClick={() => {
+            setActiveSection("agents");
+            console.log('Switched to Agents section');
+          }}
         >
           Agents
         </button>

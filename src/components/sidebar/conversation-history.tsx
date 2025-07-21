@@ -74,12 +74,14 @@ export function ConversationHistory({
     e.preventDefault();
     if (editTitle.trim() && onRenameConversation && editingId) {
       onRenameConversation(editingId, editTitle.trim());
+      console.log('Renamed conversation to:', editTitle.trim());
     }
     setEditingId(null);
   };
 
   // Cancel renaming
   const handleCancelRename = () => {
+    console.log('Cancelled renaming conversation');
     setEditingId(null);
     setEditTitle('');
   };
@@ -136,7 +138,10 @@ export function ConversationHistory({
     <div className="mt-2">
       <div className="px-4 py-2">
         <button
-          onClick={() => setIsSectionOpen(!isSectionOpen)}
+          onClick={() => {
+            setIsSectionOpen(!isSectionOpen);
+            console.log('Toggled conversations section:', !isSectionOpen ? 'opened' : 'closed');
+          }}
           className="w-full flex items-center justify-between text-sm font-medium p-1 hover:bg-muted rounded-md transition-colors"
         >
           <span className="text-muted-foreground">Conversations</span>
@@ -152,7 +157,10 @@ export function ConversationHistory({
         <div className="mt-1">
           {!isSearchResult && (
             <button
-              onClick={onNewConversation}
+              onClick={() => {
+                onNewConversation?.();
+                console.log('New conversation button clicked from history');
+              }}
               className="flex items-center justify-between w-full text-sm px-4 py-2 hover:bg-muted transition-colors text-foreground"
             >
               <div className="flex items-center">
@@ -172,7 +180,10 @@ export function ConversationHistory({
                     "flex items-center w-full text-sm px-4 py-2 hover:bg-muted transition-colors cursor-pointer rounded-md mx-2",
                     conv.id === activeConversationId && "bg-accent text-accent-foreground"
                   )}
-                  onClick={() => onSwitchConversation?.(conv.id)}
+                  onClick={() => {
+                    onSwitchConversation?.(conv.id);
+                    console.log('Switched to conversation:', conv.title);
+                  }}
                   onKeyDown={(e) => handleKeyDown(e, conv)}
                   onContextMenu={(e) => onContextMenu?.(e, conv)}
                   tabIndex={0}
@@ -208,6 +219,7 @@ export function ConversationHistory({
                         if (editingId !== conv.id) {
                           onSwitchConversation?.(conv.id);
                           setSelectedId(conv.id);
+                          console.log('Switched to conversation:', conv.title);
                         }
                       }}
                       onKeyDown={(e) => handleKeyDown(e, conv)}

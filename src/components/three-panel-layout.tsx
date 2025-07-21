@@ -109,7 +109,10 @@ export function ThreePanelLayout() {
             onResize={handleSidebarResize}
             className="panel-sidebar border-r-0"
           >
-            <Sidebar onOpenSettings={() => setSettingsPanelOpen(true)} />
+            <Sidebar 
+              onOpenSettings={() => setSettingsPanelOpen(true)} 
+              onNewConversation={handleNewConversation}
+            />
           </ResizablePanel>
         </div>
       )}
@@ -122,7 +125,10 @@ export function ThreePanelLayout() {
             onClick={toggleSidebar}
           />
           <div className="w-[280px] h-full panel-sidebar border-r-0">
-            <Sidebar onOpenSettings={() => setSettingsPanelOpen(true)} />
+            <Sidebar 
+              onOpenSettings={() => setSettingsPanelOpen(true)} 
+              onNewConversation={handleNewConversation}
+            />
           </div>
         </div>
       )}
