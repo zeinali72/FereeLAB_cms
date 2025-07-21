@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { X, Search, Filter, CheckCircle } from "lucide-react";
-import { AIModel, availableModels } from "@/data/models";
+import { X, Search, Filter, CheckCircle, Loader2 } from "lucide-react";
+import { AIModel } from "@/hooks/use-panels-with-api";
+import { api } from "@/lib/api";
 import { FilterSidebar } from "@/components/marketplace/filter-sidebar";
 import { ModelList } from "@/components/marketplace/model-list";
 
@@ -32,11 +33,74 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
     maxPrice: 0,
     categories: [],
   });
+  
+  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load models from API when panel opens
+  useEffect(() => {
+    if (isOpen && availableModels.length === 0) {
+      loadModels();
+    }
+  }, [isOpen]);
+
+  const loadModels = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const apiModels = await api.getModels();
+      const convertedModels: AIModel[] = apiModels.map(model => ({
+        id: model.model_id,
+        name: model.display_name,
+        description: model.description,
+        context_length: model.context_length,
+        pricing: {
+          prompt: model.prompt_cost.toString(),
+          completion: model.completion_cost.toString(),
+        },
+        provider: {
+          id: model.provider.name,
+          name: model.provider.display_name,
+        },
+        icon: getModelIcon(model.provider.name),
+        maxTokens: model.context_length,
+        inputPrice: model.prompt_cost,
+        outputPrice: model.completion_cost,
+        model_id: model.model_id,
+        quality_score: model.quality_score,
+        speed_score: model.speed_score,
+        popularity_score: model.popularity_score,
+        supports_functions: model.supports_functions,
+        supports_vision: model.supports_vision,
+        is_featured: model.is_featured,
+      }));
+      setAvailableModels(convertedModels);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load models');
+      console.error('Failed to load models:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Get icon for model provider
+  function getModelIcon(providerName: string): string {
+    const icons: Record<string, string> = {
+      'switchpoint': '🔄',
+      'openai': '🤖',
+      'anthropic': '🎭',
+      'google': '✨',
+      'mistralai': '🌊',
+      'moonshot': '🌙',
+    };
+    return icons[providerName] || '🔮';
+  }
 
   // Get unique providers for filter
   const providers = useMemo(() => {
     return [...new Set(availableModels.map(m => m.provider.name))].sort();
-  }, []);
+  }, [availableModels]);
 
   // Filter models based on search and filters
   const filteredModels = useMemo(() => {
@@ -236,60 +300,110 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
 
             {/* Models Grid */}
             <div className="flex-1 overflow-y-auto p-6 scrollbar-modern">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredModels.map(model => {
-                  const isSelected = selectedModelIds.includes(model.id);
-                  return (
-                    <div
-                      key={model.id}
-                      className={`relative p-4 rounded-lg border cursor-pointer transition-all ${
-                        isSelected 
-                          ? 'border-primary bg-primary/5 shadow-md' 
-                          : 'border hover:border-primary/50 hover:shadow-sm'
-                      }`}
-                      onClick={() => handleModelToggle(model.id)}
+              {isLoading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+                    <p className="text-muted-foreground">Loading AI models...</p>
+                  </div>
+                </div>
+              ) : error ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <p className="text-red-500 mb-4">{error}</p>
+                    <button
+                      onClick={loadModels}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200"
                     >
-                      {isSelected && (
-                        <div className="absolute top-3 right-3 text-primary">
-                          <CheckCircle className="h-5 w-5" />
-                        </div>
-                      )}
-                      
-                      <div className="mb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-lg">{model.icon}</span>
-                              <h3 className="font-semibold text-sm">{model.name}</h3>
+                      Try Again
+                    </button>
+                  </div>
+                </div>
+              ) : filteredModels.length === 0 ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <p className="text-muted-foreground">No models found matching your criteria</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredModels.map(model => {
+                    const isSelected = selectedModelIds.includes(model.id);
+                    return (
+                      <div
+                        key={model.id}
+                        className={`relative p-4 rounded-lg border cursor-pointer transition-all ${
+                          isSelected 
+                            ? 'border-primary bg-primary/5 shadow-md' 
+                            : 'border hover:border-primary/50 hover:shadow-sm'
+                        }`}
+                        onClick={() => handleModelToggle(model.id)}
+                      >
+                        {isSelected && (
+                          <div className="absolute top-3 right-3 text-primary">
+                            <CheckCircle className="h-5 w-5" />
+                          </div>
+                        )}
+                        
+                        <div className="mb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-lg">{model.icon}</span>
+                                <h3 className="font-semibold text-sm">{model.name}</h3>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{model.provider.name}</p>
+                              {/* Show feature badges */}
+                              <div className="flex gap-1 mt-1">
+                                {model.supports_functions && (
+                                  <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">Functions</span>
+                                )}
+                                {model.supports_vision && (
+                                  <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs">Vision</span>
+                                )}
+                                {model.is_featured && (
+                                  <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">Featured</span>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-xs text-muted-foreground">{model.provider.name}</p>
+                            <div className="flex-shrink-0 ml-2">
+                              <span className="px-2 py-1 bg-muted rounded-full text-xs">
+                                {formatContext(model.context_length)} tokens
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex-shrink-0 ml-2">
-                            <span className="px-2 py-1 bg-muted rounded-full text-xs">
-                              {formatContext(model.context_length)} tokens
-                            </span>
+                        </div>
+                        
+                        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                          {model.description}
+                        </p>
+                        
+                        <div className="space-y-2 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Input:</span>
+                            <span className="font-mono">${model.pricing.prompt}/1M tokens</span>
                           </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Output:</span>
+                            <span className="font-mono">${model.pricing.completion}/1M tokens</span>
+                          </div>
+                          {/* Show performance scores */}
+                          {(model.quality_score || model.speed_score) && (
+                            <div className="flex items-center justify-between pt-1 border-t border-border/10">
+                              {model.quality_score && (
+                                <span className="text-muted-foreground">Quality: {model.quality_score}/10</span>
+                              )}
+                              {model.speed_score && (
+                                <span className="text-muted-foreground">Speed: {model.speed_score}/10</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      
-                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                        {model.description}
-                      </p>
-                      
-                      <div className="space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Input:</span>
-                          <span className="font-mono">${model.pricing.prompt}/1M tokens</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Output:</span>
-                          <span className="font-mono">${model.pricing.completion}/1M tokens</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Footer */}

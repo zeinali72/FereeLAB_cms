@@ -10,15 +10,16 @@ import { ModelPanel } from "@/components/modals/model-panel";
 import { MarketplacePanel } from "@/components/modals/marketplace-panel";
 import { SettingsPanel } from "@/components/modals/settings-panel";
 import { UserMenuPanel } from "@/components/modals/user-menu-panel";
+import { UsagePanel } from "@/components/usage-panel";
 import { ResizablePanel } from "@/components/shared/resizable-panel";
-import { usePanels } from "@/hooks/use-panels";
+import { usePanelsWithAPI } from "@/hooks/use-panels-with-api";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { MarkdownCanvas } from "./shared/markdown-canvas";
 import { PromptSuggestions } from "./chat/prompt-suggestions";
 
 export function ThreePanelLayout() {
-  // Use the comprehensive panels hook
+  // Use the comprehensive panels hook with API integration
   const {
     // Panel state
     panels,
@@ -30,12 +31,16 @@ export function ThreePanelLayout() {
     // Project state
     projects,
     
+    // Usage state
+    usage,
+    
     // Panel actions
     toggleSidebar,
     toggleCanvas,
     toggleModelPanel,
     toggleMarketplace,
     toggleUserMenu,
+    toggleUsagePanel,
     closeAllPanels,
     handleSidebarResize,
     handleCanvasResize,
@@ -52,7 +57,10 @@ export function ThreePanelLayout() {
     // Project actions
     projectActions,
     switchToProjectChat,
-  } = usePanels();
+    
+    // API actions
+    loadUsageDashboard,
+  } = usePanelsWithAPI();
 
   const { theme, setTheme } = useTheme();
   const [isMobile, setIsMobile] = useState(false);
@@ -291,7 +299,37 @@ export function ThreePanelLayout() {
           toggleUserMenu();
         }}
         onOpenSettings={handleSettingsOpen}
+        onOpenUsage={toggleUsagePanel}
       />
+
+      {/* Usage Panel */}
+      {panels.usagePanel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <div 
+            className="fixed inset-0" 
+            onClick={toggleUsagePanel}
+          />
+          <div className="relative w-full max-w-lg max-h-[90vh] bg-background rounded-xl shadow-xl border overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Usage Tracking</h2>
+              <button
+                onClick={toggleUsagePanel}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            <div className="overflow-y-auto">
+              <UsagePanel
+                dashboard={usage.dashboard}
+                isLoading={usage.isLoading}
+                error={usage.error}
+                onRefresh={loadUsageDashboard}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <SettingsPanel
         isOpen={settingsPanelOpen}

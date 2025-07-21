@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Sun, Moon, Settings, User, HelpCircle, Check, ChevronRight, LogOut } from 'lucide-react';
+import { Sun, Moon, Settings, User, HelpCircle, Check, ChevronRight, LogOut, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const themes = [
@@ -19,9 +19,10 @@ interface UserMenuPanelProps {
   setTheme: (theme: Theme) => void;
   onClose: () => void;
   onOpenSettings?: () => void;
+  onOpenUsage?: () => void;
 }
 
-export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOpenSettings }: UserMenuPanelProps) {
+export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOpenSettings, onOpenUsage }: UserMenuPanelProps) {
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const themeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -33,6 +34,12 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
       case 'settings':
         if (onOpenSettings) {
           onOpenSettings();
+        }
+        onClose();
+        break;
+      case 'usage':
+        if (onOpenUsage) {
+          onOpenUsage();
         }
         onClose();
         break;
@@ -152,6 +159,14 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
         >
           <Settings size={16} className="mr-3 text-muted-foreground" />
           <span className="text-foreground">Settings</span>
+        </div>
+        
+        <div 
+          className="px-4 py-2 flex items-center hover:bg-accent/30 rounded cursor-pointer transition-all duration-200" 
+          onClick={() => handleAction('usage')}
+        >
+          <BarChart3 size={16} className="mr-3 text-muted-foreground" />
+          <span className="text-foreground">Usage Tracking</span>
         </div>
         
         <div 
