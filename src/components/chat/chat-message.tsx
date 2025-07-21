@@ -9,6 +9,7 @@ import { Message } from "@/hooks/use-panels";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { AnimatedButton } from "@/components/ui/animated-button";
 import { ContextMenu, ContextMenuItem } from "@/components/shared/context-menu";
+import { TextSelectionMenu } from "@/components/shared/text-selection-menu";
 
 interface ChatMessageProps {
   message: Message;
@@ -45,6 +46,8 @@ export function ChatMessage({
   const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [selectedText, setSelectedText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [selectionMenuVisible, setSelectionMenuVisible] = useState(false);
+  const [selectionMenuPosition, setSelectionMenuPosition] = useState({ x: 0, y: 0 });
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messageRef = useRef<HTMLDivElement>(null);
@@ -222,9 +225,37 @@ export function ChatMessage({
   const handleTextSelection = () => {
     const selection = window.getSelection();
     if (selection && selection.toString().trim()) {
-      setSelectedText(selection.toString());
+      const selectedText = selection.toString();
+      setSelectedText(selectedText);
+      
+      // Get selection position for menu positioning
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      setSelectionMenuPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      });
+      setSelectionMenuVisible(true);
     } else {
       setSelectedText('');
+      setSelectionMenuVisible(false);
+    }
+  };
+
+  const handleSelectionReply = () => {
+    if (selectedText && onReply) {
+      onReply(message);
+      setSelectionMenuVisible(false);
+    }
+  };
+
+  const handleSelectionQuote = () => {
+    if (selectedText && onQuoteInReply) {
+      onQuoteInReply({
+        ...message,
+        content: selectedText
+      });
+      setSelectionMenuVisible(false);
     }
   };
 
@@ -530,6 +561,16 @@ export function ChatMessage({
         items={contextMenuItems}
         position={contextMenuPosition}
         onClose={() => setContextMenuPosition(null)}
+      />
+
+      {/* Text Selection Menu */}
+      <TextSelectionMenu
+        isVisible={selectionMenuVisible}
+        position={selectionMenuPosition}
+        selectedText={selectedText}
+        onReply={handleSelectionReply}
+        onQuote={handleSelectionQuote}
+        onClose={() => setSelectionMenuVisible(false)}
       />
     </motion.div>
   );

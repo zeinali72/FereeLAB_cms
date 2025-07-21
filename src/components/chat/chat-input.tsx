@@ -23,6 +23,7 @@ interface ChatInputProps {
   isCanvasOpen?: boolean;
   isFloating?: boolean;
   isNewConversation?: boolean;
+  isProcessing?: boolean;
 }
 
 export function ChatInput({ 
@@ -33,7 +34,8 @@ export function ChatInput({
   onToggleCanvas,
   isCanvasOpen,
   isFloating = false,
-  isNewConversation = false
+  isNewConversation = false,
+  isProcessing = false
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [showPrompts, setShowPrompts] = useState(true);
@@ -219,10 +221,14 @@ export function ChatInput({
 
         {/* Main Input Container */}
         <div className={`
-          depth-transition glass-border-gradient
+          depth-transition glass-border-gradient transition-all duration-500
           ${isFloating 
             ? 'glass-panel-floating p-6 depth-4' 
             : 'glass-input-bar p-3 depth-1'
+          }
+          ${isProcessing 
+            ? 'animate-glow-pulse ring-2 ring-primary/30' 
+            : ''
           }
         `}>
           {/* Input Area */}

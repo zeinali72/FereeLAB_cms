@@ -16,6 +16,8 @@ import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { MarkdownCanvas } from "./shared/markdown-canvas";
 import { PromptSuggestions } from "./chat/prompt-suggestions";
+import { HelpButton } from "./shared/help-button";
+import { AttachmentPanel } from "./shared/progressive-blur-backdrop";
 
 export function ThreePanelLayout() {
   // Use the comprehensive panels hook
@@ -58,6 +60,8 @@ export function ThreePanelLayout() {
   const [isMobile, setIsMobile] = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [userMenuPosition, setUserMenuPosition] = useState({ top: 0, right: 0 });
+  const [attachmentPanelOpen, setAttachmentPanelOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Determine if this is a new conversation (no messages)
   const isNewConversation = chat.messages.length === 0;
@@ -108,6 +112,23 @@ export function ThreePanelLayout() {
       ...message,
       content: `> ${message.content}\n\n`
     });
+  };
+
+  const handleAttachFile = (source: string) => {
+    console.log('Attaching file from:', source);
+    // TODO: Implement file attachment based on source
+    setAttachmentPanelOpen(false);
+  };
+
+  // Simulate processing state for demo
+  const handleSendWithProcessing = async (message: string) => {
+    setIsProcessing(true);
+    try {
+      await sendMessage(message);
+    } finally {
+      // Simulate processing delay
+      setTimeout(() => setIsProcessing(false), 2000);
+    }
   };
   
   return (
@@ -197,7 +218,7 @@ export function ThreePanelLayout() {
                 <div className="w-full max-w-2xl mb-20 animate-fade-in animation-delay-200">
                   <PromptSuggestions 
                     onSuggestionClick={(suggestion) => {
-                      sendMessage(suggestion);
+                      handleSendWithProcessing(suggestion);
                     }}
                     isFloating={false}
                   />
@@ -213,7 +234,7 @@ export function ThreePanelLayout() {
                 onQuoteInReply={handleQuoteInReply}
                 replyTo={chat.replyTo}
                 onSuggestionClick={(suggestion) => {
-                  sendMessage(suggestion);
+                  handleSendWithProcessing(suggestion);
                 }}
               />
             )}
@@ -223,7 +244,7 @@ export function ThreePanelLayout() {
           <div className="flex-shrink-0 p-4 bg-gradient-to-t from-background via-background to-transparent border-t border-border/50">
             <div className="max-w-4xl mx-auto">
               <ChatInput
-                onSendMessage={sendMessage}
+                onSendMessage={handleSendWithProcessing}
                 selectedModel={chat.selectedModel}
                 replyTo={chat.replyTo ? {
                   id: chat.replyTo.id,
@@ -235,6 +256,7 @@ export function ThreePanelLayout() {
                 isCanvasOpen={panels.canvas}
                 isFloating={false}
                 isNewConversation={isNewConversation}
+                isProcessing={isProcessing}
               />
             </div>
           </div>
@@ -312,6 +334,16 @@ export function ThreePanelLayout() {
         isOpen={settingsPanelOpen}
         onClose={() => setSettingsPanelOpen(false)}
       />
+
+      {/* Attachment Panel */}
+      <AttachmentPanel
+        isOpen={attachmentPanelOpen}
+        onClose={() => setAttachmentPanelOpen(false)}
+        onAttachFile={handleAttachFile}
+      />
+
+      {/* Help Button */}
+      <HelpButton />
     </div>
   );
 }
