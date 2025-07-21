@@ -89,8 +89,6 @@ export function AppLayout() {
       />
       
       <ChatArea
-        messages={messages}
-        onSendMessage={handleSendMessage}
         sidebarOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
       />

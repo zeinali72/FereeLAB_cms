@@ -97,15 +97,17 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({ items, selected, onChange
   </div>
 );
 
+type FilterState = {
+  providers: string[];
+  modalities: string[];
+  contextLength: number;
+  maxPrice: number;
+  categories: string[];
+};
+
 interface FilterSidebarProps {
-  filters: {
-    providers: string[];
-    modalities: string[];
-    contextLength: number;
-    maxPrice: number;
-    categories: string[];
-  };
-  onFilterChange: (filters: any) => void;
+  filters: FilterState;
+  onFilterChange: (filters: FilterState) => void;
   onResetFilters: () => void;
   providers?: { id: string; name: string }[];
   categories?: { id: string; name: string }[];
