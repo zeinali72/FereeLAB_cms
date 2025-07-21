@@ -12,6 +12,8 @@ interface ChatLogProps {
   onEditMessage?: (messageId: string, newContent: string) => void;
   onRegenerate?: (messageId: string) => void;
   onReply?: (message: Message) => void;
+  onAssignToProject?: (message: Message) => void;
+  onQuoteInReply?: (message: Message) => void;
   replyTo?: Message | null;
   onSuggestionClick?: (suggestion: string) => void;
 }
@@ -21,6 +23,8 @@ export function ChatLog({
   onEditMessage, 
   onRegenerate, 
   onReply, 
+  onAssignToProject,
+  onQuoteInReply,
   replyTo,
   onSuggestionClick
 }: ChatLogProps) {
@@ -274,6 +278,8 @@ export function ChatLog({
                   onEdit={onEditMessage}
                   onRegenerate={onRegenerate}
                   onReply={onReply}
+                  onAssignToProject={onAssignToProject}
+                  onQuoteInReply={onQuoteInReply}
                   replyActive={replyTo?.id === message.id}
                 />
               </motion.div>

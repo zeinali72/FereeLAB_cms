@@ -11,7 +11,7 @@ import { MarketplacePanel } from "@/components/modals/marketplace-panel";
 import { SettingsPanel } from "@/components/modals/settings-panel";
 import { UserMenuPanel } from "@/components/modals/user-menu-panel";
 import { ResizablePanel } from "@/components/shared/resizable-panel";
-import { usePanels } from "@/hooks/use-panels";
+import { usePanels, Message } from "@/hooks/use-panels";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { MarkdownCanvas } from "./shared/markdown-canvas";
@@ -95,6 +95,19 @@ export function ThreePanelLayout() {
   const handleSettingsOpen = () => {
     setSettingsPanelOpen(true);
     closeAllPanels();
+  };
+
+  const handleAssignToProject = (message: Message) => {
+    // TODO: Implement project assignment functionality
+    console.log('Assigning message to project:', message);
+  };
+
+  const handleQuoteInReply = (message: Message) => {
+    // Set up a quoted reply
+    replyToMessage({
+      ...message,
+      content: `> ${message.content}\n\n`
+    });
   };
   
   return (
@@ -196,6 +209,8 @@ export function ThreePanelLayout() {
                 onEditMessage={editMessage}
                 onRegenerate={regenerateMessage}
                 onReply={replyToMessage}
+                onAssignToProject={handleAssignToProject}
+                onQuoteInReply={handleQuoteInReply}
                 replyTo={chat.replyTo}
                 onSuggestionClick={(suggestion) => {
                   sendMessage(suggestion);

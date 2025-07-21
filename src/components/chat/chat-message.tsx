@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, ThumbsDown, ThumbsUp, Edit2, RefreshCw, MessageSquare, Check, X, Cpu } from "lucide-react";
+import { Copy, ThumbsDown, ThumbsUp, Edit2, RefreshCw, MessageSquare, Check, X, Cpu, Volume2, Quote, FolderPlus, Code } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { estimateTokenCount } from "@/utils/token-calculator";
 import { Message } from "@/hooks/use-panels";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { AnimatedButton } from "@/components/ui/animated-button";
+import { ContextMenu, ContextMenuItem } from "@/components/shared/context-menu";
 
 interface ChatMessageProps {
   message: Message;
@@ -17,6 +18,8 @@ interface ChatMessageProps {
   onRegenerate?: (messageId: string) => void;
   onReply?: (message: Message) => void;
   onFeedback?: (messageId: string, feedback: "like" | "dislike" | null) => void;
+  onAssignToProject?: (message: Message) => void;
+  onQuoteInReply?: (message: Message) => void;
   replyActive?: boolean;
 }
 
@@ -27,6 +30,8 @@ export function ChatMessage({
   onRegenerate, 
   onReply, 
   onFeedback,
+  onAssignToProject,
+  onQuoteInReply,
   replyActive = false
 }: ChatMessageProps) {
   const [showControls, setShowControls] = useState(false);
@@ -37,6 +42,9 @@ export function ChatMessage({
   const [displayText, setDisplayText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [animationClass, setAnimationClass] = useState('');
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [selectedText, setSelectedText] = useState('');
+  const [isPlaying, setIsPlaying] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messageRef = useRef<HTMLDivElement>(null);
@@ -132,6 +140,92 @@ export function ChatMessage({
       onFeedback(message.id, finalFeedback);
     }
     console.log('Feedback given:', finalFeedback || 'removed');
+  };
+
+  // Text-to-speech functionality
+  const handleTextToSpeech = () => {
+    if (isPlaying) {
+      speechSynthesis.cancel();
+      setIsPlaying(false);
+      return;
+    }
+
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(message.content);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+      
+      speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Handle right-click context menu
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    setContextMenuPosition({ x: event.clientX, y: event.clientY });
+  };
+
+  // Check if message contains code blocks
+  const hasCodeBlocks = message.content.includes('```');
+
+  // Context menu items
+  const contextMenuItems: ContextMenuItem[] = [
+    {
+      label: 'Copy Message',
+      icon: <Copy className="w-4 h-4" />,
+      action: handleCopyToClipboard,
+    },
+    ...(hasCodeBlocks ? [{
+      label: 'Copy as Snippet',
+      icon: <Code className="w-4 h-4" />,
+      action: () => {
+        // Extract code blocks and copy them
+        const codeBlocks = message.content.match(/```[\s\S]*?```/g) || [];
+        const codeContent = codeBlocks.map(block => 
+          block.replace(/```(\w+)?\n?/, '').replace(/```$/, '')
+        ).join('\n\n');
+        navigator.clipboard.writeText(codeContent);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      },
+    }] : []),
+    { separator: true },
+    {
+      label: 'Reply to Message',
+      icon: <MessageSquare className="w-4 h-4" />,
+      action: handleReply,
+    },
+    {
+      label: 'Quote in Reply',
+      icon: <Quote className="w-4 h-4" />,
+      action: () => onQuoteInReply?.(message),
+    },
+    { separator: true },
+    {
+      label: 'Assign to Project',
+      icon: <FolderPlus className="w-4 h-4" />,
+      action: () => onAssignToProject?.(message),
+    },
+    ...(message.role === 'assistant' ? [{
+      label: isPlaying ? 'Stop Reading' : 'Read Aloud',
+      icon: <Volume2 className="w-4 h-4" />,
+      action: handleTextToSpeech,
+    }] : []),
+  ];
+
+  // Handle text selection
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      setSelectedText(selection.toString());
+    } else {
+      setSelectedText('');
+    }
   };
 
   const formattedTime = new Intl.DateTimeFormat("en-US", {
@@ -252,7 +346,7 @@ export function ChatMessage({
         {/* Message Bubble */}
         <motion.div 
           className={cn(
-            "px-4 py-3 rounded-2xl shadow-sm break-words",
+            "px-4 py-3 rounded-2xl shadow-sm break-words relative",
             isUser 
               ? "bg-primary text-primary-foreground rounded-br-md" 
               : "bg-muted text-foreground rounded-bl-md"
@@ -266,6 +360,8 @@ export function ChatMessage({
             delay: 0.3
           }}
           whileHover={{ scale: 1.02 }}
+          onContextMenu={handleContextMenu}
+          onMouseUp={handleTextSelection}
         >
           {isEditing ? (
             <div className="flex flex-col gap-3 w-full">
@@ -428,6 +524,13 @@ export function ChatMessage({
           </motion.div>
         </div>
       </div>
+
+      {/* Context Menu */}
+      <ContextMenu
+        items={contextMenuItems}
+        position={contextMenuPosition}
+        onClose={() => setContextMenuPosition(null)}
+      />
     </motion.div>
   );
 }
