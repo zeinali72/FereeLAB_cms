@@ -1,20 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import { MoreVertical, Plus, Search } from "lucide-react";
+import { useState, useRef } from "react";
+import { MoreVertical, Plus, Search, Settings, LogOut } from "lucide-react";
+import { useTheme } from "next-themes";
 import ConversationList from "./conversation-list";
 import AgentsList from "./agents-list";
+import { UserMenuPanel } from "@/components/modals/user-menu-panel";
 import { cn } from "@/lib/utils";
 
-export function Sidebar() {
+interface SidebarProps {
+  onOpenSettings?: () => void;
+}
+
+export function Sidebar({ onOpenSettings }: SidebarProps) {
+  const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState<"chat" | "agents">("chat");
+  const [isToggled, setIsToggled] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [userMenuPosition, setUserMenuPosition] = useState({ top: 0, right: 0 });
+  const userButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleUserMenuToggle = () => {
+    if (userButtonRef.current) {
+      const rect = userButtonRef.current.getBoundingClientRect();
+      setUserMenuPosition({
+        top: rect.top,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setUserMenuOpen(!userMenuOpen);
+  };
+
+  const handleSettingsOpen = () => {
+    setUserMenuOpen(false); // Close user menu first
+    onOpenSettings?.();
+  };
 
   return (
     <div className="h-screen flex flex-col bg-card">
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <h1 className="text-lg font-semibold">FereeLAB</h1>
+        
+        {/* Toggle Button */}
+        <button
+          onClick={() => setIsToggled(!isToggled)}
+          className={cn(
+            "p-2 rounded-full transition-all duration-200",
+            isToggled 
+              ? "bg-primary text-primary-foreground" 
+              : "hover:bg-muted text-muted-foreground"
+          )}
+          title={isToggled ? "Turn off" : "Turn on"}
+        >
+          <div className={cn(
+            "w-3 h-3 rounded-full border-2 transition-colors",
+            isToggled ? "bg-primary-foreground border-primary-foreground" : "border-current"
+          )} />
+        </button>
       </div>
 
       {/* New Chat Button */}
@@ -85,11 +129,25 @@ export function Sidebar() {
               <p className="text-xs text-muted-foreground">Free Plan</p>
             </div>
           </div>
-          <button className="p-1 rounded-full hover:bg-muted transition-colors">
+          <button 
+            ref={userButtonRef}
+            onClick={handleUserMenuToggle}
+            className="p-1 rounded-full hover:bg-muted transition-colors"
+          >
             <MoreVertical className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
       </div>
+
+      {/* User Menu Panel */}
+      <UserMenuPanel
+        isOpen={userMenuOpen}
+        position={userMenuPosition}
+        theme={(theme === 'dark' ? 'dark' : 'light') as 'light' | 'dark'}
+        setTheme={(newTheme: 'light' | 'dark') => setTheme(newTheme)}
+        onClose={() => setUserMenuOpen(false)}
+        onOpenSettings={handleSettingsOpen}
+      />
     </div>
   );
 }

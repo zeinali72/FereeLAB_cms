@@ -100,7 +100,7 @@ export function ChatLayout() {
           onResize={handleSidebarResize}
           className="border-r border-border"
         >
-          <Sidebar />
+          <Sidebar onOpenSettings={() => setSettingsPanelOpen(true)} />
         </ResizablePanel>
       )}
 

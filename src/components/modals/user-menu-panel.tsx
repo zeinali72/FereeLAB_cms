@@ -82,7 +82,7 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
   const menuContent = (
     <div
       ref={menuRef}
-      className="fixed w-60 glass-panel-modal border-border/30 border shadow-2xl z-50 animate-fade-in p-1.5"
+      className="fixed w-60 panel-modal border-border/30 border shadow-2xl z-50 animate-fade-in p-1.5"
       onMouseLeave={() => {
         if (themeTimeoutRef.current) clearTimeout(themeTimeoutRef.current);
         themeTimeoutRef.current = setTimeout(() => {
@@ -91,14 +91,14 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
       }}
     >
       {/* User info */}
-      <div className="p-4 mb-1 border-b border-border/20 glass-overlay-light rounded-t-xl">
+      <div className="p-4 mb-1 border-b border-border/20 bg-muted/30 rounded-t-xl">
         <div className="flex items-center">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold mr-3 glass-border-gradient">
+          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold mr-3 shadow-md">
             U
           </div>
           <div>
-            <p className="font-medium text-foreground glass-text-medium">User</p>
-            <p className="text-xs text-muted-foreground glass-text-light">user@example.com</p>
+            <p className="font-medium text-foreground">User</p>
+            <p className="text-xs text-muted-foreground">user@example.com</p>
           </div>
         </div>
       </div>
@@ -115,14 +115,14 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
         >
           <div className="flex items-center">
             <ActiveThemeIcon size={16} className="mr-3 text-muted-foreground" />
-            <span className="text-foreground glass-text-light">{theme === 'light' ? 'Light' : 'Dark'} Theme</span>
+            <span className="text-foreground">{theme === 'light' ? 'Light' : 'Dark'} Theme</span>
           </div>
           <ChevronRight size={16} className="text-muted-foreground" />
           
           {/* Theme submenu */}
           {isThemeOpen && (
             <div 
-              className="absolute left-full top-0 w-48 glass-overlay-strong border-border/30 border rounded-lg shadow-2xl ml-2 overflow-hidden animate-fade-in"
+              className="absolute left-full top-0 w-48 surface-overlay border-border/30 border rounded-lg shadow-2xl ml-2 overflow-hidden animate-fade-in"
               onMouseEnter={() => {
                 if (themeTimeoutRef.current) clearTimeout(themeTimeoutRef.current);
               }}
@@ -135,7 +135,7 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
                 >
                   <div className="flex items-center">
                     <themeOption.icon size={16} className="mr-3 text-muted-foreground" />
-                    <span className="text-foreground glass-text-light">{themeOption.name}</span>
+                    <span className="text-foreground">{themeOption.name}</span>
                   </div>
                   {theme === themeOption.id && (
                     <Check size={16} className="text-primary" />
@@ -151,7 +151,7 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
           onClick={() => handleAction('settings')}
         >
           <Settings size={16} className="mr-3 text-muted-foreground" />
-          <span className="text-foreground glass-text-light">Settings</span>
+          <span className="text-foreground">Settings</span>
         </div>
         
         <div 
@@ -159,7 +159,7 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
           onClick={() => handleAction('account')}
         >
           <User size={16} className="mr-3 text-muted-foreground" />
-          <span className="text-foreground glass-text-light">Account</span>
+          <span className="text-foreground">Account</span>
         </div>
         
         <div 
@@ -167,10 +167,10 @@ export function UserMenuPanel({ isOpen, position, theme, setTheme, onClose, onOp
           onClick={() => handleAction('help')}
         >
           <HelpCircle size={16} className="mr-3 text-muted-foreground" />
-          <span className="text-foreground glass-text-light">Help</span>
+          <span className="text-foreground">Help</span>
         </div>
         
-        <div className="mt-1 pt-1 border-t border-border/20 glass-overlay-light">
+        <div className="mt-1 pt-1 border-t border-border/20 bg-muted/20">
           <div 
             className="px-4 py-2 flex items-center hover:bg-accent/30 rounded cursor-pointer transition-all duration-200 text-red-500" 
             onClick={() => handleAction('logout')}

@@ -109,7 +109,7 @@ export function ThreePanelLayout() {
             onResize={handleSidebarResize}
             className="panel-sidebar border-r-0"
           >
-            <Sidebar />
+            <Sidebar onOpenSettings={() => setSettingsPanelOpen(true)} />
           </ResizablePanel>
         </div>
       )}
@@ -122,7 +122,7 @@ export function ThreePanelLayout() {
             onClick={toggleSidebar}
           />
           <div className="w-[280px] h-full panel-sidebar border-r-0">
-            <Sidebar />
+            <Sidebar onOpenSettings={() => setSettingsPanelOpen(true)} />
           </div>
         </div>
       )}

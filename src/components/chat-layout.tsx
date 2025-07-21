@@ -111,7 +111,7 @@ export function ChatLayout() {
           !panels.sidebar && "translate-x-[-100%]",
           isMobile && panels.sidebar && "absolute inset-0 z-50 translate-x-0"
         )}>
-          <Sidebar />
+          <Sidebar onOpenSettings={handleSettingsOpen} />
         </div>
       </div>
 

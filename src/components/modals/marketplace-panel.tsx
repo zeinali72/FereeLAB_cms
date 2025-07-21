@@ -112,17 +112,17 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 glass-overlay-strong" 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
         onClick={onClose}
       />
       
       {/* Modal Panel */}
-      <div className="relative glass-panel-modal w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl">
+      <div className="relative panel-modal w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border/20 glass-overlay-light rounded-t-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-border/20 bg-muted/30 rounded-t-2xl">
           <div>
-            <h2 className="text-xl font-semibold glass-text-medium">AI Models Marketplace</h2>
-            <p className="text-sm text-muted-foreground mt-1 glass-text-light">
+            <h2 className="text-xl font-semibold text-heading">AI Models Marketplace</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               Browse and select AI models for your conversations
             </p>
           </div>
@@ -137,9 +137,9 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
         <div className="flex flex-1 min-h-0">
           {/* Filters Sidebar */}
           {showFilters && (
-            <div className="w-72 border-r border-border/20 p-6 overflow-y-auto glass-overlay-medium progressive-blur-top progressive-blur-bottom">
+            <div className="w-72 border-r border-border/20 p-6 overflow-y-auto bg-muted/20 scrollbar-modern">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold glass-text-medium">Filters</h3>
+                <h3 className="font-semibold text-heading">Filters</h3>
                 <button
                   onClick={resetFilters}
                   className="text-xs text-muted-foreground hover:text-foreground transition-all duration-200"
@@ -207,7 +207,7 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
           {/* Main Content */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Search and Controls */}
-            <div className="p-6 border-b border-border/20 glass-overlay-light">
+            <div className="p-6 border-b border-border/20 bg-muted/20">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
@@ -217,25 +217,25 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
                   <Filter className="h-4 w-4" />
                 </button>
                 
-                <div className="flex-1 relative glass-input-bar p-0">
+                <div className="flex-1 relative input-raised p-0">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                   <input
                     type="text"
                     placeholder="Search models, providers, or descriptions..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-transparent border-none focus:outline-none glass-text-light"
+                    className="w-full pl-10 pr-4 py-2 bg-transparent border-none focus:outline-none"
                   />
                 </div>
                 
-                <div className="text-sm text-muted-foreground glass-text-light">
+                <div className="text-sm text-muted-foreground">
                   {filteredModels.length} models found
                 </div>
               </div>
             </div>
 
             {/* Models Grid */}
-            <div className="flex-1 overflow-y-auto p-6 progressive-blur-top progressive-blur-bottom">
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-modern">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredModels.map(model => {
                   const isSelected = selectedModelIds.includes(model.id);
@@ -293,8 +293,8 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-border/20 flex items-center justify-between glass-overlay-medium rounded-b-2xl">
-              <div className="text-sm text-muted-foreground glass-text-light">
+            <div className="p-6 border-t border-border/20 flex items-center justify-between bg-muted/30 rounded-b-2xl">
+              <div className="text-sm text-muted-foreground">
                 {selectedModelIds.length} model(s) selected
                 {selectedModelIds.length > 0 && (
                   <button
