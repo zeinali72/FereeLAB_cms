@@ -35,27 +35,19 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
-        redirect: false,
+        callbackUrl: "/",
+        redirect: true,
       });
 
+      // If we reach here without redirect, there was an error
       if (result?.error) {
         setError("Invalid credentials. Please try again.");
-      } else {
-        // Get the session to update our store
-        const session = await getSession();
-        if (session?.user) {
-          setUser({
-            id: session.user.id || "",
-            email: session.user.email || "",
-            name: session.user.name || "",
-            image: session.user.image || undefined,
-          });
-        }
-        router.push("/");
+        setIsLoading(false);
+        setLoading(false);
       }
     } catch (error) {
+      console.error("Login error:", error);
       setError("An unexpected error occurred. Please try again.");
-    } finally {
       setIsLoading(false);
       setLoading(false);
     }
@@ -65,8 +57,12 @@ export default function LoginPage() {
     setIsLoading(true);
     setLoading(true);
     try {
-      await signIn(provider, { callbackUrl: "/" });
+      await signIn(provider, { 
+        callbackUrl: "/",
+        redirect: true 
+      });
     } catch (error) {
+      console.error(`OAuth ${provider} error:`, error);
       setError(`Failed to sign in with ${provider}. Please try again.`);
       setIsLoading(false);
       setLoading(false);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get session for potential future user tracking
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',

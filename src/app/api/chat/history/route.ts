@@ -1,18 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { connectToMongoose } from '@/lib/mongodb';
 import { Chat } from '@/models/Chat';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
+    
+    console.log('Chat history session check:', {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email,
+      sessionDetails: session
+    });
     
     if (!session?.user?.id) {
+      console.log('No session found in chat history API');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
+
+    console.log('Chat history request for user:', session.user.id);
 
     await connectToMongoose();
 

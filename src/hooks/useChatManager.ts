@@ -102,6 +102,12 @@ export function useChatManager() {
     const loadChatHistory = async () => {
       try {
         setLoading(true);
+        
+        console.log('Loading chat history for user:', session.user.id);
+        
+        // Add a longer delay to ensure session cookies are properly set
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         const response = await chatAPI.getChatHistory({ limit: 50 });
         if (response.chats) {
           setConversations(response.chats);
@@ -111,6 +117,8 @@ export function useChatManager() {
             setCurrentConversation(response.chats[0]);
           }
         }
+        
+        console.log('Chat history loaded successfully:', response.chats?.length || 0, 'chats');
       } catch (error) {
         console.error('Failed to load chat history:', error);
       } finally {

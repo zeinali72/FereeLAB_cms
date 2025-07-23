@@ -3,6 +3,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || '',
   timeout: 30000,
+  withCredentials: true, // Ensure cookies are sent with requests
 });
 
 // Request interceptor for adding auth token
@@ -23,8 +24,11 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access
-      window.location.href = '/login';
+      // Only redirect if we're not already on the login page
+      if (window.location.pathname !== '/login') {
+        console.log('Unauthorized request, redirecting to login');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
