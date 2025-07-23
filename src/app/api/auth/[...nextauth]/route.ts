@@ -3,7 +3,8 @@ import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectToMongoose } from '@/lib/mongodb';
+import { User } from '@/models/User';
 
 const handler = NextAuth({
   providers: [
@@ -27,8 +28,8 @@ const handler = NextAuth({
         }
 
         try {
-          const { db } = await connectToDatabase();
-          const user = await db.collection('users').findOne({ email: credentials.email });
+          await connectToMongoose();
+          const user = await User.findOne({ email: credentials.email.toLowerCase() });
           
           if (!user) {
             return null;

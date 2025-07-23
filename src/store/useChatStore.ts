@@ -1,5 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { availableModels, AIModel } from '@/data/models';
+
+// Helper function to convert AIModel to ChatModel
+const convertAIModelToChatModel = (aiModel: AIModel): ChatModel => ({
+  id: aiModel.id,
+  name: aiModel.name,
+  description: aiModel.description,
+  provider: aiModel.provider,
+  maxTokens: aiModel.maxTokens || aiModel.context_length || 8192,
+  inputPrice: aiModel.inputPrice || 0,
+  outputPrice: aiModel.outputPrice || 0,
+  context_length: aiModel.context_length,
+});
 
 export interface Message {
   id: string;
@@ -66,7 +79,7 @@ export const useChatStore = create<ChatState>()(
       conversations: [],
       currentConversation: null,
       messages: [],
-      selectedModel: null,
+      selectedModel: availableModels[0] ? convertAIModelToChatModel(availableModels[0]) : null,
       models: [],
       isLoading: false,
       isStreaming: false,

@@ -7,7 +7,7 @@ import { availableModels, AIModel } from "@/data/models";
 interface ModelPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedModel: AIModel;
+  selectedModel: AIModel | null;
   onModelSelect: (model: AIModel) => void;
   onOpenMarketplace?: () => void;
   selectedMarketplaceModels?: AIModel[];
@@ -21,10 +21,13 @@ export function ModelPanel({
   onOpenMarketplace,
   selectedMarketplaceModels = []
 }: ModelPanelProps) {
-  const [selectedModelId, setSelectedModelId] = useState(selectedModel.id);
+  // Provide fallback to first available model if selectedModel is null
+  const currentModel = selectedModel || availableModels[0];
+  
+  const [selectedModelId, setSelectedModelId] = useState(currentModel?.id || availableModels[0]?.id);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(selectedModel.maxTokens || 8192);
+  const [maxTokens, setMaxTokens] = useState(currentModel?.maxTokens || 8192);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Combine default models with marketplace models
@@ -50,6 +53,13 @@ export function ModelPanel({
       setMaxTokens(model.maxTokens || 8192);
     }
   }, [selectedModelId, allModels]);
+
+  // Update selectedModelId when selectedModel prop changes
+  useEffect(() => {
+    if (selectedModel?.id) {
+      setSelectedModelId(selectedModel.id);
+    }
+  }, [selectedModel]);
 
   const handleApply = () => {
     const model = allModels.find(m => m.id === selectedModelId);

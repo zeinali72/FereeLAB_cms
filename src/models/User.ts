@@ -4,8 +4,8 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
     lowercase: true,
+    index: { unique: true }, // Use index instead of unique property
   },
   name: {
     type: String,
@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: function() {
+    required: function(this: any) {
       return !this.provider; // Password required only if no OAuth provider
     },
   },
@@ -55,7 +55,6 @@ UserSchema.pre('save', function(next) {
 });
 
 // Create indexes
-UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ providerId: 1, provider: 1 });
 
 export const User = mongoose.models.User || mongoose.model('User', UserSchema);
