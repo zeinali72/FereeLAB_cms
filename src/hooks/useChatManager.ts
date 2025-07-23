@@ -246,10 +246,35 @@ export function useChatManager() {
   ]);
 
   // Start new conversation
-  const startNewConversation = useCallback(() => {
-    createNewConversation();
-    setMessages([]);
-  }, [createNewConversation, setMessages]);
+  const startNewConversation = useCallback(async () => {
+    try {
+      // Clear current messages immediately
+      setMessages([]);
+      setCurrentConversation(null);
+      
+      // If user is authenticated, create a new chat in the database
+      if (session?.user?.id) {
+        const newConversation = await chatAPI.createChat({
+          title: 'New Chat',
+          messages: [],
+          model: selectedModel,
+        });
+        
+        // Update local state
+        setCurrentConversation(newConversation);
+        const updatedConversations = [newConversation, ...conversations];
+        setConversations(updatedConversations);
+      } else {
+        // For unauthenticated users, just create local conversation
+        createNewConversation();
+      }
+    } catch (error) {
+      console.error('Failed to create new conversation:', error);
+      // Fallback to local conversation creation
+      createNewConversation();
+      setMessages([]);
+    }
+  }, [session?.user?.id, selectedModel, createNewConversation, setMessages, setCurrentConversation, setConversations]);
 
   // Switch to a conversation
   const switchToConversation = useCallback((conversation: any) => {

@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { X, Search, Filter, CheckCircle } from "lucide-react";
-import { AIModel, availableModels } from "@/data/models";
+import { AIModel } from "@/data/models";
 import { FilterSidebar } from "@/components/marketplace/filter-sidebar";
 import { ModelList } from "@/components/marketplace/model-list";
+import { modelsAPI } from "@/lib/api";
 
 interface MarketplacePanelProps {
   isOpen: boolean;
@@ -25,6 +26,8 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>(selectedModels);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(true);
+  const [models, setModels] = useState<AIModel[]>([]);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     providers: [],
     modalities: [],
@@ -33,14 +36,35 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
     categories: [],
   });
 
+  // Load models from OpenRouter on mount
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        setLoading(true);
+        const response = await modelsAPI.getModels();
+        if (response.models) {
+          setModels(response.models);
+        }
+      } catch (error) {
+        console.error('Failed to load models:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      loadModels();
+    }
+  }, [isOpen]);
+
   // Get unique providers for filter
   const providers = useMemo(() => {
-    return [...new Set(availableModels.map(m => m.provider.name))].sort();
-  }, []);
+    return [...new Set(models.map((m: AIModel) => m.provider.name))].sort();
+  }, [models]);
 
   // Filter models based on search and filters
   const filteredModels = useMemo(() => {
-    return availableModels.filter(model => {
+    return models.filter((model: AIModel) => {
       // Search filter
       const searchMatch = !searchTerm || 
         model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,7 +75,7 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
       const providerMatch = filters.providers.length === 0 || 
         filters.providers.includes(model.provider.name);
 
-      // Price filter
+      // Price filter  
       const priceMatch = filters.maxPrice === 0 || 
         (model.inputPrice || 0) <= filters.maxPrice;
 
@@ -61,7 +85,7 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
 
       return searchMatch && providerMatch && priceMatch && contextMatch;
     });
-  }, [searchTerm, filters]);
+  }, [searchTerm, filters, models]);
 
   const handleModelToggle = (modelId: string) => {
     setSelectedModelIds(prev => 
@@ -72,8 +96,8 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
   };
 
   const handleApply = () => {
-    const models = availableModels.filter(m => selectedModelIds.includes(m.id));
-    onApplyModels(models);
+    const selectedModelsData = models.filter((m: AIModel) => selectedModelIds.includes(m.id));
+    onApplyModels(selectedModelsData);
     onClose();
   };
 
@@ -99,66 +123,78 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
   const formatContext = (tokens: number) => {
     if (tokens >= 1000000) {
       return `${(tokens / 1000000).toFixed(1)}M`;
+    } else if (tokens >= 1000) {
+      return `${(tokens / 1000).toFixed(0)}K`;
     }
-    if (tokens >= 1000) {
-      return `${Math.round(tokens / 1000)}K`;
-    }
-    return `${tokens}`;
+    return tokens.toString();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
-        onClick={onClose}
-      />
-      
-      {/* Modal Panel */}
-      <div className="relative panel-modal w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border/20 bg-muted/30 rounded-t-2xl">
-          <div>
-            <h2 className="text-xl font-semibold text-heading">AI Models Marketplace</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Browse and select AI models for your conversations
-            </p>
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <CheckCircle className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Model Marketplace</h2>
+              <p className="text-sm text-muted-foreground">
+                Browse and select AI models from OpenRouter
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-all duration-200"
+            className="h-8 w-8 rounded-lg hover:bg-muted flex items-center justify-center"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
-        
-        <div className="flex flex-1 min-h-0">
-          {/* Filters Sidebar */}
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Filter Sidebar */}
           {showFilters && (
-            <div className="w-72 border-r border-border/20 p-6 overflow-y-auto bg-muted/20 scrollbar-modern">
+            <div className="w-64 border-r border-border bg-muted/30 p-4 overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-heading">Filters</h3>
+                <h3 className="font-medium">Filters</h3>
                 <button
                   onClick={resetFilters}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-all duration-200"
+                  className="text-xs text-muted-foreground hover:text-foreground"
                 >
                   Reset
                 </button>
               </div>
 
-              {/* Providers Filter */}
+              {/* Search */}
               <div className="mb-6">
-                <h4 className="text-sm font-medium mb-3">Providers</h4>
-                <div className="space-y-2">
-                  {providers.map(provider => (
+                <label className="block text-sm font-medium mb-2">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search models..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 border border-input rounded-md bg-background text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Providers */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-3">Providers</label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {providers.map((provider: string) => (
                     <label key={provider} className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={filters.providers.includes(provider)}
                         onChange={() => handleProviderToggle(provider)}
-                        className="rounded border-border"
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="text-sm">{provider}</span>
                     </label>
@@ -166,9 +202,27 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
                 </div>
               </div>
 
-              {/* Max Price Filter */}
+              {/* Context Length */}
               <div className="mb-6">
-                <h4 className="text-sm font-medium mb-3">Max Price (per 1K tokens)</h4>
+                <label className="block text-sm font-medium mb-2">
+                  Min Context Length: {formatContext(filters.contextLength)}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1000000"
+                  step="1000"
+                  value={filters.contextLength}
+                  onChange={(e) => setFilters(prev => ({ ...prev, contextLength: parseInt(e.target.value) }))}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Max Price */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  Max Price: ${filters.maxPrice === 0 ? 'Any' : filters.maxPrice.toFixed(4)}
+                </label>
                 <input
                   type="range"
                   min="0"
@@ -178,150 +232,49 @@ export function MarketplacePanel({ isOpen, onClose, selectedModels, onApplyModel
                   onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: parseFloat(e.target.value) }))}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>Free</span>
-                  <span>${filters.maxPrice.toFixed(3)}</span>
-                </div>
-              </div>
-
-              {/* Context Length Filter */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium mb-3">Min Context Length</h4>
-                <input
-                  type="range"
-                  min="0"
-                  max="1000000"
-                  step="10000"
-                  value={filters.contextLength}
-                  onChange={(e) => setFilters(prev => ({ ...prev, contextLength: parseInt(e.target.value) }))}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>Any</span>
-                  <span>{formatContext(filters.contextLength)} tokens</span>
-                </div>
               </div>
             </div>
           )}
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Search and Controls */}
-            <div className="p-6 border-b border-border/20 bg-muted/20">
-              <div className="flex items-center gap-3">
+          <div className="flex-1 flex flex-col">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="p-2 rounded-lg hover:bg-muted/30 transition-all duration-200"
-                  title={showFilters ? "Hide filters" : "Show filters"}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-input hover:bg-muted text-sm"
                 >
                   <Filter className="h-4 w-4" />
+                  {showFilters ? 'Hide Filters' : 'Show Filters'}
                 </button>
-                
-                <div className="flex-1 relative input-raised p-0">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                  <input
-                    type="text"
-                    placeholder="Search models, providers, or descriptions..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-transparent border-none focus:outline-none"
-                  />
-                </div>
-                
-                <div className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   {filteredModels.length} models found
-                </div>
+                </span>
               </div>
-            </div>
-
-            {/* Models Grid */}
-            <div className="flex-1 overflow-y-auto p-6 scrollbar-modern">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredModels.map(model => {
-                  const isSelected = selectedModelIds.includes(model.id);
-                  return (
-                    <div
-                      key={model.id}
-                      className={`relative p-4 rounded-lg border cursor-pointer transition-all ${
-                        isSelected 
-                          ? 'border-primary bg-primary/5 shadow-md' 
-                          : 'border hover:border-primary/50 hover:shadow-sm'
-                      }`}
-                      onClick={() => handleModelToggle(model.id)}
-                    >
-                      {isSelected && (
-                        <div className="absolute top-3 right-3 text-primary">
-                          <CheckCircle className="h-5 w-5" />
-                        </div>
-                      )}
-                      
-                      <div className="mb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-lg">{model.icon}</span>
-                              <h3 className="font-semibold text-sm">{model.name}</h3>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{model.provider.name}</p>
-                          </div>
-                          <div className="flex-shrink-0 ml-2">
-                            <span className="px-2 py-1 bg-muted rounded-full text-xs">
-                              {formatContext(model.context_length)} tokens
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                        {model.description}
-                      </p>
-                      
-                      <div className="space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Input:</span>
-                          <span className="font-mono">${model.pricing.prompt}/1M tokens</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Output:</span>
-                          <span className="font-mono">${model.pricing.completion}/1M tokens</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="p-6 border-t border-border/20 flex items-center justify-between bg-muted/30 rounded-b-2xl">
-              <div className="text-sm text-muted-foreground">
-                {selectedModelIds.length} model(s) selected
-                {selectedModelIds.length > 0 && (
-                  <button
-                    onClick={() => setSelectedModelIds([])}
-                    className="ml-2 text-primary hover:underline transition-all duration-200"
-                  >
-                    Clear selection
-                  </button>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 border border-input/50 rounded-lg hover:bg-muted/30 transition-all duration-200"
-                >
-                  Cancel
-                </button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {selectedModelIds.length} selected
+                </span>
                 <button
                   onClick={handleApply}
                   disabled={selectedModelIds.length === 0}
-                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                 >
                   Apply Selection
                 </button>
               </div>
             </div>
+
+            {/* Model List */}
+            <ModelList
+              models={filteredModels}
+              selectedModelIds={selectedModelIds}
+              onToggleSelect={handleModelToggle}
+              loading={loading}
+              emptyMessage="No models found matching your criteria"
+              className="flex-1"
+            />
           </div>
         </div>
       </div>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { X, Settings, ChevronDown, ChevronRight, Zap, Search } from "lucide-react";
-import { availableModels, AIModel } from "@/data/models";
+import { AIModel } from "@/data/models";
+import { modelsAPI } from "@/lib/api";
 
 interface ModelPanelProps {
   isOpen: boolean;
@@ -21,23 +22,51 @@ export function ModelPanel({
   onOpenMarketplace,
   selectedMarketplaceModels = []
 }: ModelPanelProps) {
-  // Provide fallback to first available model if selectedModel is null
-  const currentModel = selectedModel || availableModels[0];
+  const [models, setModels] = useState<AIModel[]>([]);
+  const [loading, setLoading] = useState(false);
   
-  const [selectedModelId, setSelectedModelId] = useState(currentModel?.id || availableModels[0]?.id);
+  // Provide fallback to first model if selectedModel is null
+  const currentModel = selectedModel || models[0];
+  
+  const [selectedModelId, setSelectedModelId] = useState(currentModel?.id || "");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(currentModel?.maxTokens || 8192);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Load models from OpenRouter on mount
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        setLoading(true);
+        const response = await modelsAPI.getModels();
+        if (response.models) {
+          setModels(response.models);
+          // Set initial selected model if none is set
+          if (!selectedModelId && response.models.length > 0) {
+            setSelectedModelId(response.models[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load models:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      loadModels();
+    }
+  }, [isOpen, selectedModelId]);
+
   // Combine default models with marketplace models
   const allModels = useMemo(() => {
-    const defaultModels = availableModels;
+    const defaultModels = models;
     const marketplaceModels = selectedMarketplaceModels.filter(
-      m => !defaultModels.find(dm => dm.id === m.id)
+      (m: AIModel) => !defaultModels.find((dm: AIModel) => dm.id === m.id)
     );
     return [...defaultModels, ...marketplaceModels];
-  }, [selectedMarketplaceModels]);
+  }, [models, selectedMarketplaceModels]);
 
   // Filter models based on search query
   const filteredModels = allModels.filter(model => 

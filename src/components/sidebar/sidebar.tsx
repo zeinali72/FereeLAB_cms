@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import { MoreVertical, Plus, Search, Settings, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import ConversationList from "./conversation-list";
-import AgentsList from "./agents-list";
 import { UserMenuPanel } from "@/components/modals/user-menu-panel";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +15,7 @@ interface SidebarProps {
 export function Sidebar({ onOpenSettings, onNewConversation }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeSection, setActiveSection] = useState<"chat" | "agents">("chat");
+  const [activeSection, setActiveSection] = useState<"chat">("chat");
   const [isToggled, setIsToggled] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [userMenuPosition, setUserMenuPosition] = useState({ top: 0, right: 0 });
@@ -96,41 +95,16 @@ export function Sidebar({ onOpenSettings, onNewConversation }: SidebarProps) {
         </div>
       </div>
 
-      {/* Section Tabs */}
-      <div className="flex border-b border-border">
-        <button
-          className={cn(
-            "flex-1 py-2 text-sm font-medium transition-colors border-b-2",
-            activeSection === "chat"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          )}
-          onClick={() => {
-            setActiveSection("chat");
-            console.log('Switched to Chat section');
-          }}
-        >
-          Chat
-        </button>
-        <button
-          className={cn(
-            "flex-1 py-2 text-sm font-medium transition-colors border-b-2",
-            activeSection === "agents"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          )}
-          onClick={() => {
-            setActiveSection("agents");
-            console.log('Switched to Agents section');
-          }}
-        >
-          Agents
-        </button>
+      {/* Section Tabs - Removed for simplicity */}
+      <div className="border-b border-border">
+        <div className="py-2 px-4">
+          <h3 className="text-sm font-medium text-primary">Chat History</h3>
+        </div>
       </div>
 
       {/* Conversations and Agents Lists */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {activeSection === "chat" ? <ConversationList /> : <AgentsList />}
+        <ConversationList />
       </div>
 
       {/* User Profile Section */}

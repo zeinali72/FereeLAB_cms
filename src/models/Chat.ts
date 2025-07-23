@@ -61,11 +61,32 @@ const ChatSchema = new mongoose.Schema({
 // Update the updatedAt field before saving
 ChatSchema.pre('save', function(next) {
   this.updatedAt = new Date();
+  
+  // Ensure userId is set
+  if (!this.userId) {
+    return next(new Error('userId is required'));
+  }
+  
   next();
 });
 
-// Create indexes
+// Create indexes for better performance and security
 ChatSchema.index({ userId: 1, createdAt: -1 });
 ChatSchema.index({ userId: 1, isActive: 1 });
+ChatSchema.index({ userId: 1, _id: 1 }); // Compound index for secure lookups
+
+// Static method to find chats securely by user
+ChatSchema.statics.findByUser = function(userId: string, options: any = {}) {
+  return this.find({ 
+    userId, 
+    isActive: true,
+    ...options 
+  });
+};
+
+// Instance method to check if user owns this chat
+ChatSchema.methods.isOwnedBy = function(userId: string) {
+  return this.userId.toString() === userId;
+};
 
 export const Chat = mongoose.models.Chat || mongoose.model('Chat', ChatSchema);

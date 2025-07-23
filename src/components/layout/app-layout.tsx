@@ -11,14 +11,6 @@ const dummyConversations = [
   { id: "3", title: "Conversation 3", timestamp: new Date(Date.now() - 7200000) },
 ];
 
-const dummyAgents = [
-  { id: "agent1", name: "Chat", icon: "MessageCircle" },
-  { id: "agent2", name: "Deep Research", icon: "Search" },
-  { id: "agent3", name: "Web Creator", icon: "Code" },
-  { id: "agent4", name: "AI Writer", icon: "FileEdit" },
-  { id: "agent5", name: "AI Slides", icon: "LayoutPresentation" },
-];
-
 interface Message {
   id: string;
   role: "user" | "assistant" | "system";
@@ -80,7 +72,6 @@ export function AppLayout() {
     <div className="flex h-screen bg-background">
       <Sidebar
         conversations={conversations}
-        agents={dummyAgents}
         activeConversationId={activeConversationId}
         onNewConversation={handleNewConversation}
         onSwitchConversation={setActiveConversationId}
@@ -89,8 +80,6 @@ export function AppLayout() {
       />
       
       <ChatArea
-        messages={messages}
-        onSendMessage={handleSendMessage}
         sidebarOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
       />

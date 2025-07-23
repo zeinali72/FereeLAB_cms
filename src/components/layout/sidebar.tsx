@@ -22,15 +22,8 @@ interface Conversation {
   timestamp: Date;
 }
 
-interface Agent {
-  id: string;
-  name: string;
-  icon: string;
-}
-
 interface SidebarProps {
   conversations: Conversation[];
-  agents: Agent[];
   activeConversationId: string | null;
   onNewConversation: () => void;
   onSwitchConversation: (id: string) => void;
@@ -40,7 +33,6 @@ interface SidebarProps {
 
 export default function Sidebar({
   conversations,
-  agents,
   activeConversationId,
   onNewConversation,
   onSwitchConversation,
@@ -103,28 +95,6 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Agents section */}
-      <div className="p-2">
-        <h2 className="text-xs uppercase text-muted-foreground font-medium mb-2 px-2">Agents</h2>
-        <div className="space-y-1">
-          {agents.map((agent) => (
-            <button
-              key={agent.id}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted text-sm"
-            >
-              <span className="text-muted-foreground">{getIconComponent(agent.icon)}</span>
-              <span>{agent.name}</span>
-            </button>
-          ))}
-          <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted text-sm">
-            <span className="text-muted-foreground">
-              <span className="flex items-center justify-center w-5 h-5">···</span>
-            </span>
-            <span>More</span>
-          </button>
-        </div>
-      </div>
-      
       {/* Wisebase section */}
       <div className="p-2 mt-2">
         <div className="flex items-center justify-between px-2 mb-2">
