@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SessionProvider } from "@/components/auth/SessionProvider";
 
 // Temporary fallback to system fonts due to Google Fonts access issue
 // const plusJakartaSans = Plus_Jakarta_Sans({
@@ -27,14 +28,16 @@ export default function RootLayout({
         className="antialiased font-sans"
         suppressHydrationWarning
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
