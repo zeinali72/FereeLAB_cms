@@ -12,6 +12,8 @@ import { SettingsPanel } from "@/components/modals/settings-panel";
 import { UserMenuPanel } from "@/components/modals/user-menu-panel";
 import { ResizablePanel } from "@/components/shared/resizable-panel";
 import { usePanels, Message } from "@/hooks/use-panels";
+import { useChatManager } from "@/hooks/useChatManager";
+import { useUIStore } from "@/store/useUIStore";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { MarkdownCanvas } from "./shared/markdown-canvas";
@@ -20,17 +22,14 @@ import { HelpButton } from "./shared/help-button";
 import { AttachmentPanel } from "./shared/progressive-blur-backdrop";
 
 export function ThreePanelLayout() {
-  // Use the comprehensive panels hook
+  // Use the comprehensive panels hook for UI state
   const {
     // Panel state
     panels,
     dimensions,
     
-    // Chat state
+    // Chat state (keeping some for compatibility)
     chat,
-    
-    // Project state
-    projects,
     
     // Panel actions
     toggleSidebar,
@@ -42,29 +41,57 @@ export function ThreePanelLayout() {
     handleSidebarResize,
     handleCanvasResize,
     
-    // Chat actions
-    sendMessage,
+    // Chat actions from old hook (some will be replaced)
     editMessage,
     regenerateMessage,
-    replyToMessage,
-    cancelReply,
+    // replyToMessage, // Now using from chat manager
+    // cancelReply,   // Now using from chat manager
     handleApplyModels,
-    startNewConversation,
     
-    // Project actions
+    // Project state
+    projects,
     projectActions,
     switchToProjectChat,
   } = usePanels();
+
+  // Use the new chat manager for actual chat functionality
+  const {
+    messages,
+    selectedModel,
+    models,
+    isLoading,
+    isStreaming,
+    conversations,
+    currentConversation,
+    replyTo,
+    sendMessage,
+    setSelectedModel,
+    startNewConversation,
+    switchToConversation,
+    deleteConversation,
+    replyToMessage,
+    cancelReply,
+  } = useChatManager();
+
+  // UI store for additional UI state
+  const { 
+    showLoginModal,
+    showSignupModal,
+    setShowLoginModal,
+    setShowSignupModal 
+  } = useUIStore();
 
   const { theme, setTheme } = useTheme();
   const [isMobile, setIsMobile] = useState(false);
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [userMenuPosition, setUserMenuPosition] = useState({ top: 0, right: 0 });
   const [attachmentPanelOpen, setAttachmentPanelOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   
   // Determine if this is a new conversation (no messages)
-  const isNewConversation = chat.messages.length === 0;
+  const isNewConversation = messages.length === 0;
+  
+  // Check if processing (loading or streaming)
+  const isProcessing = isLoading || isStreaming;
 
   // Handle responsive behavior
   useEffect(() => {
@@ -120,14 +147,12 @@ export function ThreePanelLayout() {
     setAttachmentPanelOpen(false);
   };
 
-  // Simulate processing state for demo
+  // Handle message sending with our new chat manager
   const handleSendWithProcessing = async (message: string) => {
-    setIsProcessing(true);
     try {
       await sendMessage(message);
-    } finally {
-      // Simulate processing delay
-      setTimeout(() => setIsProcessing(false), 2000);
+    } catch (error) {
+      console.error('Failed to send message:', error);
     }
   };
   
@@ -187,7 +212,7 @@ export function ThreePanelLayout() {
         {/* Chat Header */}
         <ChatHeader
           title="FereeLAB Chat"
-          currentModel={chat.selectedModel}
+          currentModel={selectedModel}
           onToggleModelPanel={toggleModelPanel}
           onNewConversation={handleNewConversation}
           onToggleSidebar={toggleSidebar}
@@ -226,13 +251,13 @@ export function ThreePanelLayout() {
               </div>
             ) : (
               <ChatLog
-                messages={chat.messages}
+                messages={messages}
                 onEditMessage={editMessage}
                 onRegenerate={regenerateMessage}
                 onReply={replyToMessage}
                 onAssignToProject={handleAssignToProject}
                 onQuoteInReply={handleQuoteInReply}
-                replyTo={chat.replyTo}
+                replyTo={replyTo}
                 onSuggestionClick={(suggestion) => {
                   handleSendWithProcessing(suggestion);
                 }}
@@ -245,11 +270,11 @@ export function ThreePanelLayout() {
             <div className="max-w-4xl mx-auto">
               <ChatInput
                 onSendMessage={handleSendWithProcessing}
-                selectedModel={chat.selectedModel}
-                replyTo={chat.replyTo ? {
-                  id: chat.replyTo.id,
-                  content: chat.replyTo.content,
-                  role: chat.replyTo.role
+                selectedModel={selectedModel}
+                replyTo={replyTo ? {
+                  id: replyTo.id,
+                  content: replyTo.content,
+                  role: replyTo.role
                 } : undefined}
                 onCancelReply={cancelReply}
                 onToggleCanvas={toggleCanvas}
@@ -282,7 +307,7 @@ export function ThreePanelLayout() {
             <MarkdownCanvas
               isOpen={panels.canvas}
               onClose={toggleCanvas}
-              messages={chat.messages}
+              messages={messages}
             />
           </ResizablePanel>
         </div>
@@ -294,7 +319,7 @@ export function ThreePanelLayout() {
           <MarkdownCanvas
             isOpen={panels.canvas}
             onClose={toggleCanvas}
-            messages={chat.messages}
+            messages={messages}
           />
         </div>
       )}
@@ -303,7 +328,7 @@ export function ThreePanelLayout() {
       <ModelPanel
         isOpen={panels.modelPanel}
         onClose={toggleModelPanel}
-        selectedModel={chat.selectedModel}
+        selectedModel={selectedModel}
         onModelSelect={(model) => {
           // Handle model selection through the panels hook
           handleApplyModels([model]);
