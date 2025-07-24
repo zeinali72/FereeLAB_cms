@@ -98,6 +98,15 @@ export function ChatMessage({
     }
   }, [isEditing]);
 
+  // Cleanup text-to-speech on component unmount
+  useEffect(() => {
+    return () => {
+      if (isPlaying) {
+        speechSynthesis.cancel();
+      }
+    };
+  }, [isPlaying]);
+
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(message.content);
     setIsCopied(true);
@@ -465,7 +474,7 @@ export function ChatMessage({
         <div className={cn(
           "flex flex-wrap items-center mt-2 gap-1 text-xs text-muted-foreground transition-opacity",
           isUser ? "justify-end flex-row-reverse" : "",
-          showControls ? "opacity-100" : "opacity-0 md:opacity-60"
+          "opacity-100" // Always visible instead of hover-dependent
         )}>
           {/* Metadata */}
           <div className={cn(
@@ -484,7 +493,7 @@ export function ChatMessage({
           <motion.div 
             className="flex items-center gap-1"
             initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: showControls ? 1 : 0, scale: showControls ? 1 : 0.8 }}
+            animate={{ opacity: 1, scale: 1 }} // Always visible
             transition={{ duration: 0.2 }}
           >
             {isUser ? (
