@@ -22,14 +22,11 @@ import { HelpButton } from "./shared/help-button";
 import { AttachmentPanel } from "./shared/progressive-blur-backdrop";
 
 export function ThreePanelLayout() {
-  // Use the comprehensive panels hook for UI state
+  // Use the comprehensive panels hook for UI state only
   const {
     // Panel state
     panels,
     dimensions,
-    
-    // Chat state (keeping some for compatibility)
-    chat,
     
     // Panel actions
     toggleSidebar,
@@ -41,20 +38,13 @@ export function ThreePanelLayout() {
     handleSidebarResize,
     handleCanvasResize,
     
-    // Chat actions from old hook (some will be replaced)
-    editMessage,
-    regenerateMessage,
-    // replyToMessage, // Now using from chat manager
-    // cancelReply,   // Now using from chat manager
-    handleApplyModels,
-    
-    // Project state
+    // Project state (keeping for compatibility, but will be moved to separate hook)
     projects,
     projectActions,
     switchToProjectChat,
   } = usePanels();
 
-  // Use the new chat manager for actual chat functionality
+  // Use the new chat manager as the SINGLE source of truth for all chat functionality
   const {
     messages,
     selectedModel,
@@ -71,6 +61,8 @@ export function ThreePanelLayout() {
     deleteConversation,
     replyToMessage,
     cancelReply,
+    editMessage,
+    regenerateMessage,
   } = useChatManager();
 
   // UI store for additional UI state
@@ -145,6 +137,11 @@ export function ThreePanelLayout() {
     console.log('Attaching file from:', source);
     // TODO: Implement file attachment based on source
     setAttachmentPanelOpen(false);
+  };
+
+  const handleModelSelect = (model: any) => {
+    setSelectedModel(model);
+    toggleModelPanel(); // Close the panel after selection
   };
 
   // Handle message sending with our new chat manager
@@ -329,19 +326,21 @@ export function ThreePanelLayout() {
         isOpen={panels.modelPanel}
         onClose={toggleModelPanel}
         selectedModel={selectedModel}
-        onModelSelect={(model) => {
-          // Handle model selection through the panels hook
-          handleApplyModels([model]);
-        }}
+        onModelSelect={handleModelSelect}
         onOpenMarketplace={toggleMarketplace}
-        selectedMarketplaceModels={chat.marketplaceModels}
+        selectedMarketplaceModels={[]} // Remove dependency on old chat state
       />
 
       <MarketplacePanel
         isOpen={panels.marketplace}
         onClose={toggleMarketplace}
-        selectedModels={chat.marketplaceModels.map(m => m.id)}
-        onApplyModels={handleApplyModels}
+        selectedModels={[]} // Remove dependency on old chat state
+        onApplyModels={(models) => {
+          if (models.length > 0) {
+            setSelectedModel(models[0]);
+          }
+          toggleMarketplace();
+        }}
       />
 
       <UserMenuPanel

@@ -5,11 +5,13 @@ import { useSession } from "next-auth/react";
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
+import { useToast } from "@/components/ui/toast";
 import { chatAPI, modelsAPI, handleStreamingResponse } from "@/lib/api";
 
 export function useChatManager() {
   const { data: session } = useSession();
   const { user, setUser } = useAuthStore();
+  const { addToast } = useToast();
   const {
     messages,
     selectedModel,
@@ -285,6 +287,13 @@ export function useChatManager() {
           const finalConversations = [newConversation, ...conversations];
           setConversations(finalConversations);
           
+          // Show success notification
+          addToast({
+            message: "New conversation created successfully!",
+            type: "success",
+            duration: 2000
+          });
+          
         } catch (error) {
           console.error('Failed to create new conversation on server:', error);
           
@@ -292,8 +301,12 @@ export function useChatManager() {
           setCurrentConversation(null);
           setConversations(conversations);
           
-          // Show error notification (could be enhanced with a toast system)
-          console.error('Failed to create new conversation. Please try again.');
+          // Show error notification
+          addToast({
+            message: "Failed to create new conversation. Please try again.",
+            type: "error",
+            duration: 4000
+          });
         }
       } else {
         // For unauthenticated users, just create local conversation
@@ -344,6 +357,154 @@ export function useChatManager() {
     startNewConversation,
   ]);
 
+  // Edit message functionality
+  const editMessage = useCallback((messageId: string, newContent: string) => {
+    setMessages(prevMessages => 
+      prevMessages.map(msg => 
+        msg.id === messageId ? { ...msg, content: newContent } : msg
+      )
+    );
+  }, [setMessages]);
+
+  // Regenerate message functionality
+  const regenerateMessage = useCallback(async (messageId: string) => {
+    const messageIndex = messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex !== -1 && messages[messageIndex].role === 'assistant') {
+      try {
+        setStreaming(true);
+        setGlobalLoading(true);
+
+        // Get all messages up to the one being regenerated
+        const previousMessages = messages.slice(0, messageIndex);
+        
+        // Prepare messages for API
+        const apiMessages = previousMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+        }));
+
+        // Send streaming request for regeneration
+        const response = await chatAPI.sendMessageStream({
+          messages: apiMessages,
+          model: selectedModel,
+        });
+
+        let fullContent = '';
+        const newMessageId = `msg_${Date.now()}_regenerated`;
+
+        // Create new regenerated message
+        const regeneratedMessage = {
+          id: newMessageId,
+          role: 'assistant' as const,
+          content: '',
+          timestamp: new Date(),
+          isStreaming: true,
+          model: selectedModel?.id,
+        };
+
+        // Replace the old message with the new one
+        setMessages(prevMessages => [
+          ...prevMessages.slice(0, messageIndex),
+          regeneratedMessage,
+          ...prevMessages.slice(messageIndex + 1)
+        ]);
+
+        // Handle streaming response
+        await handleStreamingResponse(
+          response,
+          (chunk: string) => {
+            fullContent += chunk;
+            setMessages(prevMessages => 
+              prevMessages.map(msg => 
+                msg.id === newMessageId ? { ...msg, content: fullContent } : msg
+              )
+            );
+          },
+          () => {
+            // Streaming complete
+            setMessages(prevMessages => 
+              prevMessages.map(msg => 
+                msg.id === newMessageId ? { ...msg, content: fullContent, isStreaming: false } : msg
+              )
+            );
+            setStreaming(false);
+          },
+          (error: Error) => {
+            console.error('Regeneration error:', error);
+            setMessages(prevMessages => 
+              prevMessages.map(msg => 
+                msg.id === newMessageId ? { ...msg, content: 'Sorry, an error occurred while regenerating the message.', isStreaming: false } : msg
+              )
+            );
+            setStreaming(false);
+          }
+        );
+
+        // Save updated conversation to database if user is authenticated
+        if (session?.user?.id && currentConversation) {
+          try {
+            const updatedMessages = messages.map((msg, idx) => 
+              idx === messageIndex ? { ...msg, content: fullContent, isStreaming: false } : msg
+            );
+
+            await chatAPI.updateChat({
+              chatId: currentConversation.id,
+              messages: updatedMessages,
+            });
+          } catch (error) {
+            console.error('Failed to save regenerated conversation:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to regenerate message:', error);
+        setStreaming(false);
+      } finally {
+        setGlobalLoading(false);
+      }
+    }
+  }, [messages, selectedModel, session?.user?.id, currentConversation, setMessages, setStreaming, setGlobalLoading]);
+
+  // Rename conversation
+  const renameConversation = useCallback(async (conversationId: string, newTitle: string) => {
+    if (!session?.user?.id) return;
+
+    try {
+      // Update local state immediately for better UX
+      setConversations(prevConversations => 
+        prevConversations.map(conv => 
+          conv.id === conversationId ? { ...conv, title: newTitle } : conv
+        )
+      );
+
+      // Update current conversation if it's the one being renamed
+      if (currentConversation?.id === conversationId) {
+        setCurrentConversation(prev => prev ? { ...prev, title: newTitle } : null);
+      }
+
+      // Update on server
+      await chatAPI.updateChat({
+        chatId: conversationId,
+        title: newTitle,
+      });
+
+      addToast({
+        message: "Conversation renamed successfully!",
+        type: "success",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Failed to rename conversation:', error);
+      
+      // Revert local changes on error
+      // We could fetch fresh data here, but for now just show an error
+      addToast({
+        message: "Failed to rename conversation. Please try again.",
+        type: "error",
+        duration: 4000
+      });
+    }
+  }, [session?.user?.id, currentConversation, setConversations, setCurrentConversation, addToast]);
+
   // Reply functionality
   const replyToMessage = useCallback((message: any) => {
     setReplyTo(replyTo?.id === message.id ? null : message);
@@ -370,7 +531,10 @@ export function useChatManager() {
     startNewConversation,
     switchToConversation,
     deleteConversation,
+    renameConversation,
     replyToMessage,
     cancelReply,
+    editMessage,
+    regenerateMessage,
   };
 }
