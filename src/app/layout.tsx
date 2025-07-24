@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "@/components/auth/SessionProvider";
+import { GlobalLoadingIndicator } from "@/components/ui/global-loading-indicator";
 
 // Temporary fallback to system fonts due to Google Fonts access issue
 // const plusJakartaSans = Plus_Jakarta_Sans({
@@ -35,6 +36,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <GlobalLoadingIndicator />
             {children}
           </ThemeProvider>
         </SessionProvider>

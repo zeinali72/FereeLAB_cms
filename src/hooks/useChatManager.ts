@@ -127,7 +127,7 @@ export function useChatManager() {
     };
 
     loadChatHistory();
-  }, [session?.user?.id, setLoading, setConversations, setCurrentConversation, currentConversation]);
+  }, [session?.user?.id, setLoading, setConversations, setCurrentConversation]);
 
   // Send message with streaming support
   const sendMessage = useCallback(async (content: string, file?: File) => {
@@ -248,22 +248,53 @@ export function useChatManager() {
   // Start new conversation
   const startNewConversation = useCallback(async () => {
     try {
-      // Clear current messages immediately
+      // Clear current messages immediately for better UX
       setMessages([]);
       setCurrentConversation(null);
       
-      // If user is authenticated, create a new chat in the database
+      // If user is authenticated, create a new chat in the database with optimistic UI
       if (session?.user?.id) {
-        const newConversation = await chatAPI.createChat({
+        // Create optimistic conversation
+        const optimisticConversation = {
+          id: `temp-${Date.now()}`,
           title: 'New Chat',
           messages: [],
           model: selectedModel,
-        });
+          userId: session.user.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isActive: true,
+          isPending: true // Mark as pending
+        };
         
-        // Update local state
-        setCurrentConversation(newConversation);
-        const updatedConversations = [newConversation, ...conversations];
+        // Update UI immediately
+        setCurrentConversation(optimisticConversation);
+        const updatedConversations = [optimisticConversation, ...conversations];
         setConversations(updatedConversations);
+        
+        try {
+          // Create actual conversation on server
+          const newConversation = await chatAPI.createChat({
+            title: 'New Chat',
+            messages: [],
+            model: selectedModel,
+          });
+          
+          // Replace optimistic conversation with real one
+          setCurrentConversation(newConversation);
+          const finalConversations = [newConversation, ...conversations];
+          setConversations(finalConversations);
+          
+        } catch (error) {
+          console.error('Failed to create new conversation on server:', error);
+          
+          // Revert optimistic update
+          setCurrentConversation(null);
+          setConversations(conversations);
+          
+          // Show error notification (could be enhanced with a toast system)
+          console.error('Failed to create new conversation. Please try again.');
+        }
       } else {
         // For unauthenticated users, just create local conversation
         createNewConversation();
